@@ -13,68 +13,60 @@ User = get_user_model()
 
 class UserRegistrationSerializer(UserCreateSerializer):
     mobile_phone = serializers.CharField(required=True)
-    profile_picture = serializers.ImageField(required=False)
+    avatar = serializers.ImageField(required=False)
 
     class Meta:
+        # TODO: Add date of birth
         model = User
         fields = [
-            "first_name",
-            "last_name",
-            "email",
+            "display_nameemail",
             "password",
             "confirm_password",
             "mobile_phone",
-            "profile_picture",
+            "avatar",
         ]
-        extra_kwargs = {
-            "first_name": {"required": True},
-            "last_name": {"required": True},
-            "password": {"write_only": True},
-        }
 
     def create(self, validated_data):
-        profile_picture = validated_data.pop("profile_picture", None)
+        avatar = validated_data.pop("avatar", None)
         user = super().create(validated_data)
 
-        if profile_picture:
-            user.profile_picture = profile_picture
+        if avatar:
+            user.avatar = avatar
             user.save()
 
         return user
 
 
 class UserSerializer(BaseUserSerializer):
-    profile_picture = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
 
     class Meta(BaseUserSerializer.Meta):
         model = User
         fields = [
             "id",
             "email",
+            "display_name",
             "username",
-            "first_name",
-            "last_name",
             "mobile_phone",
-            "profile_picture",
+            "avatar",
             "created_at",
         ]
         read_only_fields = ["id", "email"]
 
-    def get_profile_picture(self, obj):
+    def get_avatar(self, obj):
         request = self.context.get("request")
         if request:
             try:
-                obj.profile_picture.url
+                obj.avatar.url
             except ValueError:
                 return None
 
-            return request.build_absolute_uri(obj.profile_picture.url)
-        return obj.profile_picture.url
+            return request.build_absolute_uri(obj.avatar.url)
+        return obj.avatar.url
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    total_donations = serializers.SerializerMethodField()
-    total_projects_donated = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
 
     class Meta(BaseUserSerializer.Meta):
         model = User
@@ -82,29 +74,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "username",
-            "first_name",
-            "last_name",
+            "display_name",
             "mobile_phone",
-            "profile_picture",
+            "avatar",
             "date_of_birth",
-            "facebook",
             "country",
+            "followers",
             "created_at",
-            "total_donations",
-            "total_projects_donated",
-            "is_staff",
         ]
-        read_only_fields = ["id", "email", "created_at", "is_staff"]
+        read_only_fields = ["id", "email", "created_at"]
 
-    def get_profile_picture(self, obj):
+    def get_avatar(self, obj):
         request = self.context.get("request")
         if request:
             try:
-                obj.profile_picture.url
+                obj.avatar.url
             except ValueError:
                 return None
-            return request.build_absolute_uri(obj.profile_picture.url)
-        return obj.profile_picture.url
+            return request.build_absolute_uri(obj.avatar.url)
+        return obj.avatar.url
 
     def validate_username(self, value):
         if len(value) < 3:
@@ -129,23 +117,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Enter a valid Egyptian mobile number.")
         return value
 
-    def validate_facebook(self, value):
-        if value and not value.startswith("https://www.facebook.com/"):
-            raise serializers.ValidationError(
-                "Facebook URL must start with https://www.facebook.com/"
-            )
-        return value
-
     def validate_country(self, value):
         if value and not value.strip():
             raise serializers.ValidationError("Country must not be blank.")
         return value
 
-    def get_total_donations(self, obj):
-        return obj.get_total_donations()
-
-    def get_total_projects_donated(self, obj):
-        return obj.get_total_projects_donated()
+    def get_followers(self, obj):
+        return obj.get_followers
 
 
 class TokenObtainPairSerializer(TokenObtainPairSerializer):

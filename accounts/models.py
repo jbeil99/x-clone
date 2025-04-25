@@ -19,26 +19,34 @@ class User(AbstractUser):
         validators=[egyptian_phone_validator],
         blank=False,
     )
-    profile_picture = models.ImageField(
-        upload_to="media/profile_pics", default="medial/default_profile_400x400.png"
+    avatar = models.ImageField(
+        upload_to="media/profile_pics", default="default_profile_400x400.png"
     )
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     date_of_birth = models.DateField(null=True, blank=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     display_name = models.CharField(max_length=50)
+    following = models.ManyToManyField(
+        "self", symmetrical=False, related_name="followed", blank=True
+    )
+    bio = models.CharField(max_length=255, blank=True)
+    cover_image = models.ImageField(default="cover.png")
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
         "username",
         "mobile_phone",
         "display_name",
+        "date_of_birth",
     ]
 
-    def get_total_donations(self):
-        return self.donations.aggregate(total=models.Sum("amount"))["total"] or 0
-
-    def get_total_projects_donated(self):
-        return self.donations.values("project").distinct().count()
+    @property
+    def get_followers(self):
+        return [
+            {"username": user.username, "avatar": user.avatar.url}
+            for user in self.followed.all()
+        ]
 
 
 class ActivationToken(models.Model):
