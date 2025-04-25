@@ -1,18 +1,50 @@
 // RegisterForm.jsx
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { User, Mail, Calendar, AtSign, Lock } from 'lucide-react';
 import { FaXTwitter } from "react-icons/fa6";
 
-export default function RegisterForm({ toggleForm }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [birthdate, setBirthdate] = useState('');
+const registerSchema = z.object({
+  name: z.string().min(3, { message: "Name must be at least 3 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  birthdate: z.string().refine(date => {
+    const selectedDate = new Date(date);
+    const today = new Date();
+    const age = today.getFullYear() - selectedDate.getFullYear();
+    return age >= 13;
+  }, { message: "You must be at least 13 years old to register" }),
+  username: z.string()
+    .min(3, { message: "Username must be at least 3 characters" })
+    .max(15, { message: "Username must not exceed 15 characters" })
+    .regex(/^[a-zA-Z0-9_]+$/, { message: "Username can only contain letters, numbers and underscores" }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" })
+});
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Registration attempted!");
+export default function RegisterForm({ toggleForm }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      birthdate: '',
+      username: '',
+      password: ''
+    }
+  });
+
+  const onSubmit = (data) => {
+    console.log(data);
+    alert("Registration successful!");
   };
 
   return (
@@ -26,18 +58,19 @@ export default function RegisterForm({ toggleForm }) {
           Create your account
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-4">
             <div className="relative">
               <User className="absolute top-3 left-3 text-gray-500" size={18} />
               <input
                 type="text"
                 placeholder="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                {...register("name")}
                 className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-                required
               />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              )}
             </div>
 
             <div className="relative">
@@ -45,11 +78,12 @@ export default function RegisterForm({ toggleForm }) {
               <input
                 type="email"
                 placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register("email")}
                 className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-                required
               />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="relative">
@@ -57,11 +91,12 @@ export default function RegisterForm({ toggleForm }) {
               <input
                 type="date"
                 placeholder="Birth date"
-                value={birthdate}
-                onChange={(e) => setBirthdate(e.target.value)}
+                {...register("birthdate")}
                 className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 text-gray-400"
-                required
               />
+              {errors.birthdate && (
+                <p className="text-red-500 text-sm mt-1">{errors.birthdate.message}</p>
+              )}
             </div>
           </div>
 
@@ -70,11 +105,12 @@ export default function RegisterForm({ toggleForm }) {
             <input
               type="text"
               placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              {...register("username")}
               className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-              required
             />
+            {errors.username && (
+              <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>
+            )}
           </div>
 
           <div className="relative">
@@ -82,11 +118,12 @@ export default function RegisterForm({ toggleForm }) {
             <input
               type="password"
               placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register("password")}
               className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-              required
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+            )}
           </div>
 
           <button
