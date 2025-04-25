@@ -20,21 +20,18 @@ class User(AbstractUser):
         blank=False,
     )
     profile_picture = models.ImageField(
-        upload_to="media/profile_pics",
+        upload_to="media/profile_pics", default="medial/default_profile_400x400.png"
     )
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    facebook = models.URLField(max_length=200, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
-
+    display_name = models.CharField(max_length=50)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
         "username",
-        "first_name",
-        "last_name",
         "mobile_phone",
-        "profile_picture",
+        "display_name",
     ]
 
     def get_total_donations(self):

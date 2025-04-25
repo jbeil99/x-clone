@@ -1,0 +1,42 @@
+{% load i18n %}
+
+{% block subject %}
+{% trans "Account activation" %}
+{% endblock %}
+
+{% block text_body %}
+{% trans "You're receiving this email because you need to finish activation process." %}
+
+{% trans "Please go to the following page to activate your account:" %}
+{{ protocol }}://{{ domain }}/{{ url|safe }}
+
+{% trans "Thanks for using our site!" %}
+
+{% trans "The team" %}
+{% endblock %}
+
+{% block html_body %}
+<div class="container">
+    <div class="header">
+        <div class="logo">YOUR LOGO</div>
+    </div>
+
+    <h2>{% trans "Activate your account" %}</h2>
+
+    <p>{% trans "You're receiving this email because you need to finish activation process." %}</p>
+
+    <div class="btn-container">
+        <a href="{{ protocol }}://{{ domain }}/{{ url|safe }}" class="btn">
+            {% trans "Activate My Account" %}
+        </a>
+    </div>
+
+    <div class="divider"></div>
+
+    <p>{% trans "If you didn't create an account with us, you can safely ignore this email." %}</p>
+
+    <div class="footer">
+        {% trans "The team" %}
+    </div>
+</div>
+{% endblock %}
