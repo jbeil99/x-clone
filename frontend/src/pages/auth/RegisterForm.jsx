@@ -72,11 +72,11 @@ export default function RegisterForm({ toggleForm }) {
     try {
       const result = await registerUser(submitData);
       if (result) {
-        navigate("/login");
         toast(`Registration successful! check ${result.email} to activate the account`);
+        toggleForm();
+
       }
     } catch (error) {
-      console.log(error.response.data);
       for (const k in error.response.data) {
         if (k === 'non_field_errors') {
           setBackErrors(error.response.data);
