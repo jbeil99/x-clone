@@ -17,10 +17,12 @@ export const login = async (data) => {
 
     sessionStorage.setItem('access', access)
     sessionStorage.setItem('refresh', refresh)
+    const user = await currentUser()
+    return user
 }
 
 
 export const currentUser = async () => {
-    const res = await authAxios.get(`/users/me`)
+    const res = await authAxios.get(`auth/users/me`)
     return res.data
 }

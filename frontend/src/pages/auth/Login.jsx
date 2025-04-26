@@ -1,18 +1,34 @@
 import { useState } from 'react';
 import { AtSign, Lock } from 'lucide-react';
 import { FaXTwitter } from "react-icons/fa6";
+import { login } from "../../api/users"
+import { toast } from 'react-toastify';
 
 export default function Login({ isLogin, setIsLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState([]);
 
   const toggleForm = () => {
     setIsLogin(!isLogin);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Login attempted!");
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const res = await login({
+        email, password
+      })
+      if (res) {
+        setErrors()
+        toast(`Welcome ${res.display_name}!`)
+      }
+
+    } catch (error) {
+      for (const k in error.response.data) {
+        setErrors(error.response.data[k].join("/n"))
+      }
+    }
   };
 
   return (
@@ -27,6 +43,7 @@ export default function Login({ isLogin, setIsLogin }) {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {errors ? <p className="text-red-500 text-sm mt-1">{errors}</p> : ''}
           <div className="relative">
             <AtSign className="absolute top-3 left-3 text-gray-500" size={18} />
             <input
