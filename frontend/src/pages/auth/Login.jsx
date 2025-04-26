@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { Twitter, AtSign, Lock, User, Mail, Calendar } from 'lucide-react';
+import { AtSign, Lock } from 'lucide-react';
 import { FaXTwitter } from "react-icons/fa6";
 
 export default function Login({ isLogin, setIsLogin }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const toggleForm = () => {
     setIsLogin(!isLogin);
-    console.log("hi")
   };
 
   const handleSubmit = (e) => {
@@ -24,7 +23,7 @@ export default function Login({ isLogin, setIsLogin }) {
         </div>
 
         <h1 className="text-2xl font-bold text-center mb-6">
-          Sign in to Twitter
+          Sign in to X
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -32,9 +31,9 @@ export default function Login({ isLogin, setIsLogin }) {
             <AtSign className="absolute top-3 left-3 text-gray-500" size={18} />
             <input
               type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
               required
             />

@@ -6,8 +6,9 @@ export const userProfile = async (username) => {
     return res.data
 }
 
-export const register = async (data) => {
-    await axi.post('/users/register/', data)
+export const registerUser = async (data) => {
+    const res = await axi.post('/auth/users/', data)
+    return res.data
 }
 
 export const login = async (data) => {

@@ -1,14 +1,21 @@
-// RegisterForm.jsx
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { User, Mail, Calendar, AtSign, Lock } from 'lucide-react';
+import { User, Mail, Calendar, AtSign, Lock, Phone } from 'lucide-react';
 import { FaXTwitter } from "react-icons/fa6";
+import { registerUser } from "../../api/users"
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
+
 
 const registerSchema = z.object({
-  name: z.string().min(3, { message: "Name must be at least 3 characters" }),
+  display_name: z.string().min(3, { message: "Name must be at least 3 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
+  mobile_phone: z.string()
+    .regex(/^(01)[0-2|5]{1}[0-9]{8}$/, {
+      message: "Please enter a valid Egyptian phone number (e.g., 01xxxxxxxxx)"
+    }),
   birthdate: z.string().refine(date => {
     const selectedDate = new Date(date);
     const today = new Date();
@@ -23,28 +30,67 @@ const registerSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters" })
     .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
     .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-    .regex(/[0-9]/, { message: "Password must contain at least one number" })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" }),
+  re_password: z.string()
+    .min(1, { message: "Confirm password is required" })
+}).refine((data) => data.password === data.re_password, {
+  message: "Passwords do not match",
+  path: ["re_password"],
 });
 
 export default function RegisterForm({ toggleForm }) {
+  const [backErrors, setBackErrors] = useState();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors }
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
+      display_name: '',
       email: '',
+      mobile_phone: '',
       birthdate: '',
       username: '',
-      password: ''
+      password: '',
+      re_password: ''
     }
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
     console.log(data);
-    alert("Registration successful!");
+    const submitData = new FormData();
+
+    Object.keys(data).forEach(key => {
+      submitData.append(key, data[key]);
+    });
+
+    try {
+      const result = await registerUser(submitData);
+      if (result) {
+        navigate("/login");
+        toast(`Registration successful! check ${result.email} to activate the account`);
+      }
+    } catch (error) {
+      console.log(error.response.data);
+      for (const k in error.response.data) {
+        if (k === 'non_field_errors') {
+          setBackErrors(error.response.data);
+        } else {
+          setError(k, {
+            type: 'manual',
+            message: error.response.data[k].join("/n")
+          })
+        }
+
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,17 +105,18 @@ export default function RegisterForm({ toggleForm }) {
         </h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
           <div className="space-y-4">
             <div className="relative">
               <User className="absolute top-3 left-3 text-gray-500" size={18} />
               <input
                 type="text"
                 placeholder="Name"
-                {...register("name")}
+                {...register("display_name")}
                 className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
               />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              {errors.display_name && (
+                <p className="text-red-500 text-sm mt-1">{errors.display_name.message}</p>
               )}
             </div>
 
@@ -83,6 +130,19 @@ export default function RegisterForm({ toggleForm }) {
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div className="relative">
+              <Phone className="absolute top-3 left-3 text-gray-500" size={18} />
+              <input
+                type="tel"
+                placeholder="Egyptian Phone Number (e.g., 01xxxxxxxxx)"
+                {...register("mobile_phone")}
+                className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
+              />
+              {errors.mobile_phone && (
+                <p className="text-red-500 text-sm mt-1">{errors.mobile_phone.message}</p>
               )}
             </div>
 
@@ -126,11 +186,25 @@ export default function RegisterForm({ toggleForm }) {
             )}
           </div>
 
+          <div className="relative">
+            <Lock className="absolute top-3 left-3 text-gray-500" size={18} />
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              {...register("re_password")}
+              className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
+            />
+            {errors.re_password && (
+              <p className="text-red-500 text-sm mt-1">{errors.re_password.message}</p>
+            )}
+          </div>
+
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300"
+            disabled={isSubmitting}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
-            Sign up
+            {isSubmitting ? "Processing..." : "Sign up"}
           </button>
         </form>
 
