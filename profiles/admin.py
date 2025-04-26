@@ -3,5 +3,5 @@ from .models import Profile
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "location", "created_at")
-    search_fields = ("user__username", "location")
+    list_display = ("username", "name", "date_joined")  # Use existing fields from the Profile model
+    search_fields = ("username", "name", "bio")  # Adjust search fields as needed
