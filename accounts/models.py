@@ -27,9 +27,6 @@ class User(AbstractUser):
     date_of_birth = models.DateField(null=True, blank=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     display_name = models.CharField(max_length=50)
-    following = models.ManyToManyField(
-        "self", symmetrical=False, related_name="followed", blank=True
-    )
     bio = models.CharField(max_length=255, blank=True)
     cover_image = models.ImageField(default="cover.png")
 
@@ -42,11 +39,40 @@ class User(AbstractUser):
     ]
 
     @property
-    def get_followers(self):
-        return [
-            {"username": user.username, "avatar": user.avatar.url}
-            for user in self.followed.all()
-        ]
+    def followers(self):
+        """Returns a queryset of users who follow this user."""
+        return User.objects.filter(following__followed=self)
+
+    @property
+    def followed(self):
+        """Returns a queryset of users this user follows."""
+        return User.objects.filter(followers__follower=self)
+
+    @property
+    def followers_count(self):
+        """Returns the number of users who follow this user."""
+        return self.followers.count()
+
+    @property
+    def followed_count(self):
+        """Returns the number of users this user follows."""
+        return self.followed.count()
+
+
+class Follow(models.Model):
+    follower = models.ForeignKey(
+        User, related_name="following", on_delete=models.CASCADE
+    )
+    followed = models.ForeignKey(
+        User, related_name="followers", on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("follower", "followed")
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.followed.username}"
 
 
 class ActivationToken(models.Model):
