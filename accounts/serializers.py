@@ -66,8 +66,6 @@ class UserSerializer(BaseUserSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    followers = serializers.SerializerMethodField()
-
     class Meta(BaseUserSerializer.Meta):
         model = User
         fields = [
@@ -79,7 +77,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "avatar",
             "date_of_birth",
             "country",
-            "followers",
             "created_at",
         ]
         read_only_fields = ["id", "email", "created_at"]
@@ -121,9 +118,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if value and not value.strip():
             raise serializers.ValidationError("Country must not be blank.")
         return value
-
-    def get_followers(self, obj):
-        return obj.get_followers
 
 
 class TokenObtainPairSerializer(TokenObtainPairSerializer):
