@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { AtSign, Lock } from 'lucide-react';
 import { login } from "../../api/users"
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
 
 export default function Login({ closeModals, openRegisterModal }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState([]);
+  const navigate = useNavigate()
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -17,6 +20,7 @@ export default function Login({ closeModals, openRegisterModal }) {
       if (res) {
         setErrors()
         toast(`Welcome ${res.display_name}!`)
+        navigate("/")
       }
 
     } catch (error) {

@@ -26,3 +26,11 @@ export const currentUser = async () => {
     const res = await authAxios.get(`auth/users/me`)
     return res.data
 }
+
+export const activateAccount = async (uid, token) => {
+    const res = await axi.post('auth/users/activation/', {
+        uid,
+        token,
+    });
+    return res
+};
