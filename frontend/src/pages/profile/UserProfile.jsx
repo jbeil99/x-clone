@@ -1,30 +1,29 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Link, MapPin, Verified } from 'lucide-react';
-import Tweet from '../../components/Tweet';
+import { useState, useEffect } from "react";
+import { Calendar, Link, MapPin, Verified } from "lucide-react";
+import Tweet from "../../components/Tweet";
 import TabButton from "./components/TabButton";
-import Loader from '../../components/Loader';
-import EmptyState from './components/EmptyState';
-import axios from 'axios';
+import Loader from "../../components/Loader";
+import EmptyState from "./components/EmptyState";
+import EditProfile from "./EditProfile"; // Import EditProfile component
+import axios from "axios";
 
 export default function TwitterProfile() {
+  const [showEditProfile, setShowEditProfile] = useState(false); // State to control modal visibility
   const [following, setFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState('posts');
-  const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts");
+  const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [contentMap, setContentMap] = useState({
     posts: [],
     replies: [],
     media: [],
-    likes: []
+    likes: [],
   });
-  const [followersCount, setFollowersCount] = useState(0); // Added state for followers count
-  const [followingCount, setFollowingCount] = useState(0); // Added state for following count
-  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"; // your token
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token'); 
-    console.log("My token:", token); // Print the token to the console
+    const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
     }
@@ -33,14 +32,11 @@ export default function TwitterProfile() {
       setLoading(true);
 
       try {
-        console.log("My token before API call:", token);
         const response = await axios.get("http://127.0.0.1:8000/profile/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        console.log("API Response:", response.data);
 
         const newContentMap = {
           posts: response.data.posts || [],
@@ -50,14 +46,10 @@ export default function TwitterProfile() {
         };
 
         setContentMap(newContentMap);
-        setFollowersCount(response.data.followers_count); // Set followers count
-        setFollowingCount(response.data.following_count); // Set following count
+        setFollowersCount(response.data.followers_count);
+        setFollowingCount(response.data.following_count);
       } catch (error) {
         console.error("Failed to fetch profile data:", error.response || error);
-        if (error.response) {
-          console.log("Error Response Data:", error.response.data);
-          console.log("Error Response Status:", error.response.status);
-        }
       } finally {
         setLoading(false);
       }
@@ -83,7 +75,7 @@ export default function TwitterProfile() {
 
     return (
       <div className="divide-y divide-gray-800">
-        {content.map(item => (
+        {content.map((item) => (
           <Tweet key={item.id} tweet={item} />
         ))}
       </div>
@@ -101,20 +93,23 @@ export default function TwitterProfile() {
 
       <div className="pt-20 px-4">
         <div className="flex justify-end mb-4">
-          {/* Button Based on login status */}
           {isLoggedIn ? (
             <button
               className="px-4 py-2 rounded-full font-bold bg-transparent border border-gray-600 hover:border-blue-500 hover:text-blue-500"
-              onClick={() => console.log('Edit Profile Clicked')}
+              onClick={() => setShowEditProfile(true)} // Open the modal
             >
               Edit Profile
             </button>
           ) : (
             <button
-              className={`px-4 py-2 rounded-full font-bold ${following ? 'bg-transparent border border-gray-600 hover:border-red-500 hover:text-red-500' : 'bg-white text-black'}`}
+              className={`px-4 py-2 rounded-full font-bold ${
+                following
+                  ? "bg-transparent border border-gray-600 hover:border-red-500 hover:text-red-500"
+                  : "bg-white text-black"
+              }`}
               onClick={() => setFollowing(!following)}
             >
-              {following ? 'Following' : 'Follow'}
+              {following ? "Following" : "Follow"}
             </button>
           )}
         </div>
@@ -128,7 +123,10 @@ export default function TwitterProfile() {
         </div>
 
         <div className="mb-4">
-          <p>Building the future of technology. Official account for Tech Innovations - where ideas become reality.</p>
+          <p>
+            Building the future of technology. Official account for Tech
+            Innovations - where ideas become reality.
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-4 text-gray-500 text-sm mb-4">
@@ -148,24 +146,59 @@ export default function TwitterProfile() {
 
         <div className="flex gap-4 mb-4">
           <div>
-            <span className="font-bold">{followingCount}</span> <span className="text-gray-500">Following</span>
+            <span className="font-bold">{followingCount}</span>{" "}
+            <span className="text-gray-500">Following</span>
           </div>
           <div>
-            <span className="font-bold">{followersCount}</span> <span className="text-gray-500">Followers</span>
+            <span className="font-bold">{followersCount}</span>{" "}
+            <span className="text-gray-500">Followers</span>
           </div>
         </div>
 
         {/* Navigation Tabs */}
         <div className="flex border-b border-gray-800">
-          <TabButton name="posts" label="Posts" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <TabButton name="replies" label="Replies" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <TabButton name="media" label="Media" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <TabButton name="likes" label="Likes" activeTab={activeTab} setActiveTab={setActiveTab} />
+          <TabButton
+            name="posts"
+            label="Posts"
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <TabButton
+            name="replies"
+            label="Replies"
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <TabButton
+            name="media"
+            label="Media"
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <TabButton
+            name="likes"
+            label="Likes"
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
         </div>
 
         {/* Content based on active tab */}
         {renderContentSection()}
       </div>
+
+      {/* Render EditProfile as a modal */}
+      {showEditProfile && (
+        <EditProfile
+          user={{
+            name: "Tech Innovations",
+            bio: "Building the future of technology.",
+            avatar: null,
+            cover_image: null,
+          }}
+          close={() => setShowEditProfile(false)} // Close the modal
+        />
+      )}
     </div>
   );
 }
