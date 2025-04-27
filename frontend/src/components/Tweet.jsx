@@ -15,22 +15,20 @@ export default function Tweet({ tweet }) {
 
     const handleRetweetClick = () => {
         console.log('Retweet clicked for tweet:', tweet.id);
-
     };
 
     const handleLikeClick = async () => {
         try {
-            const res = await likeTweet(tweet.id)
+            const res = await likeTweet(tweet.id);
             setIsLiked(!isLiked);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
     };
 
     const heartColor = isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500';
 
     const renderContent = () => {
-        // ... (rest of your renderContent function remains the same)
         if (tweet.type === 'replies') {
             return (
                 <>
@@ -43,6 +41,13 @@ export default function Tweet({ tweet }) {
                     </div>
                     <span className="text-gray-500 text-sm">Replying to <span className="text-blue-500">{tweet.replyingTo}</span></span>
                     <p className="my-2">{tweet.content}</p>
+                    {tweet.image && ( // Check if tweet.image exists
+                        <img
+                            src={tweet.image} // Assuming tweet.image is the URL of the image
+                            alt="Tweet Image"
+                            className="bg-gray-800 rounded-xl mb-3 w-full object-cover aspect-square" // Added styling for better presentation
+                        />
+                    )}
                 </>
             );
         } else if (tweet.type === 'likes') {
@@ -56,6 +61,13 @@ export default function Tweet({ tweet }) {
                         <span className="text-gray-500 truncate max-w-full">@{tweet.author.username} · {tweet.time}</span>
                     </div>
                     <p className="my-2">{tweet.content}</p>
+                    {tweet.image && ( // Check if tweet.image exists
+                        <img
+                            src={tweet.image} // Assuming tweet.image is the URL of the image
+                            alt="Tweet Image"
+                            className="bg-gray-800 rounded-xl mb-3 w-full object-cover aspect-square" // Added styling for better presentation
+                        />
+                    )}
                 </>
             );
         } else {
@@ -69,14 +81,12 @@ export default function Tweet({ tweet }) {
                         <span className="text-gray-500 truncate max-w-full">@{tweet.author.username} · {tweet.time}</span>
                     </div>
                     <p className="my-2">{tweet.content}</p>
-                    {tweet.hasMedia && (
-                        <div className="bg-gray-800 h-48 rounded-xl mb-3 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                <circle cx="8.5" cy="8.5" r="1.5" />
-                                <polyline points="21 15 16 10 5 21" />
-                            </svg>
-                        </div>
+                    {tweet.image && ( // Check if tweet.image exists
+                        <img
+                            src={tweet.image} // Assuming tweet.image is the URL of the image
+                            alt="Tweet Image"
+                            className="bg-gray-800 rounded-xl mb-3 w-full object-cover aspect-square" // Added styling for better presentation
+                        />
                     )}
                 </>
             );

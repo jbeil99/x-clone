@@ -9,7 +9,9 @@ from .serializers import TweetSerializer, MyTweetSerializer, CommentSerializer
 from .permissions import IsUserOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
+
 # from noti.models import Noti
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -135,6 +137,8 @@ def get_user_tweets(request, username):
 
 
 class TweetList(generics.ListCreateAPIView):
+    parser_classes = [MultiPartParser, FormParser]
+
     queryset = Tweet.objects.all()
     serializer_class = TweetSerializer
     # permission_classes = [IsAuthenticated]
