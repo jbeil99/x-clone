@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "djoser",
     "accounts",
     "corsheaders",
+    "tweets",
 ]
 
 MIDDLEWARE = [
@@ -166,6 +167,7 @@ SIMPLE_JWT = {
 }
 
 FRONTEND_URL = "http://localhost:3000"
+BASE_URL = "http://localhost:8000"
 
 DJOSER = {
     "EMAIL_FRONTEND_DOMAIN": FRONTEND_URL.replace("http://", ""),

@@ -18,13 +18,13 @@ class Likes(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("liked", "tweet")
+        unique_together = ("user", "tweet")
 
     def __str__(self):
         return f"{self.liked.username} liked {self.tweet}"
 
 
-class Retweet(models.Model):
+class Retweets(models.Model):
     retweeted = models.ForeignKey(
         User, related_name="retweets", on_delete=models.CASCADE
     )
