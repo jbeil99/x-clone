@@ -91,8 +91,9 @@ class Like(APIView):
     def post(self, request, pk):
         print(pk)
         tweet = get_object_or_404(Tweet, pk=pk)
-        if request.user in tweet.likes.all():
+        if tweet.is_user_liked(request.user):
             tweet.likes.filter(user=request.user).delete()
+
         else:
             Likes.objects.create(user=request.user, tweet=tweet)
 

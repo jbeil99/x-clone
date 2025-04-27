@@ -1,9 +1,36 @@
-import { Heart, Repeat, MessageCircle, Share, MoreHorizontal, Calendar, Link, Copy, Twitter, Facebook, Mail } from 'lucide-react';
+import { Heart, Repeat, MessageCircle, Share, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState } from 'react'; // Import the useState hook
 
 import ShareButton from './Share';
+import { likeTweet } from '../api/tweets';
+
 export default function Tweet({ tweet }) {
+    const [isLiked, setIsLiked] = useState(false); // State to track if the tweet is liked
+
+    const handleCommentClick = () => {
+        console.log('Comment clicked for tweet:', tweet.id);
+        // Implement your comment functionality here
+    };
+
+    const handleRetweetClick = () => {
+        console.log('Retweet clicked for tweet:', tweet.id);
+
+    };
+
+    const handleLikeClick = async () => {
+        try {
+            const res = await likeTweet(tweet.id)
+            setIsLiked(!isLiked);
+        } catch (error) {
+            console.log(error)
+        }
+    };
+
+    const heartColor = isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500';
+
     const renderContent = () => {
+        // ... (rest of your renderContent function remains the same)
         if (tweet.type === 'replies') {
             return (
                 <>
@@ -54,7 +81,7 @@ export default function Tweet({ tweet }) {
                 </>
             );
         }
-    }
+    };
 
     return (
         <div className="py-4 border-b border-gray-800">
@@ -72,15 +99,15 @@ export default function Tweet({ tweet }) {
                         <MoreHorizontal className="text-gray-500 flex-shrink-0" />
                     </div>
                     <div className="flex justify-between text-gray-500 mt-2 max-w-md">
-                        <div className="flex items-center gap-1 hover:text-blue-500">
+                        <div className="flex items-center gap-1 hover:text-blue-500 cursor-pointer" onClick={handleCommentClick}>
                             <MessageCircle className="w-4 h-4" />
                             <span>{tweet.replies}</span>
                         </div>
-                        <div className="flex items-center gap-1 hover:text-green-500">
+                        <div className="flex items-center gap-1 hover:text-green-500 cursor-pointer" onClick={handleRetweetClick}>
                             <Repeat className="w-4 h-4" />
                             <span>{tweet.retweets_count}</span>
                         </div>
-                        <div className="flex items-center gap-1 hover:text-red-500">
+                        <div className={`flex items-center gap-1 cursor-pointer ${heartColor}`} onClick={handleLikeClick}>
                             <Heart className="w-4 h-4" />
                             <span>{tweet.likes_count}</span>
                         </div>

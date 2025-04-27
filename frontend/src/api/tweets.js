@@ -10,3 +10,7 @@ export const addTweet = async (data) => {
     return res.data
 }
 
+export const likeTweet = async (id) => {
+    const res = await authAxios.post(`tweets/${id}/likes`)
+    return res.data
+}
