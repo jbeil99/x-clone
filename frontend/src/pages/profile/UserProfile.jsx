@@ -4,7 +4,7 @@ import Tweet from "../../components/Tweet";
 import TabButton from "./components/TabButton";
 import Loader from "../../components/Loader";
 import EmptyState from "./components/EmptyState";
-import EditProfile from "./EditProfile"; // Import EditProfile component
+import NewPopupPage from "./NewPopupPage"; // Import NewPopupPage component
 import axios from "axios";
 
 export default function TwitterProfile() {
@@ -187,12 +187,14 @@ export default function TwitterProfile() {
         {renderContentSection()}
       </div>
 
-      {/* Render EditProfile as a modal */}
+      {/* Render NewPopupPage as a modal */}
       {showEditProfile && (
-        <EditProfile
+        <NewPopupPage
           user={{
             name: "Tech Innovations",
             bio: "Building the future of technology.",
+            location: "San Francisco, CA",
+            website: "https://techinnovations.com",
             avatar: null,
             cover_image: null,
           }}
