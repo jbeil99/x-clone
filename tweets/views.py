@@ -1,14 +1,14 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-
-from .models import Tweet, Comment
+from rest_framework.views import APIView
+from .models import Tweet, Comment, Likes
 from accounts.models import User
 from .serializers import TweetSerializer, MyTweetSerializer, CommentSerializer
 from .permissions import IsUserOrReadOnly
 from rest_framework.pagination import PageNumberPagination
-
+from django.shortcuts import get_object_or_404
 # from noti.models import Noti
 
 
@@ -83,6 +83,27 @@ def get_user_rt(request, username):
 #                 from_user=request.user,
 #             )
 #     return Response({"status": "ok"})
+
+
+class Like(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        print(pk)
+        tweet = get_object_or_404(Tweet, pk=pk)
+        if request.user in tweet.likes.all():
+            tweet.likes.filter(user=request.user).delete()
+        else:
+            Likes.objects.create(user=request.user, tweet=tweet)
+
+            # if request.user != tweet.user:
+            #     Noti.objects.get_or_create(
+            #         type="like you tweet",
+            #         tweet=tweet,
+            #         to_user=tweet.user,
+            #         from_user=request.user,
+            #     )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # @api_view(["POST"])

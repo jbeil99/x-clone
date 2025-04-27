@@ -11,6 +11,12 @@ class Tweet(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
+    def is_user_liked(self, user):
+        return self.likes.filter(user=user).exists()
+
+    def is_user_retweeted(self, user):
+        return self.retweets.filter(user=user).exists()
+
 
 class Likes(models.Model):
     user = models.ForeignKey(User, related_name="likes", on_delete=models.CASCADE)
@@ -21,18 +27,16 @@ class Likes(models.Model):
         unique_together = ("user", "tweet")
 
     def __str__(self):
-        return f"{self.liked.username} liked {self.tweet}"
+        return f"{self.user.username} liked {self.tweet}"
 
 
 class Retweets(models.Model):
-    retweeted = models.ForeignKey(
-        User, related_name="retweets", on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(User, related_name="retweets", on_delete=models.CASCADE)
     tweet = models.ForeignKey(Tweet, related_name="retweets", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("retweeted", "tweet")
+        unique_together = ("user", "tweet")
 
     def __str__(self):
         return f"{self.user.username} retweeted {self.tweet.content[:20]}"

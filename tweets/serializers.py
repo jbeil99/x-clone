@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Tweet, Comment
+from .models import Tweet, Comment, Likes
 from core.utils.helpers import build_absolute_url
 
 
@@ -63,8 +63,6 @@ class TweetSerializer(serializers.ModelSerializer):
             "avatar",
             "content",
             "image",
-            "likes",
-            "retweets",
             "created_at",
             "likes_count",
             "retweets_count",
@@ -83,7 +81,19 @@ class TweetSerializer(serializers.ModelSerializer):
         return obj.retweets.all().count()
 
     def get_iliked(self, obj):
-        return True if self.context["request"].user in obj.likes.all() else False
+        return obj.is_user_liked(self.context["request"].user)
 
     def get_iretweeted(self, obj):
-        return True if self.context["request"].user in obj.retweets.all() else False
+        return obj.is_user_retweeted(self.context["request"].user)
+
+
+class TweetLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Likes
+        fields = [
+            "id",
+            "user",
+            "tweet",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]
