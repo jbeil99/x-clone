@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import {
     Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Link as LinkIcon, Sparkles
 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Layout({ children }) {
     const sidebarItems = [
@@ -19,17 +20,17 @@ export default function Layout({ children }) {
         { icon: MoreHorizontal, text: 'More', path: '/more' },
     ];
 
-    // Example user data for profile section
     const user = {
         name: 'mahmoud essa',
         username: '@mahmoudess61320',
         avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
     };
 
+    const [pollQuestion, setPollQuestion] = useState("");
+
     return (
         <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white flex justify-center">
             <div className="flex w-full max-w-[1280px]">
-                {/* Left Sidebar */}
                 <div className="flex flex-col w-[275px] px-4 py-4 border-r border-gray-200 dark:border-gray-800">
                     <div>
                         <div className="text-xl font-bold mb-8 ml-3">
@@ -52,7 +53,7 @@ export default function Layout({ children }) {
                         <button className="mt-6 w-full bg-white text-black rounded-full py-3 text-lg font-bold shadow hover:bg-gray-200 transition-colors">
                             Post
                         </button>
-                        {/* Profile section just below Post button */}
+
                         <div className="flex items-center gap-3 px-2 py-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-full cursor-pointer mt-3">
                             <img src={user.avatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
                             <div className="flex-1 min-w-0">
@@ -63,14 +64,14 @@ export default function Layout({ children }) {
                         </div>
                     </div>
                 </div>
-                {/* Main Content */}
+
                 <main className="flex-1 min-w-0 border-r border-gray-200 dark:border-gray-800 flex justify-center">
                     <div className="w-full max-w-[750px] px-4">
-                        {/* Make post composer background darker in dark mode */}
+
                         {children}
                     </div>
                 </main>
-                {/* Right Sidebar */}
+
                 <div className="w-[350px] px-4 py-4">
                     <div className="bg-black border border-gray-800 rounded-2xl mb-4">
                         <div className="flex items-center px-4 py-2">
@@ -99,23 +100,23 @@ export default function Layout({ children }) {
                             </div>
                             <div>
                                 <div className="text-sm text-gray-400">Trending in Egypt</div>
-                                <div className="font-bold text-white">العدوان الثلاثي</div>
+                                <div className="font-bold text-white">The Tripartite Aggression</div>
                                 <div className="text-sm text-gray-400">2,715 posts</div>
                             </div>
                             <div>
                                 <div className="text-sm text-gray-400">Trending in Egypt</div>
-                                <div className="font-bold text-white">السجن الامريكيه</div>
+                                <div className="font-bold text-white">American Prisons</div>
                                 <div className="text-sm text-gray-400">1,428 posts</div>
                             </div>
                             <div>
                                 <div className="text-sm text-gray-400">Trending in Egypt</div>
-                                <div className="font-bold text-white">#انهاء_الوجود_الامريكي_مطلب</div>
+                                <div className="font-bold text-white">#End_American_Presence_Demand</div>
                                 <div className="text-sm text-gray-400">50.4K posts</div>
                             </div>
                         </div>
                         <button className="text-blue-500 hover:underline mt-2">Show more</button>
                     </div>
-                    {/* Who to follow section */}
+
                     <div className="bg-black border border-gray-800 rounded-2xl p-4">
                         <h2 className="text-xl font-bold mb-4 text-white">Who to follow</h2>
                         <div className="space-y-4">
@@ -123,7 +124,7 @@ export default function Layout({ children }) {
                                 <div className="flex items-center gap-3">
                                     <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="avatar" className="w-10 h-10 rounded-full object-cover" />
                                     <div>
-                                        <div className="font-bold text-white">المصحف</div>
+                                        <div className="font-bold text-white">hussien</div>
                                         <div className="text-gray-400 text-sm">@AlMosahf</div>
                                     </div>
                                 </div>
