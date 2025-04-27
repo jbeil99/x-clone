@@ -4,9 +4,28 @@ import { FaXTwitter } from "react-icons/fa6";
 import LoginDialog from './LoginDialog';
 import RegisterDialog from './RegisterDialog';
 import { Button } from "@/components/ui/button"
-
+import { googleLogin } from '../../api/users';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
 export default function AuthPage() {
     const [dialogType, setDialogType] = useState(null);
+    const navigate = useNavigate()
+    const handleLogin = async (credentialResponse) => {
+        try {
+            const res = await googleLogin(credentialResponse)
+            if (res) {
+                // setErrors()
+                toast(`Welcome ${res.display_name}!`)
+                navigate("/")
+            }
+
+        } catch (error) {
+            // for (const k in error.response.data) {
+            //     setErrors(error.response.data[k].join("/n"))
+            // }
+            console.log(error)
+        }
+    };
 
     return (
         <div className="flex flex-col md:flex-row w-full min-h-screen bg-black text-white">
@@ -20,7 +39,7 @@ export default function AuthPage() {
 
                 <div className="flex flex-col gap-4 max-w-xs md:max-w-sm">
                     <GoogleLogin
-                        onSuccess={(credentialResponse) => console.log(credentialResponse)}
+                        onSuccess={(credentialResponse) => handleLogin(credentialResponse)}
                         onError={() => console.log('Login Failed')}
                         shape="pill"
                         text="signup_with"
