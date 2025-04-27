@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import Tab from "../../components/tab";
 import AllPosts from "./components/AllPosts";
-import { Image, MapPin, Calendar, Link as LinkIcon, Globe2, Film, BarChart2, Smile, PlusCircle } from 'lucide-react';
+import { Image, MapPin, Calendar, Link as LinkIcon, Globe2, Film, BarChart2, Smile, PlusCircle, Settings } from 'lucide-react';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
 
@@ -13,6 +13,7 @@ export default function MainPage() {
     const [showPoll, setShowPoll] = useState(false);
     const [pollOptions, setPollOptions] = useState(["", ""]);
     const [pollDuration, setPollDuration] = useState({ days: 1, hours: 0, minutes: 0 });
+    const [showExplore, setShowExplore] = useState(false);
 
     const fileInputRef = useRef(null);
     const emojiRef = useRef(null);
@@ -79,6 +80,40 @@ export default function MainPage() {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [showEmoji]);
+
+    if (showExplore) {
+        return (
+            <div className="min-h-screen bg-black text-white">
+                <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-md border-b border-gray-800">
+                    <div className="flex items-center px-4 py-3 gap-2">
+                        <div className="flex-1 relative">
+                            <input
+                                type="text"
+                                placeholder="Search"
+                                className="w-full bg-gray-900 text-white rounded-full py-2 pl-10 pr-4 outline-none border border-gray-800 focus:border-blue-500"
+                            />
+                            <span className="absolute left-3 top-2.5 text-gray-400">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            </span>
+                        </div>
+                        <button className="ml-2 p-2 rounded-full hover:bg-gray-800">
+                            <Settings className="w-6 h-6 text-gray-400" />
+                        </button>
+                    </div>
+                    <div className="flex border-b border-gray-800">
+                        {['For You', 'Trending', 'News', 'Sports', 'Entertainment'].map(tab => (
+                            <button key={tab} className="flex-1 py-3 text-center font-bold hover:bg-gray-900 focus:outline-none text-white border-b-2 border-transparent focus:border-blue-500">
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div className="p-4">
+                    <div className="text-center text-gray-400 mt-10">Explore content goes here...</div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen">

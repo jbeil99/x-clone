@@ -125,7 +125,7 @@ export default function Layout({ children }) {
                                     <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="avatar" className="w-10 h-10 rounded-full object-cover" />
                                     <div>
                                         <div className="font-bold text-white">hussien</div>
-                                        <div className="text-gray-400 text-sm">@AlMosahf</div>
+                                        <div className="text-gray-400 text-sm">@Al Doctor</div>
                                     </div>
                                 </div>
                                 <button className="bg-white text-black rounded-full px-4 py-1 font-bold">Follow</button>
