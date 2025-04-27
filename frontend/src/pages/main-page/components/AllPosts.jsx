@@ -1,6 +1,6 @@
-import {posts as postsData} from "../../data/posts";
-import Tweet from "../../components/Tweet";
-import {useState} from "react";
+import { posts as postsData } from "../../../data/posts";
+import Tweet from "../../../components/Tweet";
+import { useState } from "react";
 
 const AllPosts = () => {
     const [posts, setPosts] = useState(postsData)
