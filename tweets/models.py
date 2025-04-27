@@ -44,7 +44,7 @@ class Retweets(models.Model):
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name="parent")
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name="comments")
     body = models.CharField(max_length=140)
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="replies", on_delete=models.CASCADE
@@ -53,3 +53,6 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user.username} commented on {self.tweet.content[:20]}"

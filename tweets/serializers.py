@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Tweet, Comment, Likes
-from core.utils.helpers import build_absolute_url
+from core.utils.helpers import build_absolute_url, time_ago
+from accounts.serializers import UserSerializer
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -34,33 +35,32 @@ class MyTweetSerializer(serializers.ModelSerializer):
             "created_at",
             "likes_count",
             "retweets_count",
-            "parent",
         ]
 
     def get_avatar(self, obj):
         return build_absolute_url(obj.user.avatar.url)
 
     def get_likes_count(self, obj):
-        return obj.likes.all().count()
+        return obj.likes.count()
 
     def get_retweets_count(self, obj):
-        return obj.retweeted.all().count()
+        return obj.retweeted.count()
 
 
 class TweetSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source="user.username")
     likes_count = serializers.SerializerMethodField(read_only=True)
     retweets_count = serializers.SerializerMethodField(read_only=True)
     iliked = serializers.SerializerMethodField(read_only=True)
     iretweeted = serializers.SerializerMethodField(read_only=True)
-    avatar = serializers.SerializerMethodField(read_only=True)
+    time = serializers.SerializerMethodField(read_only=True)
+    author = UserSerializer(source="user", read_only=True)
+    comments_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Tweet
         fields = [
             "id",
-            "user",
-            "avatar",
+            "author",
             "content",
             "image",
             "created_at",
@@ -68,23 +68,32 @@ class TweetSerializer(serializers.ModelSerializer):
             "retweets_count",
             "iliked",
             "iretweeted",
-            "parent",
+            "time",
+            "comments_count",
         ]
+        extra_kwargs = {"user": {"write_only": True}}
 
     def get_avatar(self, obj):
         return build_absolute_url(obj.user.avatar.url)
 
     def get_likes_count(self, obj):
-        return obj.likes.all().count()
+        return obj.likes.count()
 
     def get_retweets_count(self, obj):
-        return obj.retweets.all().count()
+        return obj.retweets.count()
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()
 
     def get_iliked(self, obj):
         return obj.is_user_liked(self.context["request"].user)
 
     def get_iretweeted(self, obj):
         return obj.is_user_retweeted(self.context["request"].user)
+
+    def get_time(self, obj):
+        print(obj.created_at)
+        return time_ago(obj.created_at)
 
 
 class TweetLikeSerializer(serializers.ModelSerializer):
