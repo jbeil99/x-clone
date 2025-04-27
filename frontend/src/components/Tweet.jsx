@@ -1,15 +1,18 @@
+import { Heart, Repeat, MessageCircle, Share, MoreHorizontal, Calendar, Link, Copy, Twitter, Facebook, Mail } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-import { Heart, Repeat, MessageCircle, Share, MoreHorizontal, Calendar, Link, MapPin, Verified, Image, Search, Loader } from 'lucide-react';
-
+import ShareButton from './Share';
 export default function Tweet({ tweet }) {
     const renderContent = () => {
         if (tweet.type === 'replies') {
             return (
                 <>
-                    <div className="flex items-center gap-1">
-                        <span className="font-bold">Tech Innovations</span>
-                        <Verified className="w-4 h-4 text-blue-500" />
-                        <span className="text-gray-500">@techinnovate · {tweet.time}</span>
+                    <div className="flex items-center gap-1 flex-wrap">
+                        <span className="font-bold truncate max-w-[150px] sm:max-w-[200px]">{tweet.user}</span>
+                        <svg className="w-4 h-4 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
+                        </svg>
+                        <span className="text-gray-500 truncate max-w-full">@techinnovate · {tweet.time}</span>
                     </div>
                     <span className="text-gray-500 text-sm">Replying to <span className="text-blue-500">{tweet.replyingTo}</span></span>
                     <p className="my-2">{tweet.content}</p>
@@ -18,10 +21,12 @@ export default function Tweet({ tweet }) {
         } else if (tweet.type === 'likes') {
             return (
                 <>
-                    <div className="flex items-center gap-1">
-                        <span className="font-bold">{tweet.author}</span>
-                        <Verified className="w-4 h-4 text-blue-500" />
-                        <span className="text-gray-500">{tweet.handle} · {tweet.time}</span>
+                    <div className="flex items-center gap-1 flex-wrap">
+                        <span className="font-bold truncate max-w-[150px] sm:max-w-[200px]">{tweet.user}</span>
+                        <svg className="w-4 h-4 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
+                        </svg>
+                        <span className="text-gray-500 truncate max-w-full">@{tweet.handle} · {tweet.time}</span>
                     </div>
                     <p className="my-2">{tweet.content}</p>
                 </>
@@ -29,15 +34,21 @@ export default function Tweet({ tweet }) {
         } else {
             return (
                 <>
-                    <div className="flex items-center gap-1">
-                        <span className="font-bold">Tech Innovations</span>
-                        <Verified className="w-4 h-4 text-blue-500" />
-                        <span className="text-gray-500">@techinnovate · {tweet.time}</span>
+                    <div className="flex items-center gap-1 flex-wrap">
+                        <span className="font-bold truncate max-w-[150px] sm:max-w-[200px]">{tweet.user}</span>
+                        <svg className="w-4 h-4 text-blue-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
+                        </svg>
+                        <span className="text-gray-500 truncate max-w-full">@{tweet.user} · {tweet.time}</span>
                     </div>
                     <p className="my-2">{tweet.content}</p>
                     {tweet.hasMedia && (
                         <div className="bg-gray-800 h-48 rounded-xl mb-3 flex items-center justify-center">
-                            <Image className="w-10 h-10 text-gray-600" />
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                            </svg>
                         </div>
                     )}
                 </>
@@ -46,13 +57,19 @@ export default function Tweet({ tweet }) {
     }
 
     return (
-        <div className="py-4">
+        <div className="py-4 border-b border-gray-800">
             <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-800"></div>
-                <div className="flex-1">
+                <Avatar className="w-10 h-10 rounded-full">
+                    <AvatarImage src={tweet.avatar || "/api/placeholder/40/40"} alt={tweet.user} />
+                    <AvatarFallback className="bg-gray-800 text-gray-400">
+                        {tweet.user?.charAt(0) || "U"}
+                    </AvatarFallback>
+                </Avatar>
+
+                <div className="flex-1 min-w-0">
                     <div className="flex justify-between">
-                        <div>{renderContent()}</div>
-                        <MoreHorizontal className="text-gray-500" />
+                        <div className="min-w-0 pr-2">{renderContent()}</div>
+                        <MoreHorizontal className="text-gray-500 flex-shrink-0" />
                     </div>
                     <div className="flex justify-between text-gray-500 mt-2 max-w-md">
                         <div className="flex items-center gap-1 hover:text-blue-500">
@@ -61,18 +78,16 @@ export default function Tweet({ tweet }) {
                         </div>
                         <div className="flex items-center gap-1 hover:text-green-500">
                             <Repeat className="w-4 h-4" />
-                            <span>{tweet.retweets}</span>
+                            <span>{tweet.retweets_count}</span>
                         </div>
                         <div className="flex items-center gap-1 hover:text-red-500">
                             <Heart className="w-4 h-4" />
-                            <span>{tweet.likes}</span>
+                            <span>{tweet.likes_count}</span>
                         </div>
-                        <div className="hover:text-blue-500">
-                            <Share className="w-4 h-4" />
-                        </div>
+                        <ShareButton tweet={tweet} />
                     </div>
                 </div>
             </div>
         </div>
     );
-};
+}
