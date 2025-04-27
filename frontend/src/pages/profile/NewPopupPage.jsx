@@ -5,9 +5,23 @@ import { FiChevronRight } from "react-icons/fi"; // Import arrow icon
 const NewPopupPage = ({ user, close }) => {
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-dark bg-opacity-50 flex items-center justify-center">
-        <div className="relative bg-black w-[600px] rounded-lg shadow-lg p-6">        <button onClick={close} className="absolute top-3 right-3">
-          <AiOutlineCloseCircle className="text-white text-2xl cursor-pointer" />
-        </button>
+        <div className="relative bg-black w-[600px] rounded-lg shadow-lg p-6">       
+        {/* Header Section */}
+        <div className="flex items-center justify-between px-3 py-3 border-b border-gray-700">
+  <div className="flex items-center gap-2">
+    <button onClick={close} aria-label="Close" className="text-white text-xl">
+      <AiOutlineCloseCircle />
+    </button>
+    <h2 className="text-white text-lg font-bold">Edit profile</h2>
+  </div>
+  <button
+    type="submit"
+    className="bg-gray-100 text-black  w-40 h-13 font-bold py-1 px-4 rounded-full hover:bg-gray-200"
+  >
+    Save
+  </button>
+</div>
+
 
         <div className="flex flex-col items-center">
           {/* Cover Image */}
