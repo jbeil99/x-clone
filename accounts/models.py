@@ -12,6 +12,7 @@ egyptian_phone_validator = RegexValidator(
 
 
 class User(AbstractUser):
+    google_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     email = models.EmailField("email address", unique=True)
     mobile_phone = models.CharField(
         "mobile phone",
