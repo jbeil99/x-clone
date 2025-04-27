@@ -21,8 +21,26 @@ export const login = async (data) => {
     return user
 }
 
+export const googleLogin = async (credentialResponse) => {
+    console.log(credentialResponse.credential)
+    const res = await axi.post('auth/google/', { token: credentialResponse.credential })
+    const { access, refresh } = res.data
+    sessionStorage.setItem('access', access)
+    sessionStorage.setItem('refresh', refresh)
+    const user = await currentUser()
+    return user
+}
+
 
 export const currentUser = async () => {
     const res = await authAxios.get(`auth/users/me`)
     return res.data
 }
+
+export const activateAccount = async (uid, token) => {
+    const res = await axi.post('auth/users/activation/', {
+        uid,
+        token,
+    });
+    return res
+};
