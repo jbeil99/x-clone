@@ -3,6 +3,7 @@ import { MessageCircle, BarChart2, Heart, Bookmark, RefreshCw, Share2, MoreHoriz
 import Tweet from '../../../components/Tweet';
 import { getTweetByID, getTweetReplies } from '../../../api/tweets';
 import { useParams } from 'react-router';
+import TweetForm from './TweetForm';
 export default function TweetDetail() {
     const { id } = useParams()
     const [post, setPost] = useState([])
@@ -56,6 +57,7 @@ export default function TweetDetail() {
                 </div>
             </div>
 
+            <TweetForm parent={id} />
             {!isLoading ? replies.map((reply, index) => <Tweet tweet={reply} key={reply.id} />) : ""}
 
         </div>

@@ -21,7 +21,7 @@ const tweetSchema = z.object({
         })
 });
 
-export default function TweetForm() {
+export default function TweetForm({ parent }) {
     const fileInputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,7 +47,7 @@ export default function TweetForm() {
         setIsSubmitting(true);
         try {
             console.log("Tweet submitted:", data);
-            const res = await addTweet(data)
+            const res = await addTweet(data, parent)
             console.log(res)
             toast.success("Tweet submitted")
 

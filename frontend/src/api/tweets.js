@@ -13,13 +13,15 @@ export const getTweetReplies = async (id) => {
     const res = await authAxios.get(`tweets/${id}/replies`)
     return res.data
 }
-export const addTweet = async (data) => {
+export const addTweet = async (data, parent = null) => {
+    console.log(parent)
     const formData = new FormData();
     formData.append('content', data.content);
-
-    // Append the image File object
     if (data.image) {
         formData.append('image', data.image);
+    }
+    if (parent) {
+        formData.append('parent', parent);
     }
 
     const res = await authAxios.post('tweets', formData, {
