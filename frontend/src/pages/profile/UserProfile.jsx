@@ -35,6 +35,7 @@ export default function UserProfile() {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("Profile data fetched successfully:", response.data);
         setUserData(response.data);
         setLoading(false);
       } catch (error) {
