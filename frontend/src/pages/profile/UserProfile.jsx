@@ -1,35 +1,33 @@
 import { useState, useEffect } from "react";
 import { Calendar, Link, MapPin, Verified } from "lucide-react";
 import Tweet from "../../components/Tweet";
-import TabButton from "./components/TabButton";
+import TabButton from "./components/TabButton"; // Use the imported TabButton
 import Loader from "../../components/Loader";
 import EmptyState from "./components/EmptyState";
 import NewPopupPage from "./NewPopupPage"; // Import NewPopupPage component
-import axios from "axios";
 
-export default function TwitterProfile() {
-  const [showEditProfile, setShowEditProfile] = useState(false); // State to control modal visibility
-  const [following, setFollowing] = useState(false);
+export default function UserProfile() {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("posts");
-  const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [contentMap, setContentMap] = useState({
-    posts: [],
-    replies: [],
-    media: [],
-    likes: [],
-  });
-  const [followersCount, setFollowersCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
+  const [showEditProfile, setShowEditProfile] = useState(false); // Modal state
+  const [following, setFollowing] = useState(false); // Following state
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Simulate logged-in state
+
+  const contentMap = {
+    posts: userData?.posts || [],
+    replies: userData?.replies || [],
+    media: userData?.media || [],
+    likes: userData?.likes || [],
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-    }
-
     const fetchProfileData = async () => {
-      setLoading(true);
+      const token = sessionStorage.getItem("access");
+      if (!token) {
+        console.error("Access token is missing");
+        return;
+      }
 
       try {
         const response = await axios.get("http://127.0.0.1:8000/profile/", {
@@ -37,20 +35,10 @@ export default function TwitterProfile() {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        const newContentMap = {
-          posts: response.data.posts || [],
-          replies: response.data.replies || [],
-          media: response.data.media || [],
-          likes: response.data.likes || [],
-        };
-
-        setContentMap(newContentMap);
-        setFollowersCount(response.data.followers_count);
-        setFollowingCount(response.data.following_count);
+        setUserData(response.data);
+        setLoading(false);
       } catch (error) {
         console.error("Failed to fetch profile data:", error.response || error);
-      } finally {
         setLoading(false);
       }
     };
@@ -82,16 +70,31 @@ export default function TwitterProfile() {
     );
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!userData) {
+    return <div>Failed to load profile data</div>;
+  }
+
   return (
     <div className="max-w-xl mx-auto bg-black text-white">
       <div className="relative">
         <div className="h-48 bg-blue-600"></div>
         <div className="absolute -bottom-16 left-4">
-          <div className="w-32 h-32 rounded-full bg-gray-800 border-4 border-black"></div>
+          <div className="w-32 h-32 rounded-full bg-gray-800 border-4 border-black overflow-hidden">
+            <img
+              src={userData.avatar || "/media/default_profile_400x400.png"}
+              alt="Avatar"
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
       </div>
 
       <div className="pt-20 px-4">
+        {/* Add Edit Profile or Follow Button */}
         <div className="flex justify-end mb-4">
           {isLoggedIn ? (
             <button
@@ -116,46 +119,41 @@ export default function TwitterProfile() {
 
         <div className="mb-4">
           <div className="flex items-center gap-1">
-            <h1 className="text-xl font-bold">Tech Innovations</h1>
-            <Verified className="w-5 h-5 text-blue-500" />
+            <h1 className="text-xl font-bold">{userData.display_name || "N/A"}</h1>
+            {userData.verified && <Verified className="w-5 h-5 text-blue-500" />}
           </div>
-          <p className="text-gray-500">@techinnovate</p>
+          <p className="text-gray-500">@{userData.username || "N/A"}</p>
         </div>
 
         <div className="mb-4">
-          <p>
-            Building the future of technology. Official account for Tech
-            Innovations - where ideas become reality.
-          </p>
+          <p>{userData.bio || "No bio available."}</p>
         </div>
 
         <div className="flex flex-wrap gap-4 text-gray-500 text-sm mb-4">
-          <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
-            <span>San Francisco, CA</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Link className="w-4 h-4" />
-            <span className="text-blue-500">techinnovations.com</span>
-          </div>
+          {userData.country && (
+            <div className="flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              <span>{userData.country}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <Calendar className="w-4 h-4" />
-            <span>Joined March 2018</span>
+            <span>Joined {userData.date_of_birth || "N/A"}</span>
           </div>
         </div>
 
         <div className="flex gap-4 mb-4">
           <div>
-            <span className="font-bold">{followingCount}</span>{" "}
+            <span className="font-bold">{userData.followed_count}</span>{" "}
             <span className="text-gray-500">Following</span>
           </div>
           <div>
-            <span className="font-bold">{followersCount}</span>{" "}
+            <span className="font-bold">{userData.followers_count}</span>{" "}
             <span className="text-gray-500">Followers</span>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Tabs Section */}
         <div className="flex border-b border-gray-800">
           <TabButton
             name="posts"
@@ -191,29 +189,15 @@ export default function TwitterProfile() {
       {showEditProfile && (
         <NewPopupPage
           user={{
-            name: "Tech Innovations",
-            bio: "Building the future of technology.",
-            location: "San Francisco, CA",
-            website: "https://techinnovations.com",
-            avatar: null,
-            cover_image: null,
+            name: userData.display_name,
+            bio: userData.bio,
+            location: userData.country,
+            avatar: userData.avatar,
+            cover_image: userData.cover_image,
           }}
-          close={() => setShowEditProfile(false)} 
+          close={() => setShowEditProfile(false)}
         />
       )}
     </div>
   );
 }
-
-
-
-export const updateProfile = async (formData) => {
-  const token = localStorage.getItem("token");
-  const response = await axios.patch("http://127.0.0.1:8000/profile/", formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data", // تأكد من إعداد الـ Content-Type
-    },
-  });
-  return response.data;
-};
