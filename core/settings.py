@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "accounts",
     "corsheaders",
     "tweets",
+    "channels",
+    "chat",
 ]
 
 MIDDLEWARE = [
@@ -223,6 +225,7 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 PASSWORD_RESET_TIMEOUT = 86400
 
-# Media files configuration
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+ASGI_APPLICATION = 'core.asgi.application'
