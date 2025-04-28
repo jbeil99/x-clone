@@ -1,27 +1,22 @@
 import Tweet from "../../../components/Tweet";
 import { useState, useEffect } from "react";
-import { getTweets } from "../../../api/tweets";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchTweets } from "../../../store/slices/tweets";
+
 const AllPosts = () => {
     const [posts, setPosts] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
+    const { loading, error, tweets } = useSelector((state) => state.tweets);
+    const dispatch = useDispatch()
     useEffect(() => {
-        const getPosts = async () => {
-            try {
-                const res = await getTweets();
-                setIsLoading(false)
-                setPosts(res.results)
-            } catch (error) {
-                console.log(error)
-            }
-        }
-        getPosts()
-    }, [])
 
+        dispatch(fetchTweets())
+
+    }, [dispatch])
     return (
         <div className="divide-y divide-gray-200 dark:divide-gray-800">
-            {posts.map((post, key) => (
-                <Tweet tweet={post} key={post.id + key} />
-            ))}
+            {!loading ? tweets?.map((tweet, key) => (
+                <Tweet tweet={tweet} key={tweet.id} />
+            )) : "loading"}
         </div>
     )
 }

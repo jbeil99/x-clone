@@ -29,7 +29,7 @@ authAxios.interceptors.request.use(async (config) => {
 
         try {
             const oldRefresh = sessionStorage.getItem('refresh')
-            const res = await axi.post('/users/refresh/', { oldRefresh })
+            const res = await axi.post('/jwt/refresh/', { oldRefresh })
             const { access, refresh } = res.data
 
             sessionStorage.setItem('access', access)

@@ -54,7 +54,7 @@ export const fetchCurrentUser = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const res = await currentUser();
-            return res.data;
+            return res;
         } catch (error) {
             return rejectWithValue(error.response ? error.response.data : error.message);
         }
