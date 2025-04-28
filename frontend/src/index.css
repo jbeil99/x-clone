@@ -118,3 +118,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+html, body, #root {
+  background: #000 !important;
+  min-height: 100vh;
+}

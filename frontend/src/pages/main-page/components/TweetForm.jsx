@@ -80,11 +80,11 @@ export default function TweetForm() {
     };
 
     return (
-        <div className="px-4 pt-3 pb-0 border-b border-gray-200 dark:border-gray-800">
-            <div className="flex gap-3">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="avatar" className="w-11 h-11 rounded-full object-cover mt-1" />
-                <div className="flex-1 min-w-0">
-                    <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="border-b border-gray-800">
+            <form onSubmit={handleSubmit(onSubmit)} className="pt-3 pb-0 px-4">
+                <div className="flex gap-3">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="avatar" className="w-11 h-11 rounded-full object-cover mt-1" />
+                    <div className="flex-1 min-w-0">
                         <textarea
                             className="w-full bg-transparent outline-none resize-none text-xl mb-1 placeholder:text-gray-400 dark:text-white"
                             placeholder="What's happening?"
@@ -98,7 +98,7 @@ export default function TweetForm() {
 
                         {previewUrl && (
                             <div className="mb-3 relative">
-                                <div className="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+                                <div className="border border-gray-800 rounded-lg overflow-hidden">
                                     <div className="relative">
                                         <img
                                             src={previewUrl}
@@ -113,7 +113,7 @@ export default function TweetForm() {
                                             <X className="w-4 h-4" />
                                         </button>
                                     </div>
-                                    <div className="p-2 bg-gray-100 dark:bg-gray-800 text-sm border-t border-gray-300 dark:border-gray-700">
+                                    <div className="p-2 bg-gray-900 text-sm border-t border-gray-800">
                                         <span className="truncate block">{watch("image")?.name}</span>
                                     </div>
                                 </div>
@@ -138,7 +138,7 @@ export default function TweetForm() {
                             </div>
                         </div>
 
-                        <div className="border-b border-gray-700 mb-2" />
+                        <div className="border-b border-gray-800 mb-2" />
                         <div className="flex items-center justify-between py-2">
                             <div className="flex gap-2 text-blue-500">
                                 <button
@@ -173,16 +173,16 @@ export default function TweetForm() {
                                 </button>
                             </div>
                             <button
-                                className="bg-blue-500 text-white px-5 py-1.5 rounded-full font-bold disabled:opacity-50 opacity-90 hover:opacity-100 transition"
+                                className="bg-white text-black px-5 py-1.5 rounded-full font-bold disabled:opacity-50 opacity-90 hover:bg-gray-200 transition"
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
                             >
                                 {isSubmitting ? "Posting..." : "Post"}
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     );
 }

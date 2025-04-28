@@ -29,9 +29,9 @@ export default function Layout({ children }) {
     const [pollQuestion, setPollQuestion] = useState("");
 
     return (
-        <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white flex justify-center">
+        <div className="min-h-screen bg-black text-white flex justify-center">
             <div className="flex w-full max-w-[1280px]">
-                <div className="flex flex-col w-[275px] px-4 py-4 border-r border-gray-200 dark:border-gray-800">
+                <div className="flex flex-col w-[275px] px-4 py-4 border-r border-gray-800">
                     <div>
                         <div className="text-xl font-bold mb-8 ml-3">
                             <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor">
@@ -43,7 +43,7 @@ export default function Layout({ children }) {
                                 <Link
                                     key={item.text}
                                     to={item.path}
-                                    className="flex items-center gap-4 text-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-900 px-4 py-3 rounded-full transition-colors"
+                                    className="flex items-center gap-4 text-lg font-medium hover:bg-gray-900 px-4 py-3 rounded-full transition-colors"
                                 >
                                     <item.icon className="h-6 w-6" />
                                     <span>{item.text}</span>
@@ -54,7 +54,7 @@ export default function Layout({ children }) {
                             Post
                         </button>
 
-                        <div className="flex items-center gap-3 px-2 py-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-full cursor-pointer mt-3">
+                        <div className="flex items-center gap-3 px-2 py-3 hover:bg-gray-900 rounded-full cursor-pointer mt-3">
                             <img src={user.avatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
                             <div className="flex-1 min-w-0">
                                 <div className="font-bold truncate">{user.name}</div>
@@ -65,7 +65,7 @@ export default function Layout({ children }) {
                     </div>
                 </div>
 
-                <main className="flex-1 min-w-0 border-r border-gray-200 dark:border-gray-800 flex justify-center">
+                <main className="flex-1 min-w-0 border-r border-gray-800 flex justify-center">
                     <div className="w-full max-w-[750px] px-4">
 
                         {children}

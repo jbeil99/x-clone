@@ -16,7 +16,7 @@ export default function Tab({ children, activeTab }) {
 
 Tab.Items = function TabItems({ children }) {
 	return (
-		<div className="flex border-b border-gray-200 dark:border-gray-800">
+		<div className="flex border-b border-gray-800">
 			{children}
 		</div>
 	)

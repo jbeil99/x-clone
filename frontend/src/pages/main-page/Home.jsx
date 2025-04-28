@@ -5,9 +5,9 @@ import TweetForm from "./components/TweetForm";
 
 export default function MainPage() {
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-black">
             <Tab activeTab="all-posts">
-                <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md dark:bg-black/80">
+                <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-md">
                     <Tab.Items>
                         <Tab.Item id="all-posts">
                             For You
