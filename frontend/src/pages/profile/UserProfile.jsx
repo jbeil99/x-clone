@@ -5,7 +5,7 @@ import TabButton from "./components/TabButton"; // Use the imported TabButton
 import Loader from "../../components/Loader";
 import EmptyState from "./components/EmptyState";
 import NewPopupPage from "./NewPopupPage"; // Import NewPopupPage component
-
+import axios from 'axios';
 export default function UserProfile() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +26,7 @@ export default function UserProfile() {
       const token = sessionStorage.getItem("access");
       if (!token) {
         console.error("Access token is missing");
+        window.location.href = "/login"; // Redirect to login page
         return;
       }
 
