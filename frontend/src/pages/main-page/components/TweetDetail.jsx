@@ -47,7 +47,7 @@ export default function TweetDetail() {
             {!isLoading ? <Tweet tweet={post} /> : ""}
 
             {/* Reply input */}
-            <div className="p-4 border-b border-gray-800 flex">
+            {/* <div className="p-4 border-b border-gray-800 flex">
                 <div className="mr-3">
                     <div className="w-10 h-10 rounded-full bg-red-700" />
                 </div>
@@ -55,10 +55,10 @@ export default function TweetDetail() {
                     <div className="text-gray-500">Post your reply</div>
                     <button className="bg-blue-500 text-white px-4 py-1 rounded-full opacity-50">Reply</button>
                 </div>
-            </div>
+            </div> */}
 
             <TweetForm parent={id} />
-            {!isLoading ? replies.map((reply, index) => <Tweet tweet={reply} key={reply.id} />) : ""}
+            {!isLoading ? replies.map((reply, index) => <Tweet tweet={reply} key={reply.id} id={id} />) : ""}
 
         </div>
     );

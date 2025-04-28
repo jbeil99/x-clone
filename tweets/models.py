@@ -20,6 +20,10 @@ class Tweet(models.Model):
     def is_user_retweeted(self, user):
         return self.retweets.filter(user=user).exists()
 
+    @classmethod
+    def get_tweets(cls):
+        return cls.objects.filter(parent=None)
+
 
 class Likes(models.Model):
     user = models.ForeignKey(User, related_name="likes", on_delete=models.CASCADE)

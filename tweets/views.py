@@ -154,7 +154,7 @@ def get_user_tweets(request, username):
 class TweetList(generics.ListCreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
-    queryset = Tweet.objects.all()
+    queryset = Tweet.get_tweets()
     serializer_class = TweetSerializer
     # permission_classes = [IsAuthenticated]
     pagination_class = PageNumberPagination

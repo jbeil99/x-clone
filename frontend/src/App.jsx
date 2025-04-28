@@ -21,7 +21,7 @@ function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/activate/:uid/:token" element={<ActivateAccount />} />
 
-        <Route path="/:id" element={<Layout><TweetDetail /></Layout>} />
+        <Route path="status/:id" element={<Layout><TweetDetail /></Layout>} />
 
 
         <Route element={<PrivateRoute />}>
