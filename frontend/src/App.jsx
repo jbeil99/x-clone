@@ -8,6 +8,7 @@ import Layout from "./components/layout"
 import PrivateRoute from "./components/guards/PrivateRoute";
 import ActivateAccount from "./pages/auth/ActivationPage";
 import Explore from "./pages/main-page/Explore";
+import Messages from "./pages/messages/Messages";
 
 
 
@@ -37,6 +38,8 @@ function App() {
             </Layout>
           } />
         </Route>
+
+        <Route path="/messages" element={<Messages />} />
       </Routes>
     </BrowserRouter >
   )
