@@ -30,11 +30,9 @@ export const currentUser = async () => {
 import axios from "axios";
 
 export const updateProfile = async (formData) => {
-  const token = localStorage.getItem("token");
-  const response = await axios.patch("http://127.0.0.1:8000/profile/edit/", formData, {
+  const response = await axios.patch("http://127.0.0.1:8000/profile/", formData, {
     headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data",
+      "Content-Type": "multipart/form-data", // Keep the Content-Type for file uploads
     },
   });
   return response.data;

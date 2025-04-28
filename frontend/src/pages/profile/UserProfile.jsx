@@ -198,9 +198,22 @@ export default function TwitterProfile() {
             avatar: null,
             cover_image: null,
           }}
-          close={() => setShowEditProfile(false)} // Close the modal
+          close={() => setShowEditProfile(false)} 
         />
       )}
     </div>
   );
 }
+
+
+
+export const updateProfile = async (formData) => {
+  const token = localStorage.getItem("token");
+  const response = await axios.patch("http://127.0.0.1:8000/profile/", formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data", // تأكد من إعداد الـ Content-Type
+    },
+  });
+  return response.data;
+};
