@@ -8,7 +8,7 @@ from accounts.models import User
 from .serializers import TweetSerializer, MyTweetSerializer, CommentSerializer
 from .permissions import IsUserOrReadOnly
 from rest_framework.pagination import PageNumberPagination
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 
 # from noti.models import Noti
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -107,6 +107,21 @@ class Like(APIView):
             #         from_user=request.user,
             #     )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TweetReplies(APIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = PageNumberPagination
+
+    def get(self, request, pk):
+        tweets = get_list_or_404(Tweet, parent=pk)
+        paginator = PageNumberPagination()
+        paginated_tweets = paginator.paginate_queryset(tweets, request)
+        serializer = TweetSerializer(
+            paginated_tweets, many=True, context={"request": request}
+        )
+
+        return paginator.get_paginated_response(serializer.data)
 
 
 # @api_view(["POST"])

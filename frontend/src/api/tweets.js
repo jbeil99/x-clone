@@ -8,6 +8,11 @@ export const getTweetByID = async (id) => {
     const res = await authAxios.get(`tweets/${id}`)
     return res.data
 }
+
+export const getTweetReplies = async (id) => {
+    const res = await authAxios.get(`tweets/${id}/replies`)
+    return res.data
+}
 export const addTweet = async (data) => {
     const formData = new FormData();
     formData.append('content', data.content);

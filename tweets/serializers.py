@@ -55,6 +55,7 @@ class TweetSerializer(serializers.ModelSerializer):
     time = serializers.SerializerMethodField(read_only=True)
     author = UserSerializer(source="user", read_only=True)
     comments_count = serializers.SerializerMethodField()
+    replies_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Tweet
@@ -70,8 +71,10 @@ class TweetSerializer(serializers.ModelSerializer):
             "iretweeted",
             "time",
             "comments_count",
+            "replies_count",
+            "parent",
         ]
-        extra_kwargs = {"user": {"write_only": True}}
+        extra_kwargs = {"user": {"write_only": True}, "parent": {"write_only": True}}
 
     def get_avatar(self, obj):
         return build_absolute_url(obj.user.avatar.url)
@@ -81,6 +84,9 @@ class TweetSerializer(serializers.ModelSerializer):
 
     def get_retweets_count(self, obj):
         return obj.retweets.count()
+
+    def get_replies_count(self, obj):
+        return obj.replies.count()
 
     def get_comments_count(self, obj):
         return obj.comments.count()

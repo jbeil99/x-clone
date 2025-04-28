@@ -7,6 +7,9 @@ class Tweet(models.Model):
     content = models.CharField(max_length=140)
     image = models.ImageField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    parent = models.ForeignKey(
+        "self", null=True, blank=True, related_name="replies", on_delete=models.CASCADE
+    )
 
     class Meta:
         ordering = ["-created_at"]
