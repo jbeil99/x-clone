@@ -8,6 +8,7 @@ import Layout from "./components/layout"
 import PrivateRoute from "./components/guards/PrivateRoute";
 import ActivateAccount from "./pages/auth/ActivationPage";
 import Explore from "./pages/main-page/Explore";
+import TweetDetail from "./pages/main-page/components/TweetDetail";
 
 
 
@@ -19,6 +20,9 @@ function App() {
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/activate/:uid/:token" element={<ActivateAccount />} />
+
+        <Route path="/:id" element={<Layout><TweetDetail /></Layout>} />
+
 
         <Route element={<PrivateRoute />}>
           <Route path="/" element={

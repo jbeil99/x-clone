@@ -1,4 +1,3 @@
-import { posts as postsData } from "../../../data/posts";
 import Tweet from "../../../components/Tweet";
 import { useState, useEffect } from "react";
 import { getTweets } from "../../../api/tweets";
