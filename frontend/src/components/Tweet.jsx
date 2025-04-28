@@ -39,7 +39,7 @@ export default function Tweet({ tweet }) {
     const heartColor = isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500';
 
     return (
-        <div className="py-4 border-b border-gray-800 cursor-pointer" onClick={handleClickTweet}>
+        <div className="py-4 border-b border-gray-800 cursor-pointer transition-colors duration-200 hover:bg-gray-950" onClick={handleClickTweet}>
             <div className="flex items-start gap-3">
                 <Avatar className="w-10 h-10 rounded-full">
                     <AvatarImage src={tweet?.author?.avatar || "/api/placeholder/40/40"} alt={tweet?.author?.username} />

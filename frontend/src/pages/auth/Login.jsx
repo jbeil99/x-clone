@@ -1,39 +1,40 @@
 import { useState } from 'react';
 import { AtSign, Lock } from 'lucide-react';
-import { login } from "../../api/users"
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, clearError } from '../../store/slices/auth';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function Login({ closeModals, openRegisterModal }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState([]);
-  const navigate = useNavigate()
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
 
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      toast(`Welcome ${user.display_name}!`);
+      navigate('/');
+    } else {
+      dispatch()
+    }
+
+    return () => {
+      dispatch(clearError());
+    };
+  }, [isAuthenticated, navigate, user, dispatch]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-      const res = await login({
-        email, password
-      })
-      if (res) {
-        setErrors()
-        toast(`Welcome ${res.display_name}!`)
-        navigate("/")
-      }
-
-    } catch (error) {
-      for (const k in error.response.data) {
-        setErrors(error.response.data[k].join("/n"))
-      }
-    }
+    e.preventDefault();
+    dispatch(loginUser({ username: email, password }));
   };
 
   return (
-
     <form onSubmit={handleSubmit} className="space-y-4">
-      {errors ? <p className="text-red-500 text-sm mt-1">{errors}</p> : ''}
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {loading && <p className="text-gray-500 text-sm mt-1">Logging in...</p>}
       <div className="relative">
         <AtSign className="absolute top-3 left-3 text-gray-500" size={18} />
         <input
@@ -60,10 +61,10 @@ export default function Login({ closeModals, openRegisterModal }) {
       <button
         type="submit"
         className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300"
+        disabled={loading}
       >
         Log in
       </button>
     </form>
-
   );
 }

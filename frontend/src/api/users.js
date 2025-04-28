@@ -1,7 +1,7 @@
 import { axi, authAxios } from "./useAxios";
 
 // TODO: Get the user id form token
-export const userProfile = async (username) => {
+export const getUserProfile = async (username) => {
     const res = await authAxios.get(`auth/users/${username}/`)
     return res.data
 }
@@ -22,7 +22,6 @@ export const login = async (data) => {
 }
 
 export const googleLogin = async (credentialResponse) => {
-    console.log(credentialResponse.credential)
     const res = await axi.post('auth/google/', { token: credentialResponse.credential })
     const { access, refresh } = res.data
     sessionStorage.setItem('access', access)
