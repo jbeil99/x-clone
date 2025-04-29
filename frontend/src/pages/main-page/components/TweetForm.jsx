@@ -22,14 +22,15 @@ const tweetSchema = z.object({
         })
 });
 
-export default function TweetForm({ parent, isReply = false, author, currentUser }) {
+export default function TweetForm({ parent, isReply = false, author, setReplies, replies }) {
+    const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
+
     const fileInputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const buttonText = !isReply ? ['Post', 'Posting'] : ['Reply', 'Replying'];
     const textAreaText = !isReply ? "What's happening" : "Post Your Reply";
     const dispatch = useDispatch();
-    console.log(currentUser)
     const {
         register,
         handleSubmit,
@@ -51,8 +52,10 @@ export default function TweetForm({ parent, isReply = false, author, currentUser
         setIsSubmitting(true);
         try {
             console.log("Tweet submitted:", data);
-            dispatch(postTweets({ data, parent }))
-            toast.success("Tweet submitted")
+            const action = await dispatch(postTweets({ data, parent }));
+            if (isReply) {
+                setReplies([action.payload, ...replies])
+            }
 
         } catch (error) {
             console.error("Error posting tweet:", error);
@@ -85,7 +88,7 @@ export default function TweetForm({ parent, isReply = false, author, currentUser
         <div className="border-b border-gray-800">
             <form onSubmit={handleSubmit(onSubmit)} className="pt-3 pb-0 px-4">
                 <div className="flex gap-3">
-                    <img src={currentUser?.avatar} alt={currentUser?.username} className="w-11 h-11 rounded-full object-cover mt-1" />
+                    <img src={user?.avatar} alt={user?.username} className="w-11 h-11 rounded-full object-cover mt-1" />
                     <div className="flex-1 min-w-0">
                         {isReply ? <div className="text-xs text-gray-400 mb-2">
                             Replying to <span className="text-blue-400">@{author?.username}</span>

@@ -18,7 +18,7 @@ export default function ShareButton({ tweet }) {
                 <div className="grid flex-1 gap-2">
                     <Input
                         id="link"
-                        defaultValue={`https://twitter.com/${tweet.user}/status/123456789`}
+                        defaultValue={`https://twitter.com/${tweet?.user}/status/123456789`}
                         readOnly
                         className="w-full"
                     />

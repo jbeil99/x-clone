@@ -98,7 +98,6 @@ class Like(APIView):
 
         else:
             Likes.objects.create(user=request.user, tweet=tweet)
-
             # if request.user != tweet.user:
             #     Noti.objects.get_or_create(
             #         type="like you tweet",
@@ -106,7 +105,8 @@ class Like(APIView):
             #         to_user=tweet.user,
             #         from_user=request.user,
             #     )
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = TweetSerializer(tweet, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TweetReplies(APIView):

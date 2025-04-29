@@ -6,10 +6,11 @@ import { useNavigate, useParams } from 'react-router';
 import TweetForm from './TweetForm';
 export default function TweetDetail() {
     const { id } = useParams()
-    const [post, setPost] = useState([])
-    const [replies, setReplies] = useState([])
-    const navigate = useNavigate()
-    const [isLoading, setIsLoading] = useState(true)
+    const [post, setPost] = useState([]);
+    const [replies, setReplies] = useState([]);
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
+
     useEffect(() => {
         const getPosts = async () => {
             try {
@@ -43,9 +44,9 @@ export default function TweetDetail() {
                 <div className="text-xl font-bold">Post</div>
             </div>
 
-            {!isLoading ? <Tweet tweet={post} /> : ""}
+            {!isLoading ? <Tweet tweet={post} setPost={setPost} /> : ""}
 
-            <TweetForm parent={id} isReply={true} author={post.author} />
+            <TweetForm parent={id} isReply={true} author={post?.author} setReplies={setReplies} replies={replies} />
             {!isLoading ? replies.map((reply, index) => <Tweet tweet={reply} key={reply.id} id={id} />) : ""}
 
         </div>

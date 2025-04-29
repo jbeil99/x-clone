@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { addTweet, getTweets } from '../../api/tweets';
+import { addTweet, getTweets, likeTweet } from '../../api/tweets';
 
 export const fetchTweets = createAsyncThunk(
     'tweets/fetchTweets',
@@ -26,7 +26,17 @@ export const postTweets = createAsyncThunk(
 );
 
 
-
+export const postLikes = createAsyncThunk(
+    'tweets/postLikes',
+    async (id, { rejectWithValue }) => {
+        try {
+            const res = await likeTweet(id);
+            return res;
+        } catch (error) {
+            return rejectWithValue(error.response ? error.response.data : error.message);
+        }
+    }
+);
 
 const tweetsSlice = createSlice({
     name: 'tweets',
@@ -67,7 +77,14 @@ const tweetsSlice = createSlice({
         //     state.loading = false;
         //     state.error = action.payload;
         // });
-
+        builder.addCase(postLikes.fulfilled, (state, action) => {
+            state.loading = false;
+            state.tweets = state.tweets.map(tweet =>
+                tweet.id === action.payload.id
+                    ? action.payload
+                    : tweet
+            );
+        });
 
     },
 });

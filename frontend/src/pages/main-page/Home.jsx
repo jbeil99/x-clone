@@ -2,10 +2,7 @@ import React, { useState, useEffect, use } from "react";
 import Tab from "../../components/tab";
 import AllPosts from "./components/AllPosts";
 import TweetForm from "./components/TweetForm";
-import { useSelector } from "react-redux";
 export default function MainPage() {
-    const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
-
     return (
         <div className="min-h-screen bg-black">
             <Tab activeTab="all-posts">
@@ -20,7 +17,7 @@ export default function MainPage() {
                     </Tab.Items>
                 </div>
 
-                <TweetForm currentUser={user} />
+                <TweetForm />
 
                 <Tab.Content id="all-posts">
                     <AllPosts />

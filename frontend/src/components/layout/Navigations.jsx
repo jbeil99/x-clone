@@ -47,10 +47,10 @@ export default function Navigations() {
                 </button>
 
                 <div className="flex items-center gap-3 px-2 py-3 hover:bg-gray-900 rounded-full cursor-pointer mt-3">
-                    <img src={user.avatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                    <img src={user?.avatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
                     <div className="flex-1 min-w-0">
-                        <div className="font-bold truncate">{user.name}</div>
-                        <div className="text-gray-500 text-sm truncate">@{user.username}</div>
+                        <div className="font-bold truncate">{user?.name}</div>
+                        <div className="text-gray-500 text-sm truncate">@{user?.username}</div>
                     </div>
                     <MoreHorizontal className="text-gray-500" />
                 </div>
