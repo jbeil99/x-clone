@@ -1,27 +1,12 @@
-import { useState, useEffect } from "react";
-import axios from "axios"; // ✅ أضفنا import axios
-import { Calendar, Link, MapPin, Verified } from "lucide-react";
-import Tweet from "../../components/Tweet";
-import TabButton from "./components/TabButton";
-import Loader from "../../components/Loader";
-import EmptyState from "./components/EmptyState";
-import NewPopupPage from "./NewPopupPage";
-import { authAxios } from "../../api/useAxios";
+import React, { useState, useEffect } from "react";
+import axios from "axios"; // Import axios
+import { Calendar, MapPin, Verified } from "lucide-react";
+import NewPopupPage from "./NewPopupPage"; // Adjust the path if necessary
 
 export default function UserProfile() {
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("posts");
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [following, setFollowing] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-
-  const contentMap = {
-    posts: userData?.posts || [],
-    replies: userData?.replies || [],
-    media: userData?.media || [],
-    likes: userData?.likes || [],
-  };
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -47,40 +32,13 @@ export default function UserProfile() {
     fetchProfileData();
   }, []);
 
-  const getTabContent = () => {
-    return contentMap[activeTab] || [];
-  };
-
-  const renderContentSection = () => {
-    if (loading) {
-      return <Loader />;
-    }
-
-    const content = getTabContent();
-
-    if (content.length === 0) {
-      return <EmptyState tabName={activeTab} />;
-    }
-
-    return (
-      <div className="divide-y divide-gray-800">
-        {content.map((item) => (
-          <Tweet key={item.id} tweet={item} />
-        ))}
-      </div>
-    );
-  };
-
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  if (!userData) {
-    return <div>Failed to load profile data</div>;
-  }
-
   return (
     <div className="max-w-xl mx-auto bg-black text-white">
+      {/* Profile content */}
       <div className="relative">
         <div className="h-48 bg-blue-600"></div>
         <div className="absolute -bottom-16 left-4">
@@ -96,25 +54,12 @@ export default function UserProfile() {
 
       <div className="pt-20 px-4">
         <div className="flex justify-end mb-4">
-          {isLoggedIn ? (
-            <button
-              className="px-4 py-2 rounded-full font-bold bg-transparent border border-gray-600 hover:border-blue-500 hover:text-blue-500"
-              onClick={() => setShowEditProfile(true)}
-            >
-              Edit Profile
-            </button>
-          ) : (
-            <button
-              className={`px-4 py-2 rounded-full font-bold ${
-                following
-                  ? "bg-transparent border border-gray-600 hover:border-red-500 hover:text-red-500"
-                  : "bg-white text-black"
-              }`}
-              onClick={() => setFollowing(!following)}
-            >
-              {following ? "Following" : "Follow"}
-            </button>
-          )}
+          <button
+            className="px-4 py-2 rounded-full font-bold bg-transparent border border-gray-600 hover:border-blue-500 hover:text-blue-500"
+            onClick={() => setShowEditProfile(true)}
+          >
+            Edit Profile
+          </button>
         </div>
 
         <div className="mb-4">
@@ -153,48 +98,21 @@ export default function UserProfile() {
           </div>
         </div>
 
-        <div className="flex border-b border-gray-800">
-          <TabButton
-            name="posts"
-            label="Posts"
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
+        {showEditProfile && (
+          <NewPopupPage
+            user={userData}
+            close={(updatedData) => {
+              if (updatedData) {
+                setUserData((prevData) => ({
+                  ...prevData,
+                  ...updatedData,
+                }));
+              }
+              setShowEditProfile(false);
+            }}
           />
-          <TabButton
-            name="replies"
-            label="Replies"
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-          <TabButton
-            name="media"
-            label="Media"
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-          <TabButton
-            name="likes"
-            label="Likes"
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-        </div>
-
-        {renderContentSection()}
+        )}
       </div>
-
-      {showEditProfile && (
-        <NewPopupPage
-          user={{
-            name: userData.display_name,
-            bio: userData.bio,
-            location: userData.country,
-            avatar: userData.avatar,
-            cover_image: userData.cover_image,
-          }}
-          close={() => setShowEditProfile(false)}
-        />
-      )}
     </div>
   );
 }
