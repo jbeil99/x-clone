@@ -18,6 +18,7 @@ function App() {
     <BrowserRouter>
       <ToastContainer />
       <Routes>
+        
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/activate/:uid/:token" element={<ActivateAccount />} />
         <Route path="/" element={
@@ -34,7 +35,12 @@ function App() {
           <Route path="status/:id" element={<Layout><TweetDetail /></Layout>} />
 
           <Route path="/:username" element={<UserProfile />} />
-          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/profile" element={
+           <Layout>
+            <UserProfile />
+            </Layout>
+            
+            } />
           <Route path="/profile/edit" element={<EditProfile />} /> {/* Add EditProfile route */}
           <Route path="/messages" element={<Messages />} />
 
