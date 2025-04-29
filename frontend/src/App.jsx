@@ -9,6 +9,7 @@ import PrivateRoute from "./components/guards/PrivateRoute";
 import ActivateAccount from "./pages/auth/ActivationPage";
 import Explore from "./pages/main-page/Explore";
 import TweetDetail from "./pages/main-page/components/TweetDetail";
+import Messages from "./pages/messages/Messages";
 
 
 
@@ -41,6 +42,8 @@ function App() {
             </Layout>
           } />
         </Route>
+
+        <Route path="/messages" element={<Messages />} />
       </Routes>
     </BrowserRouter >
   )
