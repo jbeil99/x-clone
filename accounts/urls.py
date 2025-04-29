@@ -10,10 +10,6 @@ urlpatterns = [
     path("api/profile/update", UserUpdateView.as_view(), name="user-profile-update"),
     path("auth/users/delete", DeleteAccountView.as_view(), name="delete-account"),
 ]
-# urlpatterns = [
-#     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-#     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-# ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
