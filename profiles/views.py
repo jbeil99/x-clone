@@ -12,6 +12,7 @@ class ProfileView(APIView):
         user = request.user
         serializer = ProfileSerializer(user)
         return Response(serializer.data)
+    
 
 
 class FollowView(APIView):

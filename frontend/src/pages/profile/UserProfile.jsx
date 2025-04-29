@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
+import axios from "axios"; // ✅ أضفنا import axios
 import { Calendar, Link, MapPin, Verified } from "lucide-react";
 import Tweet from "../../components/Tweet";
-import TabButton from "./components/TabButton"; // Use the imported TabButton
+import TabButton from "./components/TabButton";
 import Loader from "../../components/Loader";
 import EmptyState from "./components/EmptyState";
-import NewPopupPage from "./NewPopupPage"; // Import NewPopupPage component
+import NewPopupPage from "./NewPopupPage";
+import { authAxios } from "../../api/useAxios";
 
 export default function UserProfile() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("posts");
-  const [showEditProfile, setShowEditProfile] = useState(false); // Modal state
-  const [following, setFollowing] = useState(false); // Following state
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Simulate logged-in state
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   const contentMap = {
     posts: userData?.posts || [],
@@ -23,23 +25,21 @@ export default function UserProfile() {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      const token = sessionStorage.getItem("access");
-      if (!token) {
-        console.error("Access token is missing");
-        return;
-      }
-
       try {
+        const accessToken = sessionStorage.getItem("access");
+        console.log("Access Token:", accessToken); // ✅ للتأكد أن التوكن موجود
+
         const response = await axios.get("http://127.0.0.1:8000/profile/", {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
-        console.log("Profile data fetched successfully:", response.data);
+
         setUserData(response.data);
-        setLoading(false);
       } catch (error) {
-        console.error("Failed to fetch profile data:", error.response || error);
+        console.error("Error fetching profile data:", error.response?.data || error.message);
+        setUserData(null);
+      } finally {
         setLoading(false);
       }
     };
@@ -95,12 +95,11 @@ export default function UserProfile() {
       </div>
 
       <div className="pt-20 px-4">
-        {/* Add Edit Profile or Follow Button */}
         <div className="flex justify-end mb-4">
           {isLoggedIn ? (
             <button
               className="px-4 py-2 rounded-full font-bold bg-transparent border border-gray-600 hover:border-blue-500 hover:text-blue-500"
-              onClick={() => setShowEditProfile(true)} // Open the modal
+              onClick={() => setShowEditProfile(true)}
             >
               Edit Profile
             </button>
@@ -154,7 +153,6 @@ export default function UserProfile() {
           </div>
         </div>
 
-        {/* Tabs Section */}
         <div className="flex border-b border-gray-800">
           <TabButton
             name="posts"
@@ -182,11 +180,9 @@ export default function UserProfile() {
           />
         </div>
 
-        {/* Content based on active tab */}
         {renderContentSection()}
       </div>
 
-      {/* Render NewPopupPage as a modal */}
       {showEditProfile && (
         <NewPopupPage
           user={{

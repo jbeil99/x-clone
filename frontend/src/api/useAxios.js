@@ -22,7 +22,6 @@ authAxios.interceptors.request.use(async (config) => {
     const now = new Date();
 
     if (exp.getTime() < now.getTime()) {
-      // إذا انتهت صلاحية رمز الوصول، قم بتحديثه
       try {
         const response = await axi.post("/auth/jwt/refresh/", { refresh });
         const { access: newAccess } = response.data;
@@ -31,7 +30,7 @@ authAxios.interceptors.request.use(async (config) => {
       } catch (error) {
         console.error("Failed to refresh token:", error.response || error);
         sessionStorage.clear();
-        window.location.href = "/login"; // إعادة التوجيه إلى صفحة تسجيل الدخول
+        window.location.href = "/login";
       }
     } else {
       config.headers.Authorization = `Bearer ${access}`;
