@@ -43,3 +43,9 @@ export const activateAccount = async (uid, token) => {
     });
     return res
 };
+
+
+export const updateProfile = async () => {
+    const res = await authAxios.get(`auth/users/me`)
+    return res.data
+}
