@@ -1,5 +1,15 @@
 from django.db import models
 from accounts.models import User
+from django.contrib.auth import get_user_model #
+import re
+
+
+User = get_user_model()
+
+class Mention(models.Model):
+    tweet = models.ForeignKey('Tweet', on_delete=models.CASCADE, related_name='mentions')
+    mentioned_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mentions_received')
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Hashtag(models.Model):
@@ -20,6 +30,10 @@ class Tweet(models.Model):
     hashtags = models.ManyToManyField(Hashtag, related_name="tweets", blank=True)
 
 
+    @staticmethod
+    def extract_mentions(content):
+        return re.findall(r'@(\w+)', content)
+
     class Meta:
         ordering = ["-created_at"]
 
@@ -34,12 +48,24 @@ class Tweet(models.Model):
         return cls.objects.filter(parent=None)
     
     def save(self, *args, **kwargs):
-        # Extract hashtags from the tweet content and associate them
+        super().save(*args, **kwargs)  # Save first so Tweet ID exists
+
+        # Hashtags
         hashtags_in_content = self.extract_hashtags(self.content)
         for tag in hashtags_in_content:
-            hashtag, created = Hashtag.objects.get_or_create(name=tag)
+            hashtag, _ = Hashtag.objects.get_or_create(name=tag)
             self.hashtags.add(hashtag)
-        super().save(*args, **kwargs)
+
+        # Mentions
+        mentions_in_content = self.extract_mentions(self.content)
+        for username in mentions_in_content:
+            try:
+                mentioned_user = User.objects.get(username=username)
+                # Avoid duplicate mentions
+                if not Mention.objects.filter(tweet=self, mentioned_user=mentioned_user).exists():
+                    Mention.objects.create(tweet=self, mentioned_user=mentioned_user)
+            except User.DoesNotExist:
+                continue  # Skip invalid usernames
 
     @staticmethod
     def extract_hashtags(content):

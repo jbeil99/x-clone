@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import Retweet,HashtagCreateView
+from .views import Retweet,HashtagCreateView,MentionsView
 
 urlpatterns = [
     path("tweets", views.TweetList.as_view()),
@@ -15,5 +15,7 @@ urlpatterns = [
     path("comment/<int:pk>/", views.CommentDetail.as_view()),
     path("tweets/<int:pk>/retweet/", Retweet.as_view(), name="tweet-retweet"),
     path('hashtags/', HashtagCreateView.as_view(), name='create-hashtag'),
+    path('api/mentions/', MentionsView.as_view(), name='mentions'),
+
 
 ]

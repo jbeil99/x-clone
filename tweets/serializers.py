@@ -1,8 +1,30 @@
 from rest_framework import serializers
-from .models import Tweet, Comment, Likes, Hashtag
-
+from .models import Tweet, Comment, Likes, Hashtag, Mention
+from django.contrib.auth import get_user_model
 from core.utils.helpers import build_absolute_url, time_ago
 from accounts.serializers import UserSerializer
+import re
+
+User = get_user_model()
+
+def extract_mentions(content):
+    return re.findall(r'@(\w+)', content)
+
+class TweetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tweet
+        fields = ['id', 'content', 'created_at']
+
+    def create(self, validated_data):
+        tweet = Tweet.objects.create(**validated_data)
+        usernames = extract_mentions(tweet.content)
+        for username in usernames:
+            try:
+                user = User.objects.get(username=username)
+                Mention.objects.create(tweet=tweet, mentioned_user=user)
+            except User.DoesNotExist:
+                continue
+        return tweet
 
 
 class CommentSerializer(serializers.ModelSerializer):

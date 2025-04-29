@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Tweet, Comment, Likes, Retweets, Hashtag
+from .models import Tweet, Comment, Likes, Retweets, Hashtag, Mention
 from accounts.models import User
 from .serializers import (
     TweetSerializer,
@@ -15,6 +15,8 @@ from .permissions import IsUserOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404, get_list_or_404
 import re
+
+
 
 
 # from noti.models import Noti
@@ -209,7 +211,8 @@ class TweetViewSet(viewsets.ModelViewSet):
         ]
         tweet.hashtags.set(
             hashtags
-        )  # link hashtags to tweet&#8203;:contentReference[oaicite:3]{index=3}
+        )  
+        
 
 
 class HashtagCreateView(APIView):
@@ -221,3 +224,21 @@ class HashtagCreateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class MentionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        mentions = Mention.objects.filter(mentioned_user=request.user).select_related('tweet')
+        data = [
+            {
+                'tweet_id': m.tweet.id,
+                'content': m.tweet.content,
+                'mentioned_at': m.created_at
+            }
+            for m in mentions
+        ]
+        return Response(data)
