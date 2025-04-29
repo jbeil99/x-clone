@@ -38,13 +38,13 @@ class FollowView(APIView):
         else:
             return Response({"detail": "You are already following this user."}, status=status.HTTP_200_OK)
 
-# class EditProfileView(APIView):
-#     permission_classes = [IsAuthenticated]
+class EditProfileView(APIView):
+    permission_classes = [IsAuthenticated]
 
-#     def patch(self, request):
-#         user = request.user
-#         serializer = ProfileSerializer(user, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def patch(self, request):
+        user = request.user
+        serializer = ProfileSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
