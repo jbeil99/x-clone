@@ -3,11 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { User, Mail, Calendar, AtSign, Lock, Phone } from 'lucide-react';
-import { FaXTwitter } from "react-icons/fa6";
 import { registerUser } from "../../api/users"
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router';
-
+import { X } from 'lucide-react';
 
 const registerSchema = z.object({
   display_name: z.string().min(3, { message: "Name must be at least 3 characters" }),
@@ -38,7 +37,7 @@ const registerSchema = z.object({
   path: ["re_password"],
 });
 
-export default function RegisterForm({ toggleForm }) {
+export default function RegisterForm({ closeModals, openLoginModal }) {
   const [backErrors, setBackErrors] = useState();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate()
@@ -73,8 +72,6 @@ export default function RegisterForm({ toggleForm }) {
       const result = await registerUser(submitData);
       if (result) {
         toast(`Registration successful! check ${result.email} to activate the account`);
-        toggleForm();
-
       }
     } catch (error) {
       for (const k in error.response.data) {
@@ -94,132 +91,110 @@ export default function RegisterForm({ toggleForm }) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
-      <div className="w-full max-w-md bg-black rounded-lg p-6 border border-gray-800">
-        <div className="flex justify-center mb-6">
-          <FaXTwitter size={40} />
-        </div>
-
-        <h1 className="text-2xl font-bold text-center mb-6">
-          Create your account
-        </h1>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
-          <div className="space-y-4">
-            <div className="relative">
-              <User className="absolute top-3 left-3 text-gray-500" size={18} />
-              <input
-                type="text"
-                placeholder="Name"
-                {...register("display_name")}
-                className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-              />
-              {errors.display_name && (
-                <p className="text-red-500 text-sm mt-1">{errors.display_name.message}</p>
-              )}
-            </div>
-
-            <div className="relative">
-              <Mail className="absolute top-3 left-3 text-gray-500" size={18} />
-              <input
-                type="email"
-                placeholder="Email"
-                {...register("email")}
-                className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-              )}
-            </div>
-
-            <div className="relative">
-              <Phone className="absolute top-3 left-3 text-gray-500" size={18} />
-              <input
-                type="tel"
-                placeholder="Egyptian Phone Number (e.g., 01xxxxxxxxx)"
-                {...register("mobile_phone")}
-                className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
-              />
-              {errors.mobile_phone && (
-                <p className="text-red-500 text-sm mt-1">{errors.mobile_phone.message}</p>
-              )}
-            </div>
-
-            <div className="relative">
-              <Calendar className="absolute top-3 left-3 text-gray-500" size={18} />
-              <input
-                type="date"
-                placeholder="Birth date"
-                {...register("birthdate")}
-                className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 text-gray-400"
-              />
-              {errors.birthdate && (
-                <p className="text-red-500 text-sm mt-1">{errors.birthdate.message}</p>
-              )}
-            </div>
-          </div>
-
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-4">
           <div className="relative">
-            <AtSign className="absolute top-3 left-3 text-gray-500" size={18} />
+            <User className="absolute top-3 left-3 text-gray-500" size={18} />
             <input
               type="text"
-              placeholder="Username"
-              {...register("username")}
+              placeholder="Name"
+              {...register("display_name")}
               className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
             />
-            {errors.username && (
-              <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>
+            {errors.display_name && (
+              <p className="text-red-500 text-sm mt-1">{errors.display_name.message}</p>
             )}
           </div>
 
           <div className="relative">
-            <Lock className="absolute top-3 left-3 text-gray-500" size={18} />
+            <Mail className="absolute top-3 left-3 text-gray-500" size={18} />
             <input
-              type="password"
-              placeholder="Password"
-              {...register("password")}
+              type="email"
+              placeholder="Email"
+              {...register("email")}
               className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
             />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
             )}
           </div>
 
           <div className="relative">
-            <Lock className="absolute top-3 left-3 text-gray-500" size={18} />
+            <Phone className="absolute top-3 left-3 text-gray-500" size={18} />
             <input
-              type="password"
-              placeholder="Confirm Password"
-              {...register("re_password")}
+              type="tel"
+              placeholder="Egyptian Phone Number (e.g., 01xxxxxxxxx)"
+              {...register("mobile_phone")}
               className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
             />
-            {errors.re_password && (
-              <p className="text-red-500 text-sm mt-1">{errors.re_password.message}</p>
+            {errors.mobile_phone && (
+              <p className="text-red-500 text-sm mt-1">{errors.mobile_phone.message}</p>
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 disabled:bg-blue-300 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? "Processing..." : "Sign up"}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-gray-500">
-            Already have an account?
-            <button
-              onClick={toggleForm}
-              className="text-blue-500 hover:underline ml-1"
-            >
-              Log in
-            </button>
-          </p>
+          <div className="relative">
+            <Calendar className="absolute top-3 left-3 text-gray-500" size={18} />
+            <input
+              type="date"
+              placeholder="Birth date"
+              {...register("birthdate")}
+              className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 text-gray-400"
+            />
+            {errors.birthdate && (
+              <p className="text-red-500 text-sm mt-1">{errors.birthdate.message}</p>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+
+        <div className="relative">
+          <AtSign className="absolute top-3 left-3 text-gray-500" size={18} />
+          <input
+            type="text"
+            placeholder="Username"
+            {...register("username")}
+            className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
+          />
+          {errors.username && (
+            <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>
+          )}
+        </div>
+
+        <div className="relative">
+          <Lock className="absolute top-3 left-3 text-gray-500" size={18} />
+          <input
+            type="password"
+            placeholder="Password"
+            {...register("password")}
+            className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
+          />
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+          )}
+        </div>
+
+        <div className="relative">
+          <Lock className="absolute top-3 left-3 text-gray-500" size={18} />
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            {...register("re_password")}
+            className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500"
+          />
+          {errors.re_password && (
+            <p className="text-red-500 text-sm mt-1">{errors.re_password.message}</p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 disabled:bg-blue-300 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? "Processing..." : "Sign up"}
+        </button>
+      </form>
+
+    </>
   );
 }

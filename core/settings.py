@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     "accounts",
     "corsheaders",
     "profiles",
+    "tweets",
+    "channels",
+    "chat",
 ]
 
 MIDDLEWARE = [
@@ -166,6 +169,7 @@ SIMPLE_JWT = {
 }
 
 FRONTEND_URL = "http://localhost:3000"
+BASE_URL = "http://localhost:8000"
 
 DJOSER = {
     "EMAIL_FRONTEND_DOMAIN": FRONTEND_URL.replace("http://", ""),
@@ -210,12 +214,16 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "saramohsen0901@gmail.com"
-EMAIL_HOST_PASSWORD = "jich lmmi eegx ycck"  # App password, not your Gmail password
-DEFAULT_FROM_EMAIL = "saramohsen0901@gmail.com"
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+
 
 PASSWORD_RESET_TIMEOUT = 86400
 
-# Media files configuration
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+ASGI_APPLICATION = "core.asgi.application"

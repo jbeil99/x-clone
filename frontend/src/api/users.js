@@ -1,7 +1,7 @@
 import { axi, authAxios } from "./useAxios";
 
 // TODO: Get the user id form token
-export const userProfile = async (username) => {
+export const getUserProfile = async (username) => {
     const res = await authAxios.get(`auth/users/${username}/`)
     return res.data
 }
@@ -21,19 +21,25 @@ export const login = async (data) => {
     return user
 }
 
+export const googleLogin = async (credentialResponse) => {
+    const res = await axi.post('auth/google/', { token: credentialResponse.credential })
+    const { access, refresh } = res.data
+    sessionStorage.setItem('access', access)
+    sessionStorage.setItem('refresh', refresh)
+    const user = await currentUser()
+    return user
+}
+
 
 export const currentUser = async () => {
     const res = await authAxios.get(`auth/users/me`)
     return res.data
 }
 
-import axios from "axios";
-
-export const updateProfile = async (formData) => {
-  const response = await axios.patch("http://127.0.0.1:8000/profile/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data", // Keep the Content-Type for file uploads
-    },
-  });
-  return response.data;
+export const activateAccount = async (uid, token) => {
+    const res = await axi.post('auth/users/activation/', {
+        uid,
+        token,
+    });
+    return res
 };
