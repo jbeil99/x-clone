@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Tweet, Comment, Likes
+from .models import Tweet, Comment, Likes, Hashtag
+
 from core.utils.helpers import build_absolute_url, time_ago
 from accounts.serializers import UserSerializer
 
@@ -21,6 +22,10 @@ class MyTweetSerializer(serializers.ModelSerializer):
     retweets_count = serializers.SerializerMethodField(read_only=True)
     user = serializers.ReadOnlyField(source="user.username")
     avatar = serializers.SerializerMethodField(read_only=True)
+    hashtags = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name')
 
     class Meta:
         model = Tweet
@@ -35,6 +40,8 @@ class MyTweetSerializer(serializers.ModelSerializer):
             "created_at",
             "likes_count",
             "retweets_count",
+            "is_retweet",
+            'hashtags',
         ]
 
     def get_avatar(self, obj):
@@ -56,6 +63,10 @@ class TweetSerializer(serializers.ModelSerializer):
     author = UserSerializer(source="user", read_only=True)
     replies_count = serializers.SerializerMethodField()
     is_retweet = serializers.SerializerMethodField()
+    hashtags = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name')
 
     class Meta:
         model = Tweet
@@ -73,6 +84,7 @@ class TweetSerializer(serializers.ModelSerializer):
             "replies_count",
             "parent",
             "is_retweet",
+            'hashtags',
 
         ]
         extra_kwargs = {
@@ -118,3 +130,9 @@ class TweetLikeSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]
+
+
+class HashtagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hashtag
+        fields = ['id', 'name']

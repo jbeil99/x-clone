@@ -1,17 +1,31 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets,serializers
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Tweet, Comment, Likes,Retweets
+from .models import Tweet, Comment, Likes,Retweets, Hashtag
 from accounts.models import User
-from .serializers import TweetSerializer, MyTweetSerializer, CommentSerializer
+from .serializers import TweetSerializer, MyTweetSerializer, CommentSerializer,HashtagSerializer
 from .permissions import IsUserOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404, get_list_or_404
+import re
+
 
 # from noti.models import Noti
 from rest_framework.parsers import MultiPartParser, FormParser
+
+class HashtagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hashtag
+        fields = ['name']
+
+class TweetSerializer(serializers.ModelSerializer):
+    hashtags = HashtagSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Tweet
+        fields = ['id', 'user', 'content', 'created_at', 'hashtags']
 
 
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -59,14 +73,6 @@ def get_user_likes(request, username):
     serializer = MyTweetSerializer(tweets, many=True)
     return Response(serializer.data)
 
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_user_rt(request, username):
-    user = User.objects.get(username=username)
-    tweets = Tweet.objects.filter(retweeted=user)
-    serializer = MyTweetSerializer(tweets, many=True)
-    return Response(serializer.data)
 
 
 # @api_view(["POST"])
@@ -198,3 +204,28 @@ def get_user_rt(request, username):
 
 
 
+
+class TweetViewSet(viewsets.ModelViewSet):
+    queryset = Tweet.objects.all()
+    serializer_class = TweetSerializer
+    pagination_class = PageNumberPagination
+
+    def perform_create(self, serializer):
+        tweet = serializer.save(user=self.request.user)  # save the tweet
+        # Extract hashtag names from content
+        hashtag_names = re.findall(r"#(\w+)", tweet.content)
+        # Get or create Hashtag objects, and set them on the tweet
+        hashtags = [Hashtag.objects.get_or_create(name=name)[0] for name in hashtag_names]
+        tweet.hashtags.set(hashtags)  # link hashtags to tweet&#8203;:contentReference[oaicite:3]{index=3}
+
+
+
+class HashtagCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = HashtagSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

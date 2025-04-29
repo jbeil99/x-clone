@@ -2,6 +2,12 @@ from django.db import models
 from accounts.models import User
 
 
+class Hashtag(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=280)
@@ -10,6 +16,9 @@ class Tweet(models.Model):
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="replies", on_delete=models.CASCADE
     )
+
+    hashtags = models.ManyToManyField(Hashtag, related_name="tweets", blank=True)
+
 
     class Meta:
         ordering = ["-created_at"]
@@ -23,7 +32,19 @@ class Tweet(models.Model):
     @classmethod
     def get_tweets(cls):
         return cls.objects.filter(parent=None)
+    
+    def save(self, *args, **kwargs):
+        # Extract hashtags from the tweet content and associate them
+        hashtags_in_content = self.extract_hashtags(self.content)
+        for tag in hashtags_in_content:
+            hashtag, created = Hashtag.objects.get_or_create(name=tag)
+            self.hashtags.add(hashtag)
+        super().save(*args, **kwargs)
 
+    @staticmethod
+    def extract_hashtags(content):
+        """Extract hashtags from tweet content."""
+        return [word[1:] for word in content.split() if word.startswith("#")]
 
 class Likes(models.Model):
     user = models.ForeignKey(User, related_name="likes", on_delete=models.CASCADE)
@@ -57,9 +78,25 @@ class Comment(models.Model):
         "self", null=True, blank=True, related_name="replies", on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    hashtags = models.ManyToManyField(Hashtag, related_name="comments", blank=True)
+
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.user.username} commented on {self.tweet.content[:20]}"
+    
+    def save(self, *args, **kwargs):
+        hashtags_in_body = self.extract_hashtags(self.body)
+        for tag in hashtags_in_body:
+            hashtag, created = Hashtag.objects.get_or_create(name=tag)
+            self.hashtags.add(hashtag)
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def extract_hashtags(body):
+        """Extract hashtags from comment body."""
+        return [word[1:] for word in body.split() if word.startswith("#")]
+
+
