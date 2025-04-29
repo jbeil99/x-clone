@@ -17,9 +17,7 @@ export default function Login({ closeModals, openRegisterModal }) {
     if (isAuthenticated && user) {
       toast(`Welcome ${user.display_name}!`);
       navigate('/');
-    } else {
-      dispatch()
-    }
+    } 
 
     return () => {
       dispatch(clearError());
@@ -28,7 +26,7 @@ export default function Login({ closeModals, openRegisterModal }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginUser({ username: email, password }));
+    dispatch(loginUser({email, password }));
   };
 
   return (
