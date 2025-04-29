@@ -1,10 +1,13 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
     Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Link as LinkIcon, Sparkles
 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Layout({ children }) {
+    const location = useLocation();
+    const isMessagesPage = location.pathname === '/messages';
+    
     const sidebarItems = [
         { icon: Home, text: 'Home', path: '/' },
         { icon: Search, text: 'Explore', path: '/explore' },
@@ -31,6 +34,7 @@ export default function Layout({ children }) {
     return (
         <div className="min-h-screen bg-black text-white flex justify-center">
             <div className="flex w-full max-w-[1280px]">
+                {/* Left Sidebar */}
                 <div className="flex flex-col w-[275px] px-4 py-4 border-r border-gray-800">
                     <div>
                         <div className="text-xl font-bold mb-8 ml-3">
@@ -43,14 +47,14 @@ export default function Layout({ children }) {
                                 <Link
                                     key={item.text}
                                     to={item.path}
-                                    className="flex items-center gap-4 text-lg font-medium hover:bg-gray-900 px-4 py-3 rounded-full transition-colors"
+                                    className={`flex items-center gap-4 text-lg font-medium hover:bg-gray-900 px-4 py-3 rounded-full transition-colors ${location.pathname === item.path ? 'font-bold' : ''}`}
                                 >
                                     <item.icon className="h-6 w-6" />
                                     <span>{item.text}</span>
                                 </Link>
                             ))}
                         </nav>
-                        <button className="mt-6 w-full bg-white text-black rounded-full py-3 text-lg font-bold shadow hover:bg-gray-200 transition-colors">
+                        <button className="mt-6 w-full bg-blue-500 text-white rounded-full py-3 text-lg font-bold shadow hover:bg-blue-600 transition-colors">
                             Post
                         </button>
 
@@ -65,96 +69,99 @@ export default function Layout({ children }) {
                     </div>
                 </div>
 
-                <main className="flex-1 min-w-0 border-r border-gray-800 flex justify-center">
-                    <div className="w-full max-w-[750px] px-4">
-
+                {/* Main Content */}
+                <main className={`flex-1 min-w-0 ${!isMessagesPage ? 'border-r border-gray-800' : ''} flex justify-center`}>
+                    <div className={`w-full ${!isMessagesPage ? 'max-w-[600px]' : ''}`}>
                         {children}
                     </div>
                 </main>
 
-                <div className="w-[350px] px-4 py-4">
-                    <div className="bg-black border border-gray-800 rounded-2xl mb-4">
-                        <div className="flex items-center px-4 py-2">
-                            <Search className="h-5 w-5 text-gray-500" />
-                            <input
-                                type="text"
-                                placeholder="Search"
-                                className="bg-transparent ml-2 outline-none w-full text-white placeholder-gray-400"
-                            />
-                        </div>
-                    </div>
-                    <div className="bg-black border border-gray-800 rounded-2xl p-4 mb-4">
-                        <h2 className="text-xl font-bold mb-4 text-white">Subscribe to Premium</h2>
-                        <p className="mb-4 text-white">Subscribe to unlock new features and if eligible, receive a share of revenue.</p>
-                        <button className="bg-blue-500 text-white rounded-full py-2 px-4 font-bold">
-                            Subscribe
-                        </button>
-                    </div>
-                    <div className="bg-black border border-gray-800 rounded-2xl p-4 mb-4">
-                        <h2 className="text-xl font-bold mb-4 text-white">What's happening</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <div className="text-sm text-gray-400">Trending in Egypt</div>
-                                <div className="font-bold text-white">#TrendingTopic</div>
-                                <div className="text-sm text-gray-400">1,431 posts</div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-gray-400">Trending in Egypt</div>
-                                <div className="font-bold text-white">The Tripartite Aggression</div>
-                                <div className="text-sm text-gray-400">2,715 posts</div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-gray-400">Trending in Egypt</div>
-                                <div className="font-bold text-white">American Prisons</div>
-                                <div className="text-sm text-gray-400">1,428 posts</div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-gray-400">Trending in Egypt</div>
-                                <div className="font-bold text-white">#End_American_Presence_Demand</div>
-                                <div className="text-sm text-gray-400">50.4K posts</div>
+                {/* Right Sidebar - Hidden on Messages page */}
+                {!isMessagesPage && (
+                    <div className="w-[350px] px-4 py-4">
+                        <div className="bg-black border border-gray-800 rounded-2xl mb-4">
+                            <div className="flex items-center px-4 py-2">
+                                <Search className="h-5 w-5 text-gray-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Search"
+                                    className="bg-transparent ml-2 outline-none w-full text-white placeholder-gray-400"
+                                />
                             </div>
                         </div>
-                        <button className="text-blue-500 hover:underline mt-2">Show more</button>
-                    </div>
+                        <div className="bg-black border border-gray-800 rounded-2xl p-4 mb-4">
+                            <h2 className="text-xl font-bold mb-4 text-white">Subscribe to Premium</h2>
+                            <p className="mb-4 text-white">Subscribe to unlock new features and if eligible, receive a share of revenue.</p>
+                            <button className="bg-blue-500 text-white rounded-full py-2 px-4 font-bold">
+                                Subscribe
+                            </button>
+                        </div>
+                        <div className="bg-black border border-gray-800 rounded-2xl p-4 mb-4">
+                            <h2 className="text-xl font-bold mb-4 text-white">What's happening</h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="text-sm text-gray-400">Trending in Egypt</div>
+                                    <div className="font-bold text-white">#TrendingTopic</div>
+                                    <div className="text-sm text-gray-400">1,431 posts</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm text-gray-400">Trending in Egypt</div>
+                                    <div className="font-bold text-white">The Tripartite Aggression</div>
+                                    <div className="text-sm text-gray-400">2,715 posts</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm text-gray-400">Trending in Egypt</div>
+                                    <div className="font-bold text-white">American Prisons</div>
+                                    <div className="text-sm text-gray-400">1,428 posts</div>
+                                </div>
+                                <div>
+                                    <div className="text-sm text-gray-400">Trending in Egypt</div>
+                                    <div className="font-bold text-white">#End_American_Presence_Demand</div>
+                                    <div className="text-sm text-gray-400">50.4K posts</div>
+                                </div>
+                            </div>
+                            <button className="text-blue-500 hover:underline mt-2">Show more</button>
+                        </div>
 
-                    <div className="bg-black border border-gray-800 rounded-2xl p-4">
-                        <h2 className="text-xl font-bold mb-4 text-white">Who to follow</h2>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="avatar" className="w-10 h-10 rounded-full object-cover" />
-                                    <div>
-                                        <div className="font-bold text-white">hussien</div>
-                                        <div className="text-gray-400 text-sm">@Al Doctor</div>
+                        <div className="bg-black border border-gray-800 rounded-2xl p-4">
+                            <h2 className="text-xl font-bold mb-4 text-white">Who to follow</h2>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                                        <div>
+                                            <div className="font-bold text-white">hussien</div>
+                                            <div className="text-gray-400 text-sm">@Al Doctor</div>
+                                        </div>
                                     </div>
+                                    <button className="bg-white text-black rounded-full px-4 py-1 font-bold">Follow</button>
                                 </div>
-                                <button className="bg-white text-black rounded-full px-4 py-1 font-bold">Follow</button>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="avatar" className="w-10 h-10 rounded-full object-cover" />
-                                    <div>
-                                        <div className="font-bold text-white">ON Sport</div>
-                                        <div className="text-gray-400 text-sm">@ONTimeSports</div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                                        <div>
+                                            <div className="font-bold text-white">ON Sport</div>
+                                            <div className="text-gray-400 text-sm">@ONTimeSports</div>
+                                        </div>
                                     </div>
+                                    <button className="bg-white text-black rounded-full px-4 py-1 font-bold">Follow</button>
                                 </div>
-                                <button className="bg-white text-black rounded-full px-4 py-1 font-bold">Follow</button>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <img src="https://randomuser.me/api/portraits/men/47.jpg" alt="avatar" className="w-10 h-10 rounded-full object-cover" />
-                                    <div>
-                                        <div className="font-bold text-white">Ahmed Shobier</div>
-                                        <div className="text-gray-400 text-sm">@ShobierOfficial</div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <img src="https://randomuser.me/api/portraits/men/47.jpg" alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                                        <div>
+                                            <div className="font-bold text-white">Ahmed Shobier</div>
+                                            <div className="text-gray-400 text-sm">@ShobierOfficial</div>
+                                        </div>
                                     </div>
+                                    <button className="bg-white text-black rounded-full px-4 py-1 font-bold">Follow</button>
                                 </div>
-                                <button className="bg-white text-black rounded-full px-4 py-1 font-bold">Follow</button>
                             </div>
+                            <button className="text-blue-500 hover:underline mt-4">Show more</button>
                         </div>
-                        <button className="text-blue-500 hover:underline mt-4">Show more</button>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
-} 
+}

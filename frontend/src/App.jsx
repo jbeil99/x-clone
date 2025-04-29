@@ -32,14 +32,17 @@ function App() {
               <Explore />
             </Layout>
           } />
+          <Route path="/messages" element={
+            <Layout>
+              <Messages />
+            </Layout>
+          } />
           <Route path=":username" element={
             <Layout>
               <UserProfile />
             </Layout>
           } />
         </Route>
-
-        <Route path="/messages" element={<Messages />} />
       </Routes>
     </BrowserRouter >
   )
