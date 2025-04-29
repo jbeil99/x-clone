@@ -2,28 +2,25 @@ import React, { useState, useEffect } from "react";
 import axios from "axios"; // Import axios
 import { Calendar, MapPin, Verified } from "lucide-react";
 import NewPopupPage from "./NewPopupPage"; // Adjust the path if necessary
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserProfile } from "../../api/users";
+import { use } from "react";
+import EditProfile from "./EditProfile";
 
 export default function UserProfile() {
+  const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const handleOpen = () => { setIsOpen(true); console.log("asasasasasasasasasas") };
+  const handleClose = () => setIsOpen(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const accessToken = sessionStorage.getItem("access");
-        console.log("Access Token:", accessToken); // ✅ للتأكد أن التوكن موجود
-
-        const response = await axios.get("http://127.0.0.1:8000/profile/", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        setUserData(response.data);
+        const res = await getUserProfile()
+        setUserData(res)
       } catch (error) {
         console.error("Error fetching profile data:", error.response?.data || error.message);
-        setUserData(null);
       } finally {
         setLoading(false);
       }
@@ -40,11 +37,13 @@ export default function UserProfile() {
     <div className="max-w-xl mx-auto bg-black text-white">
       {/* Profile content */}
       <div className="relative">
-        <div className="h-48 bg-blue-600"></div>
+        <div className="h-48 ">
+          <img src={userData.cover_url} alt="" />
+        </div>
         <div className="absolute -bottom-16 left-4">
           <div className="w-32 h-32 rounded-full bg-gray-800 border-4 border-black overflow-hidden">
             <img
-              src={userData.avatar || "/media/default_profile_400x400.png"}
+              src={userData.avatar_url || "/media/default_profile_400x400.png"}
               alt="Avatar"
               className="w-full h-full object-cover"
             />
@@ -56,7 +55,7 @@ export default function UserProfile() {
         <div className="flex justify-end mb-4">
           <button
             className="px-4 py-2 rounded-full font-bold bg-transparent border border-gray-600 hover:border-blue-500 hover:text-blue-500"
-            onClick={() => setShowEditProfile(true)}
+            onClick={handleOpen}
           >
             Edit Profile
           </button>
@@ -98,20 +97,12 @@ export default function UserProfile() {
           </div>
         </div>
 
-        {showEditProfile && (
-          <NewPopupPage
-            user={userData}
-            close={(updatedData) => {
-              if (updatedData) {
-                setUserData((prevData) => ({
-                  ...prevData,
-                  ...updatedData,
-                }));
-              }
-              setShowEditProfile(false);
-            }}
-          />
-        )}
+
+        <EditProfile
+          open={isOpen}
+          onClose={handleClose}
+        />
+
       </div>
     </div>
   );
