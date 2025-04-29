@@ -4,7 +4,7 @@ from accounts.models import User
 
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.CharField(max_length=140)
+    content = models.CharField(max_length=280)
     image = models.ImageField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     parent = models.ForeignKey(

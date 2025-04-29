@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Calendar, Link, MapPin, Verified } from 'lucide-react';
-import Tweet from '../../components/Tweet';
+import Tweet from '../../components/tweet/Tweet';
 import { useEffect } from 'react';
 import TabButton from "./components/TabButton";
 import Loader from '../../components/Loader';

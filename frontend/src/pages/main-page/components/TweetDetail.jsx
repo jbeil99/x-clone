@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaLongArrowAltLeft } from "react-icons/fa";
-import Tweet from '../../../components/Tweet';
+import Tweet from '../../../components/tweet/Tweet';
 import { getTweetByID, getTweetReplies } from '../../../api/tweets';
 import { useNavigate, useParams } from 'react-router';
 import TweetForm from './TweetForm';

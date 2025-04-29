@@ -1,6 +1,6 @@
 import { Heart, Repeat, MessageCircle, Share, BookmarkPlus, BarChart2 } from 'lucide-react';
 import { useDispatch } from "react-redux"
-import { postLikes } from '../store/slices/tweets';
+import { postLikes } from '../../store/slices/tweets';
 import { useState } from 'react';
 import ShareButton from './ShareButton';
 

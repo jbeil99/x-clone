@@ -1,4 +1,4 @@
-import Tweet from "../../../components/Tweet";
+import Tweet from "../../../components/tweet/Tweet";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTweets } from "../../../store/slices/tweets";
