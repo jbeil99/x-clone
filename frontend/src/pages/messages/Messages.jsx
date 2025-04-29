@@ -15,6 +15,16 @@ export default function Messages() {
   const [socket, setSocket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -159,13 +169,15 @@ export default function Messages() {
     return date.toLocaleDateString();
   }
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isMobile = windowWidth < 768;
   const showChat = selectedUser && (!isMobile || !showList);
 
   const ChatWindow = ({ me, other }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
+    const messageContainerRef = useRef(null);
+    const [initialLoad, setInitialLoad] = useState(true);
 
     useEffect(() => {
       if (!other) return;
@@ -174,6 +186,7 @@ export default function Messages() {
         try {
           const res = await authAxios.get(`chat/messages/?user=${other.id}`);
           setMessages(res.data);
+          setInitialLoad(true);
         } catch (error) {
           console.error("Error fetching messages:", error);
         }
@@ -221,8 +234,16 @@ export default function Messages() {
     }, [other, socket, messages]);
 
     useEffect(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+      // Only scroll to bottom on initial load or when sending a new message
+      if (initialLoad || (messages.length > 0 && messages[messages.length - 1].sender === me.id)) {
+        setTimeout(() => {
+          if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: initialLoad ? "auto" : "smooth", block: "end" });
+            if (initialLoad) setInitialLoad(false);
+          }
+        }, 100);
+      }
+    }, [messages, initialLoad, me?.id]);
 
     const sendMessage = async (e) => {
       e.preventDefault();
@@ -268,7 +289,7 @@ export default function Messages() {
     };
 
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full max-h-screen">
         <div className="sticky top-0 z-10 bg-black border-b border-gray-800 p-3">
           <div className="flex items-center">
             {isMobile && (
@@ -293,7 +314,11 @@ export default function Messages() {
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-black">
+        <div 
+          ref={messageContainerRef}
+          className="flex-1 overflow-y-auto p-3 space-y-3 bg-black"
+          style={{ height: "calc(100vh - 130px)" }}
+        >
           {messages.map((msg, i) => {
             const senderId = String(msg.sender);
             const myId = String(me?.id);
@@ -325,7 +350,7 @@ export default function Messages() {
           <div ref={messagesEndRef} />
         </div>
         
-        <div className="border-t border-gray-800 p-3">
+        <div className="border-t border-gray-800 p-3 bg-black">
           <form onSubmit={sendMessage} className="flex items-center gap-2">
             <div className="flex items-center gap-2 text-blue-400">
               <button type="button" className="p-2 rounded-full hover:bg-gray-800">
@@ -357,8 +382,8 @@ export default function Messages() {
   };
 
   return (
-    <div className="flex h-screen bg-black">
-      <div className={`${showChat && isMobile ? 'hidden' : 'flex flex-col'} ${showChat && !isMobile ? 'w-[350px]' : 'w-full'} border-r border-gray-800`}>
+    <div className="flex h-screen bg-black overflow-hidden">
+      <div className={`${showChat && isMobile ? 'hidden' : 'flex flex-col'} ${showChat && !isMobile ? 'w-[350px] min-w-[300px]' : 'w-full'} border-r border-gray-800 max-h-screen`}>
         <div className="sticky top-0 z-20 bg-black">
           <div className="flex items-center justify-between px-4 py-2">
             <h2 className="text-xl font-bold">Messages</h2>
@@ -394,7 +419,7 @@ export default function Messages() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" style={{ height: "calc(100vh - 100px)" }}>
           {loading && (
             <div className="text-gray-500 text-center py-8">Loading users...</div>
           )}
@@ -439,7 +464,7 @@ export default function Messages() {
         </div>
       </div>
 
-      <div className={`${!showChat ? 'hidden' : 'flex'} flex-col ${!isMobile && showChat ? 'flex-1' : 'w-full'} bg-black`}>
+      <div className={`${!showChat ? 'hidden' : 'flex'} flex-col ${!isMobile && showChat ? 'flex-1' : 'w-full'} bg-black max-h-screen overflow-hidden`}>
         {selectedUser ? (
           <ChatWindow me={me} other={selectedUser} />
         ) : (
