@@ -4,12 +4,12 @@ import { jwtDecode } from "jwt-decode";
 const baseURL = import.meta.env.VITE_BACKEND_URL
 
 export const axi = axios.create({
-    baseURL,
+  baseURL,
 })
 
 export const authAxios = axios.create({
-    baseURL,
-    withCredentials: true,
+  baseURL,
+  withCredentials: true,
 })
 
 authAxios.interceptors.request.use(async (config) => {
