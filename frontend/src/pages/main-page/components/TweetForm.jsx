@@ -92,7 +92,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
         <div className="border-b border-gray-800">
             <form onSubmit={handleSubmit(onSubmit)} className="pt-3 pb-0 px-4">
                 <div className="flex gap-3">
-                    <img src={user?.avatar} alt={user?.username} className="w-11 h-11 rounded-full object-cover mt-1" />
+                    <img src={user?.avatar_url} alt={user?.username} className="w-11 h-11 rounded-full object-cover mt-1" />
                     <div className="flex-1 min-w-0">
                         {isReply ? <div className="text-xs text-gray-400 mb-2">
                             Replying to <span className="text-blue-400">@{author?.username}</span>

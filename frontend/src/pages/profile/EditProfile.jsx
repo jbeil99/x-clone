@@ -18,23 +18,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+
 
 const editProfileSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters" }),
   bio: z.string().max(255, { message: "Bio must not exceed 255 characters" }),
   location: z.string().optional(),
-  date_of_birth: z.string().optional().refine(date => {
-    const selectedDate = new Date(date);
-    const today = new Date();
-    const age = today.getFullYear() - selectedDate.getFullYear();
-    return age >= 13;
-  }, { message: "You must be at least 13 years old to register" }),
+  date_of_birth: z.string().optional(), // Made optional without age restriction
   avatar: z
     .any()
     .refine(
@@ -55,7 +45,6 @@ const EditProfile = ({ open, onClose }) => {
   const { user } = useSelector((state) => state.auth);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [coverPreview, setCoverPreview] = useState(null);
-  const [date, setDate] = useState(user?.birthday ? new Date(user.birthday) : null);
 
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
@@ -64,6 +53,7 @@ const EditProfile = ({ open, onClose }) => {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(editProfileSchema),
@@ -71,7 +61,7 @@ const EditProfile = ({ open, onClose }) => {
       name: user?.display_name || "",
       bio: user?.bio || "",
       location: user?.location || "",
-      birthday: user?.birthday ? new Date(user.birthday) : null,
+      date_of_birth: user?.date_of_birth || "", // Initialize from user data if exists
       avatar: null,
       cover_image: null,
     },
@@ -79,24 +69,19 @@ const EditProfile = ({ open, onClose }) => {
 
   // Set initial previews from user data on component mount
   useEffect(() => {
-    if (user?.avatar) {
-      setAvatarPreview(user.avatar);
+    if (user?.avatar_url) {
+      setAvatarPreview(user.avatar_url);
     }
 
     if (user?.cover_image) {
       setCoverPreview(user.cover_image);
     }
 
-    if (user?.birthday) {
-      setDate(new Date(user.birthday));
+    // Set the date_of_birth field with user data if it exists
+    if (user?.date_of_birth) {
+      setValue("date_of_birth", user.date_of_birth);
     }
-  }, [user]);
-
-  useEffect(() => {
-    if (date) {
-      setValue("birthday", date);
-    }
-  }, [date, setValue]);
+  }, [user, setValue]);
 
   const handleAvatarChange = (event) => {
     const file = event.target.files[0];
@@ -118,6 +103,7 @@ const EditProfile = ({ open, onClose }) => {
     try {
       await updateProfile(data);
       onClose();
+      reset();
     } catch (error) {
       console.error("Failed to update profile", error);
     }
@@ -125,7 +111,6 @@ const EditProfile = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-
       <DialogContent className="sm:max-w-lg p-0 bg-black text-white border-gray-800">
         <DialogHeader className="flex flex-row items-center justify-between p-4 border-b border-gray-800">
           <div className="flex items-center">
@@ -250,14 +235,17 @@ const EditProfile = ({ open, onClose }) => {
             </div>
 
             {/* Birthday Field */}
-            <div className="space-y-2">
-              <Calendar className="absolute top-3 left-3 text-gray-500" size={18} />
-              <input
-                type="date"
-                placeholder="Birth date"
-                {...register("date_of_birth")}
-                className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 text-gray-400"
-              />
+            <div className="space-y-2 relative">
+              <Label htmlFor="date_of_birth" className="text-gray-400 text-sm">Birth date (optional)</Label>
+              <div className="relative">
+                <Calendar className="absolute top-3 left-3 text-gray-500" size={18} />
+                <input
+                  id="date_of_birth"
+                  type="date"
+                  {...register("date_of_birth")}
+                  className="w-full p-2 pl-10 bg-black border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 text-gray-400"
+                />
+              </div>
               {errors.date_of_birth && (
                 <p className="text-red-500 text-sm mt-1">{errors.date_of_birth.message}</p>
               )}
