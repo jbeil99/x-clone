@@ -189,7 +189,7 @@ DJOSER = {
     "SERIALIZERS": {
         "user_create": "accounts.serializers.UserRegistrationSerializer",
         "user": "accounts.serializers.UserSerializer",
-        "current_user": "accounts.serializers.UserProfileSerializer",
+        "current_user": "profiles.serializers.ProfileSerializer",
         "user_delete": "djoser.serializers.UserDeleteSerializer",
     },
     "EMAIL": {
