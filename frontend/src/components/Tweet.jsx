@@ -1,54 +1,20 @@
-import { Heart, Repeat, MessageCircle, Share, MoreHorizontal } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useState } from 'react';
-import ShareButton from './Share';
 import { useNavigate } from 'react-router';
-import { useDispatch } from "react-redux"
-import { postLikes } from '../store/slices/tweets';
+import { TweetActions } from './TweetActions';
+import TweetFooter from './TweetFooter';
+
 
 export default function Tweet({ tweet, setPost }) {
-    const [isLiked, setIsLiked] = useState(false);
+
     const navigate = useNavigate()
-    const dispatch = useDispatch()
     const handleClickTweet = () => {
         window.location.href = `/status/${tweet.id}`
     };
 
-    const handleCommentClick = (e) => {
-        e.stopPropagation();
-        console.log('Comment clicked for tweet:', tweet.id);
-    };
     const handleUsernameClick = (e) => {
         e.stopPropagation();
         navigate(`/${tweet?.author?.username}`)
-        console.log('Comment clicked for tweet:', tweet.id);
     };
-
-    const handleRetweetClick = (e) => {
-        e.stopPropagation(); // Fixed typo
-        console.log('Retweet clicked for tweet:', tweet.id);
-    };
-
-    const handleLikeClick = async (e) => {
-        e.stopPropagation();
-        try {
-            const action = await dispatch(postLikes(tweet.id))
-            console.log(action)
-            setIsLiked(!isLiked);
-            if (setPost) (
-                setPost(action.payload)
-            )
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const handleMoreClick = (e) => {
-        e.stopPropagation();
-        console.log('More options clicked for tweet:', tweet.id);
-    };
-
-    const heartColor = tweet.iliked ? 'text-red-500' : 'text-gray-500 hover:text-red-500';
 
     return (
         <div className="py-4 border-b border-gray-800 cursor-pointer transition-colors duration-200 hover:bg-gray-950" onClick={handleClickTweet}>
@@ -79,25 +45,10 @@ export default function Tweet({ tweet, setPost }) {
                                 />
                             )}
                         </div>
-                        <MoreHorizontal className="text-gray-500 flex-shrink-0 cursor-pointer" onClick={handleMoreClick} />
+                        <TweetActions />
                     </div>
-                    <div className="flex justify-between text-gray-500 mt-2 max-w-md">
-                        <div className="flex items-center gap-1 hover:text-blue-500 cursor-pointer" onClick={handleCommentClick}>
-                            <MessageCircle className="w-4 h-4" />
-                            <span>{tweet?.replies_count || tweet?.replies || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1 hover:text-green-500 cursor-pointer" onClick={handleRetweetClick}>
-                            <Repeat className="w-4 h-4" />
-                            <span>{tweet?.retweets_count || 0}</span>
-                        </div>
-                        <div className={`flex items-center gap-1 cursor-pointer ${heartColor}`} onClick={handleLikeClick}>
-                            <Heart className="w-4 h-4" />
-                            <span>{tweet?.likes_count || 0}</span>
-                        </div>
-                        <div onClick={(e) => e.stopPropagation()}>
-                            <ShareButton tweet={tweet} />
-                        </div>
-                    </div>
+
+                    <TweetFooter tweet={tweet} setPost={setPost} />
                 </div>
             </div>
         </div>

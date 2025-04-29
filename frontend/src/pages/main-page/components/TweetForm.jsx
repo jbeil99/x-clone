@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { MapPin, Calendar, Globe2, Film, BarChart2, Smile, Image, X } from 'lucide-react';
-import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { postTweets } from '../../../store/slices/tweets';
 
@@ -36,6 +35,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
         handleSubmit,
         watch,
         setValue,
+        reset,
         formState: { errors, isValid }
     } = useForm({
         resolver: zodResolver(tweetSchema),
@@ -56,6 +56,10 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
             if (isReply) {
                 setReplies([action.payload, ...replies])
             }
+            reset({
+                content: ""
+                , image: null
+            })
 
         } catch (error) {
             console.error("Error posting tweet:", error);
@@ -97,7 +101,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                         <textarea
                             className="w-full bg-transparent outline-none resize-none text-xl mb-1 placeholder:text-gray-400 dark:text-white"
                             placeholder={textAreaText}
-                            rows="1"
+                            rows="2"
                             {...register("content")}
                         />
 
