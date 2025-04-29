@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import Retweet
 
 urlpatterns = [
     path("tweets", views.TweetList.as_view()),
@@ -12,4 +13,5 @@ urlpatterns = [
     path("rt/<str:username>/", views.get_user_rt),
     path("comments/<int:pk>/", views.CommentList.as_view()),
     path("comment/<int:pk>/", views.CommentDetail.as_view()),
+  path("tweets/<int:pk>/retweet/", Retweet.as_view(), name="tweet-retweet"),
 ]

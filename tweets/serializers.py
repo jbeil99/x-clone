@@ -55,6 +55,7 @@ class TweetSerializer(serializers.ModelSerializer):
     time = serializers.SerializerMethodField(read_only=True)
     author = UserSerializer(source="user", read_only=True)
     replies_count = serializers.SerializerMethodField()
+    is_retweet = serializers.SerializerMethodField()
 
     class Meta:
         model = Tweet
@@ -71,6 +72,8 @@ class TweetSerializer(serializers.ModelSerializer):
             "time",
             "replies_count",
             "parent",
+            "is_retweet",
+
         ]
         extra_kwargs = {
             "user": {"write_only": True},
@@ -100,6 +103,9 @@ class TweetSerializer(serializers.ModelSerializer):
     def get_time(self, obj):
         print(obj.created_at)
         return time_ago(obj.created_at)
+
+    def get_is_retweet(self, obj):
+        return obj.parent is not None
 
 
 class TweetLikeSerializer(serializers.ModelSerializer):

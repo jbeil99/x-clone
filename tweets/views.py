@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Tweet, Comment, Likes
+from .models import Tweet, Comment, Likes,Retweets
 from accounts.models import User
 from .serializers import TweetSerializer, MyTweetSerializer, CommentSerializer
 from .permissions import IsUserOrReadOnly
@@ -167,3 +167,34 @@ class TweetDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Tweet.objects.all()
     serializer_class = TweetSerializer
     permission_classes = [IsAuthenticated, IsUserOrReadOnly]
+
+
+class Retweet(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        tweet = get_object_or_404(Tweet, pk=pk)
+
+        # Check if the user has already retweeted this tweet
+        if Retweets.objects.filter(user=request.user, tweet=tweet).exists():
+            # If retweet exists, remove it
+            retweet = Retweets.objects.get(user=request.user, tweet=tweet)
+            retweet.delete()
+            return Response({"status": "retweet removed"}, status=status.HTTP_200_OK)
+        else:
+            # If no retweet exists, add a new retweet
+            Retweets.objects.create(user=request.user, tweet=tweet)
+            return Response({"status": "retweeted"}, status=status.HTTP_201_CREATED)
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_rt(request, username):
+    user = User.objects.get(username=username)
+    tweets = Tweet.objects.filter(retweeted=user)
+    serializer = MyTweetSerializer(tweets, many=True)
+    return Response(serializer.data)
+
+
+
