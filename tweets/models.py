@@ -19,10 +19,15 @@ class Hashtag(models.Model):
         return self.name
 
 class Tweet(models.Model):
+    views = models.PositiveIntegerField(default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.CharField(max_length=280)
     image = models.ImageField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    bookmarks = models.ManyToManyField(User, related_name='bookmarked_tweets', blank=True)
+    shared_by_users = models.ManyToManyField(User, related_name='tweets_shared_directly', blank=True)
+    views = models.ManyToManyField(User, related_name='viewed_tweets', blank=True)
+
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="replies", on_delete=models.CASCADE
     )
@@ -51,8 +56,8 @@ class Tweet(models.Model):
         super().save(*args, **kwargs)  # Save first so Tweet ID exists
 
         # Hashtags
-        hashtags_in_content = self.extract_hashtags(self.content)
-        for tag in hashtags_in_content:
+        hashtags = self.extract_hashtags(self.content)
+        for tag in hashtags:
             hashtag, _ = Hashtag.objects.get_or_create(name=tag)
             self.hashtags.add(hashtag)
 
@@ -126,3 +131,20 @@ class Comment(models.Model):
         return [word[1:] for word in body.split() if word.startswith("#")]
 
 
+
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name='bookmarked_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'tweet')
+
+class TweetShare(models.Model):
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name='share_logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='share_history')
+    shared_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} shared tweet {self.tweet.id}"

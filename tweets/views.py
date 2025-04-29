@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Tweet, Comment, Likes, Retweets, Hashtag, Mention
+from .models import Tweet, Comment, Likes, Retweets, Hashtag, Mention,TweetShare
 from accounts.models import User
 from .serializers import (
     TweetSerializer,
@@ -162,7 +162,7 @@ class TweetList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-
+ 
 class TweetDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Tweet.objects.all()
     serializer_class = TweetSerializer
@@ -242,3 +242,46 @@ class MentionsView(APIView):
             for m in mentions
         ]
         return Response(data)
+    
+
+
+class BookmarkTweetView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        tweet = get_object_or_404(Tweet, pk=pk)
+        user = request.user
+        if tweet.bookmarks.filter(id=user.id).exists():
+            tweet.bookmarks.remove(user)
+            return Response({"message": "Tweet removed from bookmarks"})
+        tweet.bookmarks.add(user)
+        return Response({"message": "Tweet bookmarked successfully"})
+
+
+
+class ShareTweetView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        tweet = get_object_or_404(Tweet, pk=pk)
+        user = request.user
+
+        if TweetShare.objects.filter(tweet=tweet, user=user).exists():
+            return Response({"message": "You have already shared this tweet"})
+
+        TweetShare.objects.create(tweet=tweet, user=user)
+        return Response({"message": "Tweet shared successfully"})
+
+
+
+
+class TweetViewCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        tweet = get_object_or_404(Tweet, pk=pk)
+        user = request.user
+        if tweet.views.filter(id=user.id).exists():
+            return Response({"message": "Tweet already viewed"})
+        tweet.views.add(user)
+        return Response({"message": "Tweet view recorded"})
