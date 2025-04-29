@@ -10,25 +10,20 @@ export default function Messages() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [search, setSearch] = useState("");
   const [lastMessages, setLastMessages] = useState({});
-  const [showList, setShowList] = useState(true); // for mobile
+  const [showList, setShowList] = useState(true); 
   const [newMessage, setNewMessage] = useState("");
   const [socket, setSocket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch current user and all users
   useEffect(() => {
-    // Get current user from token
     const fetchCurrentUser = async () => {
       try {
         setLoading(true);
-        // استخدام دالة currentUser بدلاً من الطلب المباشر
         const userData = await currentUser();
-        console.log("Current user:", userData);
         setMe(userData);
         return userData;
       } catch (error) {
-        console.error("Error fetching current user:", error);
         setError("Failed to authenticate. Please login again.");
         return null;
       } finally {
@@ -36,29 +31,22 @@ export default function Messages() {
       }
     };
 
-    // Get all users
     const fetchUsers = async (currentUserData) => {
       if (!currentUserData) return;
       
       try {
         setLoading(true);
-        console.log("Fetching users...");
-        // تصحيح مسار API - إزالة "api/" من البداية
         const res = await authAxios.get("chat/all-users/");
-        console.log("Users response:", res.data);
         setUsers(res.data);
         
-        // Initialize last messages object
         const lastMsgsObj = {};
         for (const user of res.data) {
           lastMsgsObj[user.id] = { content: "", timestamp: null };
         }
         setLastMessages(lastMsgsObj);
         
-        // Fetch last messages for each user
         for (const user of res.data) {
           try {
-            // تصحيح مسار API - إزالة "api/" من البداية
             const msgRes = await authAxios.get(`chat/messages/?user=${user.id}`);
             
             if (msgRes.data.length > 0) {
@@ -76,8 +64,6 @@ export default function Messages() {
           }
         }
       } catch (error) {
-        console.error("Error fetching users:", error);
-        console.error("Error details:", error.response?.data || error.message);
         setError("Failed to load users. Please try again later.");
       } finally {
         setLoading(false);
@@ -92,36 +78,28 @@ export default function Messages() {
     init();
   }, []);
 
-  // Setup WebSocket connection
   useEffect(() => {
     if (!me) return;
     
-    // Create WebSocket connection with user ID
     const ws = new WebSocket(`ws://localhost:8000/ws/chat/${me.id}/`);
     
     ws.onopen = () => {
-      console.log("WebSocket connected for user:", me.id);
       setSocket(ws);
     };
     
     ws.onmessage = (event) => {
-      console.log("WebSocket message received:", event.data);
       const data = JSON.parse(event.data);
       
       if (data.action === "connection_established") {
         console.log("WebSocket connection confirmed:", data.message);
       }
       else if (data.action === "message" || data.action === "message_sent") {
-        // استخراج بيانات الرسالة
         const messageData = data.action === "message_sent" ? data.message : data;
         const senderId = messageData.sender;
         const receiverId = messageData.receiver;
         const content = messageData.content;
         const timestamp = messageData.timestamp;
         
-        console.log("Message data:", { senderId, receiverId, content, timestamp });
-        
-        // تحديث آخر رسالة للمستخدم المعني
         const otherUserId = senderId === me.id ? receiverId : senderId;
         setLastMessages(prev => ({
           ...prev,
@@ -131,11 +109,7 @@ export default function Messages() {
           }
         }));
         
-        // إذا كان المستخدم المحدد حالياً هو المرسل أو المستقبل، أضف الرسالة إلى المحادثة
         if (selectedUser && (senderId === selectedUser.id || receiverId === selectedUser.id)) {
-          // سيتم التعامل مع هذا في مكون ChatWindow
-          
-          // إذا كانت الرسالة من شخص آخر، قم بتشغيل صوت الإشعار
           if (senderId !== me.id) {
             try {
               const audio = new Audio('/notification.mp3');
@@ -153,22 +127,16 @@ export default function Messages() {
     };
     
     ws.onclose = (event) => {
-      console.log("WebSocket disconnected:", event.code, event.reason);
-      
-      // محاولة إعادة الاتصال بعد 3 ثوانٍ
       setTimeout(() => {
         if (me) {
-          console.log("Attempting to reconnect WebSocket...");
           const newWs = new WebSocket(`ws://localhost:8000/ws/chat/${me.id}/`);
           setSocket(newWs);
         }
       }, 3000);
     };
     
-    // Clean up on unmount
     return () => {
       if (ws && ws.readyState === WebSocket.OPEN) {
-        console.log("Closing WebSocket connection...");
         ws.close();
       }
     };
@@ -191,11 +159,9 @@ export default function Messages() {
     return date.toLocaleDateString();
   }
 
-  // Responsive: show only list or chat on mobile
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const showChat = selectedUser && (!isMobile || !showList);
 
-  // Chat window component
   const ChatWindow = ({ me, other }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
@@ -204,10 +170,8 @@ export default function Messages() {
     useEffect(() => {
       if (!other) return;
       
-      // Fetch message history
       const fetchMessages = async () => {
         try {
-          // تصحيح مسار API - إزالة "api/" من البداية
           const res = await authAxios.get(`chat/messages/?user=${other.id}`);
           setMessages(res.data);
         } catch (error) {
@@ -217,23 +181,18 @@ export default function Messages() {
       
       fetchMessages();
       
-      // Listen for new messages via WebSocket
       if (socket) {
         const messageHandler = (event) => {
           const data = JSON.parse(event.data);
-          console.log("Chat window received message:", data);
           
           if (data.action === "message" || data.action === "message_sent") {
-            // استخراج بيانات الرسالة
             const messageData = data.action === "message_sent" ? data.message : data;
             const senderId = messageData.sender;
             const receiverId = messageData.receiver;
             
-            // إضافة الرسالة فقط إذا كانت بين المستخدم الحالي والمستخدم المحدد
             if ((senderId === me.id && receiverId === other.id) || 
                 (senderId === other.id && receiverId === me.id)) {
               
-              // تجنب تكرار الرسائل عن طريق التحقق من وجودها
               const isDuplicate = messages.some(msg => 
                 msg.content === messageData.content && 
                 msg.sender === senderId && 
@@ -241,9 +200,8 @@ export default function Messages() {
               );
               
               if (!isDuplicate) {
-                console.log("Adding new message to chat:", messageData);
                 setMessages(prev => [...prev, {
-                  id: Date.now(), // استخدام الوقت الحالي كمعرف مؤقت
+                  id: Date.now(),
                   sender: senderId,
                   receiver: receiverId,
                   content: messageData.content,
@@ -279,50 +237,38 @@ export default function Messages() {
       };
       
       try {
-        // إرسال الرسالة عبر WebSocket أولاً للحصول على استجابة فورية
         if (socket && socket.readyState === WebSocket.OPEN) {
-          console.log("Sending message via WebSocket:", messageData);
           socket.send(JSON.stringify({
             action: "send_message",
             message: messageData
           }));
           
-          // إضافة الرسالة إلى المحادثة محلياً
           setMessages(prev => [...prev, {
-            id: Date.now(), // استخدام الوقت الحالي كمعرف مؤقت
+            id: Date.now(),
             ...messageData
           }]);
           
-          // حفظ الرسالة في قاعدة البيانات عبر API
           const res = await authAxios.post("chat/send/", {
             receiver: other.id,
             content: input,
           });
-          console.log("Message saved to database:", res.data);
         } else {
-          // إذا كان WebSocket غير متصل، استخدم API فقط
-          console.log("WebSocket not connected, using API only");
           const res = await authAxios.post("chat/send/", {
             receiver: other.id,
             content: input,
           });
           
-          // إضافة الرسالة إلى المحادثة
           setMessages(prev => [...prev, res.data]);
-          console.log("Message sent via API:", res.data);
         }
         
-        // مسح حقل الإدخال
         setInput("");
       } catch (error) {
-        console.error("Error sending message:", error);
         alert("Failed to send message. Please try again.");
       }
     };
 
     return (
       <div className="flex flex-col h-full">
-        {/* Chat Header */}
         <div className="sticky top-0 z-10 bg-black border-b border-gray-800 p-3">
           <div className="flex items-center">
             {isMobile && (
@@ -347,11 +293,13 @@ export default function Messages() {
           </div>
         </div>
         
-        {/* Chat Messages */}
         <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-black">
           {messages.map((msg, i) => {
-            console.log("Message:", msg, "Current user ID:", me?.id);
-            const isSentByMe = msg.sender === me?.id;
+            const senderId = String(msg.sender);
+            const myId = String(me?.id);
+            
+            const isSentByMe = senderId === myId;
+            
             return (
               <div key={i} className={`flex ${isSentByMe ? 'justify-end' : 'justify-start'} mb-1`}>
                 {!isSentByMe && (
@@ -377,7 +325,6 @@ export default function Messages() {
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Message Input */}
         <div className="border-t border-gray-800 p-3">
           <form onSubmit={sendMessage} className="flex items-center gap-2">
             <div className="flex items-center gap-2 text-blue-400">
@@ -411,9 +358,7 @@ export default function Messages() {
 
   return (
     <div className="flex h-screen bg-black">
-      {/* Left sidebar - Messages list */}
       <div className={`${showChat && isMobile ? 'hidden' : 'flex flex-col'} ${showChat && !isMobile ? 'w-[350px]' : 'w-full'} border-r border-gray-800`}>
-        {/* Header */}
         <div className="sticky top-0 z-20 bg-black">
           <div className="flex items-center justify-between px-4 py-2">
             <h2 className="text-xl font-bold">Messages</h2>
@@ -449,7 +394,6 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Users list */}
         <div className="flex-1 overflow-y-auto">
           {loading && (
             <div className="text-gray-500 text-center py-8">Loading users...</div>
@@ -495,7 +439,6 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* Right side - Chat area */}
       <div className={`${!showChat ? 'hidden' : 'flex'} flex-col ${!isMobile && showChat ? 'flex-1' : 'w-full'} bg-black`}>
         {selectedUser ? (
           <ChatWindow me={me} other={selectedUser} />
