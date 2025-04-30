@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, MapPin, Verified, ArrowLeft, Link, Cake } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Verified,
+  ArrowLeft,
+  Link,
+  Cake,
+} from "lucide-react";
 import EditProfile from "./EditProfile";
 import { getUserProfile } from "../../api/users";
+import { authAxios } from "../../api/useAxios";
+import { useParams } from "react-router-dom";
 
 export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({});
+  const [tweets, setTweets] = useState([]);
+  const [likedTweets, setLikedTweets] = useState([]);
+  const [replies, setReplies] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tweets");
+
+  const { userId } = useParams();
 
   const handleOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
@@ -15,17 +29,36 @@ export default function UserProfile() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const res = await getUserProfile();
+        const res = await getUserProfile(userId);
         setUserData(res);
+        console.log("User data:", res);
+
+        if (res && res.id) {
+          const tweetRes = await authAxios.get(
+            `http://127.0.0.1:8000/profile/tweets/${res.id}/`
+          );
+          setTweets(tweetRes.data);
+          console.log("Fetched tweets:", tweetRes.data);
+
+          const likesRes = await authAxios.get(
+            `http://127.0.0.1:8000/profile/tweets/likes/${res.id}/`
+          );
+          setLikedTweets(likesRes.data);
+
+          const repliesRes = await authAxios.get(
+            `http://127.0.0.1:8000/profile/tweets/replies/${res.id}/`
+          );
+          setReplies(repliesRes.data);
+        }
       } catch (error) {
-        console.error("Error fetching profile data:", error.response?.data || error.message);
+        console.error("Error fetching profile, tweets, likes, or replies:", error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchProfileData();
-  }, []);
+  }, [userId]);
 
   if (loading) {
     return (
@@ -39,7 +72,7 @@ export default function UserProfile() {
     { id: "tweets", label: "Tweets" },
     { id: "replies", label: "Replies" },
     { id: "media", label: "Media" },
-    { id: "likes", label: "Likes" }
+    { id: "likes", label: "Likes" },
   ];
 
   return (
@@ -50,8 +83,12 @@ export default function UserProfile() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h2 className="font-bold text-lg">{userData.display_name || "Profile"}</h2>
-          <p className="text-xs text-gray-500">{userData.tweets_count || 0} tweets</p>
+          <h2 className="font-bold text-lg">
+            {userData.display_name || "Profile"}
+          </h2>
+          <p className="text-xs text-gray-500">
+            {userData.tweets_count || 0} tweets
+          </p>
         </div>
       </div>
 
@@ -69,7 +106,9 @@ export default function UserProfile() {
         <div className="absolute -bottom-16 left-4">
           <div className="w-32 h-32 rounded-full bg-gray-800 border-4 border-black overflow-hidden">
             <img
-              src={userData.avatar_url || "/media/default_profile_400x400.png"}
+              src={
+                userData.avatar_url || "/media/default_profile_400x400.png"
+              }
               alt="Avatar"
               className="w-full h-full object-cover"
             />
@@ -89,8 +128,12 @@ export default function UserProfile() {
       <div className="pt-20 px-4">
         <div className="mb-3">
           <div className="flex items-center gap-1">
-            <h1 className="text-xl font-bold">{userData.display_name || "User"}</h1>
-            {userData.verified && <Verified className="w-5 h-5 text-blue-500" />}
+            <h1 className="text-xl font-bold">
+              {userData.display_name || "User"}
+            </h1>
+            {userData.verified && (
+              <Verified className="w-5 h-5 text-blue-500" />
+            )}
           </div>
           <p className="text-gray-500">@{userData.username || "username"}</p>
         </div>
@@ -111,19 +154,39 @@ export default function UserProfile() {
           {userData.website && (
             <div className="flex items-center gap-1 mr-3">
               <Link className="w-4 h-4" />
-              <a href={userData.website} className="text-blue-500 hover:underline">
-                {userData.website.replace(/(https?:\/\/)?(www\.)?/, '')}
+              <a
+                href={userData.website}
+                className="text-blue-500 hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {userData.website.replace(/(https?:\/\/)?(www\.)?/, "")}
               </a>
             </div>
           )}
-          <div className="flex items-center gap-1 mr-3">
-            <Calendar className="w-4 h-4" />
-            <span>Joined {new Date(userData.date_joined || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-          </div>
+          {userData.date_joined && (
+            <div className="flex items-center gap-1 mr-3">
+              <Calendar className="w-4 h-4" />
+              <span>
+                Joined{" "}
+                {new Date(userData.date_joined).toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          )}
           {userData.date_of_birth && (
             <div className="flex items-center gap-1">
               <Cake className="w-4 h-4" />
-              <span>Born {new Date(userData.date_of_birth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+              <span>
+                Born{" "}
+                {new Date(userData.date_of_birth).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
             </div>
           )}
         </div>
@@ -141,11 +204,12 @@ export default function UserProfile() {
 
         {/* Tabs */}
         <div className="border-b border-gray-800 flex mt-4">
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`flex-1 py-3 relative font-medium text-sm hover:bg-gray-900 ${activeTab === tab.id ? "text-white" : "text-gray-500"
-                }`}
+              className={`flex-1 py-3 relative font-medium text-sm hover:bg-gray-900 ${
+                activeTab === tab.id ? "text-white" : "text-gray-500"
+              }`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -156,20 +220,77 @@ export default function UserProfile() {
           ))}
         </div>
 
-        {/* Content Area - Replace with actual tweet components later */}
+        {/* Tab Content */}
         <div className="py-4">
           {activeTab === "tweets" && (
-            <div className="text-center text-gray-500 py-8">
-              No tweets yet
-            </div>
+            <>
+              {tweets.length > 0 ? (
+                tweets.map((tweet) => (
+                  <div key={tweet.id} className="py-2 border-b border-gray-800">
+                    <p>{tweet.content}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">No tweets yet</div>
+              )}
+            </>
+          )}
+
+          {activeTab === "replies" && (
+            <>
+              {replies.length > 0 ? (
+                replies.map((reply) => (
+                  <div key={reply.id} className="py-2 border-b border-gray-800">
+                    <p>{reply.content}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">No replies yet</div>
+              )}
+            </>
+          )}
+
+          {activeTab === "media" && (
+            <>
+              {tweets.filter((tweet) => tweet.media_url).length > 0 ? (
+                tweets
+                  .filter((tweet) => tweet.media_url)
+                  .map((tweet) => (
+                    <div key={tweet.id} className="py-2 border-b border-gray-800">
+                      <p>{tweet.content}</p>
+                      <img
+                        src={tweet.media_url}
+                        alt="Tweet Media"
+                        className="mt-2 rounded-lg max-w-full"
+                      />
+                    </div>
+                  ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">No media content</div>
+              )}
+            </>
+          )}
+
+          {activeTab === "likes" && (
+            <>
+              {likedTweets.length > 0 ? (
+                likedTweets.map((tweet) => (
+                  <div key={tweet.id} className="py-2 border-b border-gray-800">
+                    <p>{tweet.content}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  No liked tweets
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
 
-      <EditProfile
-        open={isOpen}
-        onClose={handleClose}
-      />
+      {/* Edit Profile Modal */}
+      <EditProfile open={isOpen} onClose={handleClose} />
     </div>
   );
 }

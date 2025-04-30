@@ -17,6 +17,6 @@ urlpatterns = [
     path("tweets/likes/<int:user_id>/", likes_view, name="user-likes"),
     path("tweets/retweets/<int:user_id>/", retweets_view, name="user-retweets"),
     path("tweets/replies/<int:user_id>/", replies_view, name="user-replies"),
-    path('user-profile/<str:username>/', UserProfileByUsernameView.as_view(), name='profile-by-username'),
-      
-    ]
+    # path('user-profile/<str:username>/', UserProfileByUsernameView.as_view(), name='profile-by-username'),
+
+]
