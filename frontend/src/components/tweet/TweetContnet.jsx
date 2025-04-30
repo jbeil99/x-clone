@@ -34,7 +34,7 @@ const TweetContent = ({ tweet, isTweetLong = false }) => {
 
           if (tweet.hashtags?.includes(hashtag)) {
             parts.push(
-              <Link to={`hastags/${hashtag}`}>
+              <Link to={`/hashtags/${hashtag}`}>
                 <span key={`hashtag-${parts.length}`} className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer">
                   {match[2]}
                 </span>
