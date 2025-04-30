@@ -10,6 +10,7 @@ import ActivateAccount from "./pages/auth/ActivationPage";
 import Explore from "./pages/main-page/Explore";
 import TweetDetail from "./pages/main-page/components/TweetDetail";
 import Messages from "./pages/messages/Messages";
+import Hashtags from "./pages/hashtags/Hastags";
 
 
 
@@ -36,11 +37,20 @@ function App() {
               <Explore />
             </Layout>
           } />
+
+          <Route path="/hastags/:name" element={
+            <Layout>
+              <Hashtags />
+            </Layout>
+          } />
+
           <Route path=":username" element={
             <Layout>
               <UserProfile />
             </Layout>
           } />
+
+
         </Route>
 
         <Route path="/messages" element={<Messages />} />

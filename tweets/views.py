@@ -2,7 +2,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Tweet,  Likes, Retweets, Hashtag, Mention,TweetShare
+from .models import Tweet, Likes, Retweets, Hashtag, Mention, TweetShare
 from .serializers import (
     TweetSerializer,
     MyTweetSerializer,
@@ -62,7 +62,7 @@ class TweetList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
- 
+
 class TweetDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Tweet.objects.all()
     serializer_class = TweetSerializer
@@ -83,22 +83,33 @@ class Retweet(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-    
 class HashtagView(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, hashtag_name=None):
-        if hashtag_name:
-            try:
-                hashtag = Hashtag.objects.get(name__iexact=hashtag_name)
-                serializer = HashtagSerializer(hashtag)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Hashtag.DoesNotExist:
-                return Response({"detail": "Hashtag not found."}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            hashtags = Hashtag.objects.all()
-            serializer = HashtagSerializer(hashtags, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def get(self, request, hashtag_name):
+        try:
+            hashtag = Hashtag.objects.get(name__iexact=hashtag_name)
+            filter_type = request.query_params.get("filter", "top")
+            if filter_type == "top":
+                tweets = Tweet.get_top_tweets_by_hashtag(hashtag)
+            elif filter_type == "latest":
+                tweets = Tweet.get_latest_tweets_by_hashtag(hashtag)
+            else:
+                return Response(
+                    {"detail": "Invalid filter type.  Use 'top' or 'latest'."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            paginator = PageNumberPagination()
+            paginated_tweets = paginator.paginate_queryset(tweets, request)
+            serializer = TweetSerializer(
+                paginated_tweets, many=True, context={"request": request}
+            )
+
+            return paginator.get_paginated_response(serializer.data)
+        except Hashtag.DoesNotExist:
+            return Response(
+                {"detail": "Hashtag not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def post(self, request):
         serializer = HashtagSerializer(data=request.data)
@@ -106,25 +117,25 @@ class HashtagView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    
-    
-    
+
+
 class MentionsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        mentions = Mention.objects.filter(mentioned_user=request.user).select_related('tweet')
+        mentions = Mention.objects.filter(mentioned_user=request.user).select_related(
+            "tweet"
+        )
         data = [
             {
-                'tweet_id': m.tweet.id,
-                'content': m.tweet.content,
-                'mentioned_at': m.created_at
+                "tweet_id": m.tweet.id,
+                "content": m.tweet.content,
+                "mentioned_at": m.created_at,
             }
             for m in mentions
         ]
         return Response(data)
-    
+
 
 class BookmarkTweetView(APIView):
     permission_classes = [IsAuthenticated]
