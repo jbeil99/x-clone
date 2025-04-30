@@ -1,17 +1,31 @@
 from django.db import models
 from accounts.models import User
-from django.contrib.auth import get_user_model
 import re
-
-
-User = get_user_model()
 
 
 class Hashtag(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+
+class HashtagLog(models.Model):
+    name = models.CharField(max_length=100, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def get_trending_hashtags(cls, time_window):
+        return (
+            cls.objects.filter(created_at__gte=time_window)
+            .values("name")
+            .annotate(count=models.Count("name"))
+            .order_by("-count")[:5]
+        )
 
 
 class Tweet(models.Model):
@@ -70,6 +84,7 @@ class Tweet(models.Model):
         super().save(*args, **kwargs)  # Save first so Tweet ID exists
         hashtags = self.extract_hashtags(self.content)
         for tag in hashtags:
+            HashtagLog.objects.create(name=tag)
             hashtag, _ = Hashtag.objects.get_or_create(name=tag)
             self.hashtags.add(hashtag)
 

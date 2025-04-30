@@ -2,7 +2,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Tweet, Likes, Retweets, Hashtag, Mention, TweetShare
+from .models import Tweet, Likes, Retweets, Hashtag, Mention, TweetShare, HashtagLog
 from .serializers import (
     TweetSerializer,
     MyTweetSerializer,
@@ -12,6 +12,8 @@ from .permissions import IsUserOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.utils import timezone
+from datetime import timedelta
 
 
 class Like(APIView):
@@ -117,6 +119,13 @@ class HashtagView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TrendingHashtagsView(APIView):
+    def get(self, request):
+        time_window = timezone.now() - timedelta(hours=24)
+        trending_hashtags = HashtagLog.get_trending_hashtags(time_window)
+        return Response(trending_hashtags)
 
 
 class MentionsView(APIView):
