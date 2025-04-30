@@ -21,7 +21,7 @@ const TweetContent = ({ tweet, isTweetLong = false }) => {
         if (match[1]) {
           const username = match[1].substring(1);
           console.log(tweet.mentions.includes(username), " hi")
-          if (tweet.mentions.includes(username)) {
+          if (tweet.mentions?.includes(username)) {
             parts.push(
               <UserCard username={username} match={match} key={`mention-${parts.length}`} />
             );
@@ -32,7 +32,7 @@ const TweetContent = ({ tweet, isTweetLong = false }) => {
         } else if (match[2]) {
           const hashtag = match[2].substring(1);
 
-          if (tweet.hashtags.includes(hashtag)) {
+          if (tweet.hashtags?.includes(hashtag)) {
             parts.push(
               <Link to={`hastags/${hashtag}`}>
                 <span key={`hashtag-${parts.length}`} className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer">
