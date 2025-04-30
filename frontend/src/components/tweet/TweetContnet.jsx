@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import UserCard from './UserCard';
+import { Link } from 'react-router';
 
 const TweetContent = ({ tweet, isTweetLong = false }) => {
   const [expanded, setExpanded] = useState(false);
@@ -33,9 +34,11 @@ const TweetContent = ({ tweet, isTweetLong = false }) => {
 
           if (tweet.hashtags.includes(hashtag)) {
             parts.push(
-              <span key={`hashtag-${parts.length}`} className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer">
-                {match[2]}
-              </span>
+              <Link to={`hastags/${hashtag}`}>
+                <span key={`hashtag-${parts.length}`} className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer">
+                  {match[2]}
+                </span>
+              </Link>
             );
           } else {
             parts.push(match[2])

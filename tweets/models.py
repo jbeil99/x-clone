@@ -39,6 +39,9 @@ class Tweet(models.Model):
 
     def is_user_liked(self, user):
         return self.likes.filter(user=user).exists()
+    
+    def is_user_bookmarked(self, user):
+        return self.bookmarks.filter(pk=user.pk).exists()
 
     def is_user_retweeted(self, user):
         return self.retweets.filter(user=user).exists()

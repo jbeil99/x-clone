@@ -77,15 +77,28 @@ class Retweet(APIView):
         if Retweets.objects.filter(user=request.user, tweet=tweet).exists():
             retweet = Retweets.objects.get(user=request.user, tweet=tweet)
             retweet.delete()
-            return Response({"status": "retweet removed"}, status=status.HTTP_200_OK)
         else:
             Retweets.objects.create(user=request.user, tweet=tweet)
-            return Response({"status": "retweeted"}, status=status.HTTP_201_CREATED)
+        serializer = TweetSerializer(tweet, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
     
-class HashtagCreateView(APIView):
+class HashtagView(APIView):
     permission_classes = [IsAuthenticated]
+    def get(self, request, hashtag_name=None):
+        if hashtag_name:
+            try:
+                hashtag = Hashtag.objects.get(name__iexact=hashtag_name)
+                serializer = HashtagSerializer(hashtag)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Hashtag.DoesNotExist:
+                return Response({"detail": "Hashtag not found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            hashtags = Hashtag.objects.all()
+            serializer = HashtagSerializer(hashtags, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
 
     def post(self, request):
         serializer = HashtagSerializer(data=request.data)
@@ -93,8 +106,10 @@ class HashtagCreateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+    
+    
+    
+    
 class MentionsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -119,9 +134,9 @@ class BookmarkTweetView(APIView):
         user = request.user
         if tweet.bookmarks.filter(id=user.id).exists():
             tweet.bookmarks.remove(user)
-            return Response({"message": "Tweet removed from bookmarks"})
         tweet.bookmarks.add(user)
-        return Response({"message": "Tweet bookmarked successfully"})
+        serializer = TweetSerializer(tweet, context={"request": request})
+        return Response(serializer.data)
 
 
 class ShareTweetView(APIView):

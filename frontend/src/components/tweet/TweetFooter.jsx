@@ -1,6 +1,6 @@
 import { Heart, Repeat, MessageCircle, Share, BookmarkPlus, BarChart2 } from 'lucide-react';
 import { useDispatch } from "react-redux"
-import { postLikes } from '../../store/slices/tweets';
+import { postBookmark, postLikes, postRetweets } from '../../store/slices/tweets';
 import { useState } from 'react';
 import ShareButton from './ShareButton';
 
@@ -37,15 +37,31 @@ export default function TweetFooter({ tweet, setPost }) {
         return count;
     };
 
-    const handleRetweetClick = (e) => {
+    const handleRetweetClick = async (e) => {
         e.stopPropagation();
-        setRetweeted(!retweeted);
-
-        console.log('Retweet clicked for tweet:', tweet.id);
+        try {
+            const action = await dispatch(postRetweets(tweet.id))
+            console.log(action)
+            setRetweeted(!retweeted);
+            if (setPost) (
+                setPost(action.payload)
+            )
+        } catch (error) {
+            console.log(error);
+        }
     };
-    const handleBookmarkClick = (e) => {
+    const handleBookmarkClick = async (e) => {
         e.stopPropagation();
-        setBookmarked(!bookmarked);
+        try {
+            const action = await dispatch(postBookmark(tweet.id))
+            console.log(action)
+            setBookmarked(!bookmarked);
+            if (setPost) (
+                setPost(action.payload)
+            )
+        } catch (error) {
+            console.log(error);
+        }
     };
     return (
         <div className="flex justify-between text-gray-500 mt-3 max-w-md px-1">
@@ -55,7 +71,7 @@ export default function TweetFooter({ tweet, setPost }) {
             </div>
 
             <div
-                className={`flex items-center group cursor-pointer transition-colors duration-200 ${retweeted ? 'text-green-500' : 'hover:text-green-500'}`}
+                className={`flex items-center group cursor-pointer transition-colors duration-200 ${tweet.iretweeted ? 'text-green-500' : 'hover:text-green-500'}`}
                 onClick={handleRetweetClick}
             >
                 <Repeat className="w-4 h-4" />
@@ -70,10 +86,10 @@ export default function TweetFooter({ tweet, setPost }) {
                 <span className="text-sm ml-1">{formatCount(likesCount)}</span>
             </div>
             <div
-                className={`flex items-center group cursor-pointer transition-colors duration-200 ${bookmarked ? 'text-yellow-500' : 'hover:text-yellow-500'}`}
+                className={`flex items-center group cursor-pointer transition-colors duration-200 ${tweet.ibookmarked ? 'text-yellow-500' : 'hover:text-yellow-500'}`}
                 onClick={handleBookmarkClick}
             >
-                <BookmarkPlus className={`w-4 h-4 ${bookmarked ? 'fill-current' : ''}`} />
+                <BookmarkPlus className={`w-4 h-4 ${tweet.ibookmarked ? 'fill-current' : ''}`} />
             </div>
             <div className="flex items-center group cursor-pointer hover:text-blue-400 transition-colors duration-200">
                 <ShareButton />

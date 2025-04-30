@@ -60,6 +60,7 @@ class TweetSerializer(serializers.ModelSerializer):
     retweets_count = serializers.SerializerMethodField(read_only=True)
     iliked = serializers.SerializerMethodField(read_only=True)
     iretweeted = serializers.SerializerMethodField(read_only=True)
+    ibookmarked = serializers.SerializerMethodField(read_only=True)
     time = serializers.SerializerMethodField(read_only=True)
     author = UserSerializer(source="user", read_only=True)
     replies_count = serializers.SerializerMethodField()
@@ -85,6 +86,7 @@ class TweetSerializer(serializers.ModelSerializer):
             "retweets_count",
             "iliked",
             "iretweeted",
+            "ibookmarked",
             "time",
             "replies_count",
             "parent",
@@ -114,6 +116,9 @@ class TweetSerializer(serializers.ModelSerializer):
 
     def get_iliked(self, obj):
         return obj.is_user_liked(self.context["request"].user)
+    
+    def get_ibookmarked(self, obj):
+        return obj.is_user_bookmarked(self.context["request"].user)
 
     def get_iretweeted(self, obj):
         return obj.is_user_retweeted(self.context["request"].user)
