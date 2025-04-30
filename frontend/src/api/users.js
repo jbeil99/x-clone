@@ -65,3 +65,10 @@ export const updateProfile = async (data) => {
     })
     return res.data
 }
+
+
+
+export const getWhoToFollow = async () => {
+    const res = await authAxios.get(`profile/who-to-follow/`)
+    return res.data
+}

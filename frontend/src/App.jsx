@@ -27,9 +27,9 @@ function App() {
           <Route path="status/:id" element={<Layout><TweetDetail /></Layout>} />
           <Route path="/hashtags/:name" element={<Layout><Hashtags /></Layout>} />
           <Route path="/profile" element={<Layout><UserProfile /></Layout>} />
-          <Route path="/profile/edit" element={<Layout><EditProfile /></Layout>} /> {/* Wrapped with Layout */}
+          <Route path="/profile/edit" element={<Layout><EditProfile /></Layout>} />
           <Route path="/messages" element={<Layout><Messages /></Layout>} />
-          <Route path="/:username" element={<Layout><UserProfile /></Layout>} /> {/* More specific profiles above */}
+          <Route path="/:username" element={<Layout><UserProfile /></Layout>} />
         </Route>
       </Routes>
     </BrowserRouter>
