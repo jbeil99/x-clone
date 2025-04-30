@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { addTweet, getTweets, likeTweet } from '../../api/tweets';
+import { addTweet, bookmark, getTweets, likeTweet, retweet } from '../../api/tweets';
 
 export const fetchTweets = createAsyncThunk(
     'tweets/fetchTweets',
@@ -31,6 +31,30 @@ export const postLikes = createAsyncThunk(
     async (id, { rejectWithValue }) => {
         try {
             const res = await likeTweet(id);
+            return res;
+        } catch (error) {
+            return rejectWithValue(error.response ? error.response.data : error.message);
+        }
+    }
+);
+
+export const postRetweets = createAsyncThunk(
+    'tweets/postRetweets',
+    async (id, { rejectWithValue }) => {
+        try {
+            const res = await retweet(id);
+            return res;
+        } catch (error) {
+            return rejectWithValue(error.response ? error.response.data : error.message);
+        }
+    }
+);
+
+export const postBookmark = createAsyncThunk(
+    'tweets/postBookmark',
+    async (id, { rejectWithValue }) => {
+        try {
+            const res = await bookmark(id);
             return res;
         } catch (error) {
             return rejectWithValue(error.response ? error.response.data : error.message);
@@ -78,6 +102,22 @@ const tweetsSlice = createSlice({
         //     state.error = action.payload;
         // });
         builder.addCase(postLikes.fulfilled, (state, action) => {
+            state.loading = false;
+            state.tweets = state.tweets.map(tweet =>
+                tweet.id === action.payload.id
+                    ? action.payload
+                    : tweet
+            );
+        });
+        builder.addCase(postRetweets.fulfilled, (state, action) => {
+            state.loading = false;
+            state.tweets = state.tweets.map(tweet =>
+                tweet.id === action.payload.id
+                    ? action.payload
+                    : tweet
+            );
+        });
+        builder.addCase(postBookmark.fulfilled, (state, action) => {
             state.loading = false;
             state.tweets = state.tweets.map(tweet =>
                 tweet.id === action.payload.id

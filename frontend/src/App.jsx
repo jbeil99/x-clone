@@ -10,6 +10,7 @@ import ActivateAccount from "./pages/auth/ActivationPage";
 import Explore from "./pages/main-page/Explore";
 import TweetDetail from "./pages/main-page/components/TweetDetail";
 import Messages from "./pages/messages/Messages";
+import Hashtags from "./pages/hashtags/Hastags";
 
 
 
@@ -18,7 +19,7 @@ function App() {
     <BrowserRouter>
       <ToastContainer />
       <Routes>
-        
+
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/activate/:uid/:token" element={<ActivateAccount />} />
         <Route path="/" element={
@@ -34,15 +35,24 @@ function App() {
         <Route element={<PrivateRoute />}>
           <Route path="status/:id" element={<Layout><TweetDetail /></Layout>} />
 
+
+          <Route path="/hastags/:name" element={
+            <Layout>
+              <Hashtags />
+            </Layout>
+          } />
+
           <Route path="/:username" element={<UserProfile />} />
           <Route path="/profile" element={
-           <Layout>
-            <UserProfile />
+            <Layout>
+              <UserProfile />
             </Layout>
-            
-            } />
+
+          } />
           <Route path="/profile/edit" element={<EditProfile />} /> {/* Add EditProfile route */}
           <Route path="/messages" element={<Messages />} />
+
+
 
         </Route>
       </Routes>

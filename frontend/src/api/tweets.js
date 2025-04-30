@@ -35,3 +35,13 @@ export const likeTweet = async (id) => {
     const res = await authAxios.post(`tweets/${id}/likes`)
     return res.data
 }
+
+export const retweet = async (id) => {
+    const res = await authAxios.post(`tweets/${id}/retweet/`)
+    return res.data
+}
+
+export const bookmark = async (id) => {
+    const res = await authAxios.post(`tweets/${id}/bookmark/`)
+    return res.data
+}

@@ -1,20 +1,19 @@
 from rest_framework import serializers
-from .models import Tweet, Comment, Likes, Hashtag
-
+from .models import Tweet, Likes, Hashtag, Mention
+from django.contrib.auth import get_user_model
 from core.utils.helpers import build_absolute_url, time_ago
 from accounts.serializers import UserSerializer
 
+User = get_user_model()
 
-class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source="user.username")
-    avatar = serializers.ReadOnlyField(source="user.avatar.url")
+
+class MentionSerializer(serializers.ModelSerializer):
+    mentioned_username = serializers.CharField(source='mentioned_user.username', read_only=True)
 
     class Meta:
-        model = Comment
-        fields = "__all__"
+        model = Mention
+        fields = ['mentioned_username']
 
-    def get_avatar(self, obj):
-        return obj.user.avatar.url
 
 
 class MyTweetSerializer(serializers.ModelSerializer):
@@ -26,6 +25,7 @@ class MyTweetSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='name')
+
 
     class Meta:
         model = Tweet
@@ -42,6 +42,7 @@ class MyTweetSerializer(serializers.ModelSerializer):
             "retweets_count",
             "is_retweet",
             'hashtags',
+            'mentions'
         ]
 
     def get_avatar(self, obj):
@@ -59,6 +60,7 @@ class TweetSerializer(serializers.ModelSerializer):
     retweets_count = serializers.SerializerMethodField(read_only=True)
     iliked = serializers.SerializerMethodField(read_only=True)
     iretweeted = serializers.SerializerMethodField(read_only=True)
+    ibookmarked = serializers.SerializerMethodField(read_only=True)
     time = serializers.SerializerMethodField(read_only=True)
     author = UserSerializer(source="user", read_only=True)
     replies_count = serializers.SerializerMethodField()
@@ -67,7 +69,11 @@ class TweetSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='name')
-
+    mentions = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='mentioned_user.username'
+    )    
     class Meta:
         model = Tweet
         fields = [
@@ -80,11 +86,13 @@ class TweetSerializer(serializers.ModelSerializer):
             "retweets_count",
             "iliked",
             "iretweeted",
+            "ibookmarked",
             "time",
             "replies_count",
             "parent",
             "is_retweet",
             'hashtags',
+            "mentions"
 
         ]
         extra_kwargs = {
@@ -108,6 +116,9 @@ class TweetSerializer(serializers.ModelSerializer):
 
     def get_iliked(self, obj):
         return obj.is_user_liked(self.context["request"].user)
+    
+    def get_ibookmarked(self, obj):
+        return obj.is_user_bookmarked(self.context["request"].user)
 
     def get_iretweeted(self, obj):
         return obj.is_user_retweeted(self.context["request"].user)
