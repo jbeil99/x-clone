@@ -1,13 +1,12 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
-    Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Link as LinkIcon, Sparkles, ArrowUp, X, Send, Paperclip, File, Video, Smile
+    Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, Link as LinkIcon, Sparkles, ArrowUp, X, Send, Paperclip, File, Video, Smile
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { authAxios } from '../../api/useAxios';
 import { currentUser } from '../../api/users';
 import EmojiPicker from 'emoji-picker-react';
 export default function MessagesBox({ isMessagesPage }) {
-    const location = useLocation();
     const navigate = useNavigate();
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
     const [unreadByUser, setUnreadByUser] = useState({});
@@ -280,24 +279,6 @@ export default function MessagesBox({ isMessagesPage }) {
         };
     }, [isMessagesTabOpen]);
 
-    const sidebarItems = [
-        { icon: Home, text: 'Home', path: '/' },
-        { icon: Search, text: 'Explore', path: '/explore' },
-        { icon: Bell, text: 'Notifications', path: '/notifications' },
-        { icon: Mail, text: 'Messages', path: '/messages', badge: unreadMessageCount },
-        { icon: Sparkles, text: 'Grok', path: '/grok' },
-        { icon: Bookmark, text: 'Bookmarks', path: '/bookmarks' },
-        { icon: Briefcase, text: 'Jobs', path: '/jobs' },
-        { icon: Users, text: 'Communities', path: '/communities' },
-        { icon: Zap, text: 'Premium', path: '/premium' },
-        { icon: CheckCircle2, text: 'Verified Orgs', path: '/verified-orgs' },
-        { icon: User, text: 'Profile', path: '/profile' },
-        { icon: MoreHorizontal, text: 'More', path: '/more' },
-    ];
-
-    // useEffect(() => {
-    //     dispatch(fetchCurrentUser())
-    // }, [dispatch])
 
     const formatTime = (dateStr) => {
         const date = new Date(dateStr);

@@ -6,6 +6,11 @@ export const getUserProfile = async (username) => {
     return res.data
 }
 
+export const getUserByUsername = async (username) => {
+    const res = await authAxios.get(`profile/user-profile/${username}/`)
+    return res.data
+}
+
 
 export const registerUser = async (data) => {
     const res = await axi.post('/auth/users/', data)

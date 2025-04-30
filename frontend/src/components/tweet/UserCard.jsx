@@ -5,8 +5,24 @@ import {
 } from '@/components/ui/hover-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { getUserByUsername } from '../../api/users';
 
 export default function UserCard({ username, match }) {
+    const [user, setUuser] = useState()
+    useEffect(() => {
+        const getUserData = async () => {
+            try {
+                const res = await getUserByUsername(username)
+                setUuser(res)
+            } catch (e) {
+                console.log(e)
+            }
+
+        }
+        getUserData()
+    }, [])
+
     return (
         <HoverCard>
             <HoverCardTrigger asChild>
@@ -20,7 +36,7 @@ export default function UserCard({ username, match }) {
                     <div className="p-3 flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                             <Avatar className="border-2 border-black">
-                                <AvatarImage src={`https://avatar.vercel.sh/${username}`} />
+                                <AvatarImage src={user?.avatar_url} />
                                 <AvatarFallback className="bg-gray-800 text-white">{username.substring(0, 2).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div className="max-w-32 overflow-hidden">
@@ -34,17 +50,16 @@ export default function UserCard({ username, match }) {
                     </div>
 
                     <div className="px-3 pb-2">
-                        <p className="text-sm">I hunt down time travelers</p>
-                        <a href="#" className="text-sm text-blue-500 hover:underline">youtube.com/@LiteraRealm</a>
+                        <p className="text-sm">{user?.bio ? user.bio : ""}</p>
                     </div>
 
                     <div className="px-3 pb-3 flex space-x-4 text-sm">
                         <div>
-                            <span className="font-bold">167</span>
+                            <span className="font-bold">{user?.followers_count}</span>
                             <span className="text-gray-400 ml-1">Following</span>
                         </div>
                         <div>
-                            <span className="font-bold">15</span>
+                            <span className="font-bold">{user?.followed_count}</span>
                             <span className="text-gray-400 ml-1">Followers</span>
                         </div>
                     </div>
