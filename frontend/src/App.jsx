@@ -36,7 +36,7 @@ function App() {
           <Route path="status/:id" element={<Layout><TweetDetail /></Layout>} />
 
 
-          <Route path="/hastags/:name" element={
+          <Route path="/hashtags/:name" element={
             <Layout>
               <Hashtags />
             </Layout>

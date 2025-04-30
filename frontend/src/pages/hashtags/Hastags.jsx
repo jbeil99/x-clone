@@ -19,7 +19,7 @@ export default function Hashtags() {
             }
         }
         getTweets()
-    }, [])
+    }, [name])
     return (
         <SearchTab top={tweets} latest={latest} />
     )
