@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X } from 'lucide-react';
+import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X, Paperclip, File } from 'lucide-react';
 import { currentUser } from "../../api/users";
 import { authAxios } from "../../api/useAxios";
+import EmojiPicker from 'emoji-picker-react';
 
 export default function Messages() {
   const [users, setUsers] = useState([]);
@@ -178,6 +179,33 @@ export default function Messages() {
     const messagesEndRef = useRef(null);
     const messageContainerRef = useRef(null);
     const [initialLoad, setInitialLoad] = useState(true);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [filePreview, setFilePreview] = useState(null);
+    const [fileType, setFileType] = useState(null);
+    const fileInputRef = useRef(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const emojiPickerRef = useRef(null);
+    const emojiButtonRef = useRef(null);
+
+    useEffect(() => {
+      // Handle clicks outside emoji picker
+      const handleClickOutside = (event) => {
+        if (
+          showEmojiPicker && 
+          emojiPickerRef.current && 
+          !emojiPickerRef.current.contains(event.target) &&
+          emojiButtonRef.current &&
+          !emojiButtonRef.current.contains(event.target)
+        ) {
+          setShowEmojiPicker(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [showEmojiPicker]);
 
     useEffect(() => {
       if (!other) return;
@@ -234,7 +262,6 @@ export default function Messages() {
     }, [other, socket, messages]);
 
     useEffect(() => {
-      // Only scroll to bottom on initial load or when sending a new message
       if (initialLoad || (messages.length > 0 && messages[messages.length - 1].sender === me.id)) {
         setTimeout(() => {
           if (messagesEndRef.current) {
@@ -245,47 +272,179 @@ export default function Messages() {
       }
     }, [messages, initialLoad, me?.id]);
 
+    const handleFileChange = (e) => {
+      const file = e.target.files[0];
+      if (!file) {
+        setSelectedFile(null);
+        setFilePreview(null);
+        setFileType(null);
+        return;
+      }
+      
+      setSelectedFile(file);
+      
+      // Determine file type
+      if (file.type.startsWith('image/')) {
+        setFileType('image');
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFilePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      } else if (file.type.startsWith('video/')) {
+        setFileType('video');
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFilePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setFileType('file');
+        setFilePreview(null);
+      }
+    };
+
+    const clearFileSelection = () => {
+      setSelectedFile(null);
+      setFilePreview(null);
+      setFileType(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+
     const sendMessage = async (e) => {
       e.preventDefault();
-      if (!input.trim()) return;
+      if (!input.trim() && !selectedFile) return;
       
       const timestamp = new Date().toISOString();
-      const messageData = {
-        sender: me.id,
-        receiver: other.id,
-        content: input,
-        timestamp: timestamp
-      };
       
       try {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({
-            action: "send_message",
-            message: messageData
-          }));
+        let messageData = {
+          sender: me.id,
+          receiver: other.id,
+          content: input.trim(),
+          timestamp: timestamp,
+          file_type: null,
+          file_url: null
+        };
+        
+        // Handle file upload if present
+        if (selectedFile) {
+          const formData = new FormData();
+          formData.append('file', selectedFile);
+          formData.append('receiver', other.id);
+          formData.append('content', input.trim() || `Sent a ${fileType}`);
           
-          setMessages(prev => [...prev, {
+          const res = await authAxios.post("chat/send-with-file/", formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          
+          // Update message data with file information
+          messageData = {
+            ...messageData,
             id: Date.now(),
-            ...messageData
-          }]);
+            file_type: fileType,
+            file_url: res.data.file_url || null,
+            file_name: selectedFile.name,
+            content: input.trim() || `Sent a ${fileType}`
+          };
           
-          const res = await authAxios.post("chat/send/", {
-            receiver: other.id,
-            content: input,
-          });
+          // Add to messages
+          setMessages(prev => [...prev, messageData]);
+          
+          // Notify via WebSocket if available
+          if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+              action: "send_message",
+              message: messageData
+            }));
+          }
         } else {
-          const res = await authAxios.post("chat/send/", {
-            receiver: other.id,
-            content: input,
-          });
-          
-          setMessages(prev => [...prev, res.data]);
+          // Regular text message
+          if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+              action: "send_message",
+              message: messageData
+            }));
+            
+            setMessages(prev => [...prev, {
+              id: Date.now(),
+              ...messageData
+            }]);
+            
+            await authAxios.post("chat/send/", {
+              receiver: other.id,
+              content: input,
+            });
+          } else {
+            const res = await authAxios.post("chat/send/", {
+              receiver: other.id,
+              content: input,
+            });
+            
+            setMessages(prev => [...prev, res.data]);
+          }
         }
         
         setInput("");
+        clearFileSelection();
       } catch (error) {
+        console.error("Failed to send message:", error);
         alert("Failed to send message. Please try again.");
       }
+    };
+
+    const renderMessageContent = (msg) => {
+      if (msg.file_type === 'image') {
+        return (
+          <div className="message-content">
+            <img 
+              src={msg.file_url || filePreview} 
+              alt="Image" 
+              className="rounded-lg max-w-full max-h-60 mb-2" 
+            />
+            {msg.content && <div className="text-sm">{msg.content}</div>}
+          </div>
+        );
+      } else if (msg.file_type === 'video') {
+        return (
+          <div className="message-content">
+            <video 
+              src={msg.file_url || filePreview} 
+              controls
+              className="rounded-lg max-w-full max-h-60 mb-2" 
+            />
+            {msg.content && <div className="text-sm">{msg.content}</div>}
+          </div>
+        );
+      } else if (msg.file_type === 'file') {
+        return (
+          <div className="message-content">
+            <div className="flex items-center bg-gray-700 rounded-lg p-2 mb-2">
+              <File size={24} className="mr-2" />
+              <a 
+                href={msg.file_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline truncate max-w-[200px] cursor-pointer"
+              >
+                {msg.file_name || "Download file"}
+              </a>
+            </div>
+            {msg.content && <div className="text-sm">{msg.content}</div>}
+          </div>
+        );
+      } else {
+        return <div className="text-sm">{msg.content}</div>;
+      }
+    };
+
+    const onEmojiClick = (emojiObject) => {
+      setInput(prevInput => prevInput + emojiObject.emoji);
+      setShowEmojiPicker(false);
     };
 
     return (
@@ -295,7 +454,7 @@ export default function Messages() {
             {isMobile && (
               <button 
                 onClick={() => setShowList(true)}
-                className="p-2 rounded-full hover:bg-gray-800 mr-2"
+                className="p-2 rounded-full hover:bg-gray-800 mr-2 cursor-pointer"
               >
                 <ArrowLeft size={18} />
               </button>
@@ -339,7 +498,7 @@ export default function Messages() {
                     ? 'bg-blue-500 text-white rounded-br-none' 
                     : 'bg-gray-800 text-white rounded-bl-none'
                 }`}>
-                  <div className="text-sm">{msg.content}</div>
+                  {renderMessageContent(msg)}
                   <div className="text-xs opacity-70 text-right mt-1">
                     {formatTime(msg.timestamp)}
                   </div>
@@ -351,12 +510,98 @@ export default function Messages() {
         </div>
         
         <div className="border-t border-gray-800 p-3 bg-black">
+          {selectedFile && (
+            <div className="mb-2 p-2 bg-gray-800 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  {fileType === 'image' && filePreview && (
+                    <img src={filePreview} alt="Preview" className="h-10 w-10 object-cover rounded mr-2" />
+                  )}
+                  {fileType === 'video' && (
+                    <div className="h-10 w-10 bg-gray-700 flex items-center justify-center rounded mr-2">
+                      <video src={filePreview} className="h-8 w-8" />
+                    </div>
+                  )}
+                  {fileType === 'file' && (
+                    <div className="h-10 w-10 bg-gray-700 flex items-center justify-center rounded mr-2">
+                      <File size={20} />
+                    </div>
+                  )}
+                  <span className="text-sm truncate max-w-[200px]">{selectedFile.name}</span>
+                </div>
+                <button 
+                  onClick={clearFileSelection}
+                  className="text-gray-400 hover:text-white cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {showEmojiPicker && (
+            <div 
+              ref={emojiPickerRef}
+              className="absolute bottom-16 right-16 z-10 shadow-lg rounded-lg overflow-hidden"
+              style={{ 
+                position: 'absolute', 
+                bottom: '60px', 
+                right: '80px',
+                filter: 'drop-shadow(0 0 5px rgba(0,0,0,0.5))'
+              }}
+            >
+              <div className="relative">
+                <EmojiPicker
+                  onEmojiClick={onEmojiClick}
+                  searchDisabled={false}
+                  skinTonesDisabled
+                  width={300}
+                  height={400}
+                  previewConfig={{ showPreview: false }}
+                  theme="dark"
+                />
+                {/* Arrow pointing to emoji button */}
+                <div 
+                  className="absolute w-4 h-4 bg-[#1F1F23] rotate-45 bottom-[-8px] right-[20px]"
+                  style={{ boxShadow: '2px 2px 2px rgba(0,0,0,0.2)' }}
+                ></div>
+              </div>
+            </div>
+          )}
+          
           <form onSubmit={sendMessage} className="flex items-center gap-2">
             <div className="flex items-center gap-2 text-blue-400">
-              <button type="button" className="p-2 rounded-full hover:bg-gray-800">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+              />
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current.click()}
+                className="p-2 rounded-full hover:bg-gray-800 cursor-pointer"
+              >
+                <Paperclip size={18} />
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  fileInputRef.current.accept = "image/*";
+                  fileInputRef.current.click();
+                }}
+                className="p-2 rounded-full hover:bg-gray-800 cursor-pointer"
+              >
                 <Image size={18} />
               </button>
-              <button type="button" className="p-2 rounded-full hover:bg-gray-800">
+              <button 
+                type="button" 
+                className="p-2 rounded-full hover:bg-gray-800 cursor-pointer relative"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                ref={emojiButtonRef}
+                style={{ position: 'relative' }}
+              >
                 <Smile size={18} />
               </button>
             </div>
@@ -368,8 +613,8 @@ export default function Messages() {
             />
             <button 
               type="submit" 
-              className={`p-2 rounded-full ${input.trim() ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-500'}`} 
-              disabled={!input.trim()}
+              className={`p-2 rounded-full ${(input.trim() || selectedFile) ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-500'} cursor-pointer`} 
+              disabled={!input.trim() && !selectedFile}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 rotate-90">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
@@ -388,10 +633,10 @@ export default function Messages() {
           <div className="flex items-center justify-between px-4 py-2">
             <h2 className="text-xl font-bold">Messages</h2>
             <div className="flex gap-2">
-              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800">
+              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
                 <Settings size={18} />
               </button>
-              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800">
+              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
                 <MessageSquarePlus size={18} />
               </button>
             </div>
@@ -409,7 +654,7 @@ export default function Messages() {
               />
               {search && (
                 <button 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white cursor-pointer"
                   onClick={() => setSearch("")}
                 >
                   <X size={16} />
@@ -464,7 +709,7 @@ export default function Messages() {
         </div>
       </div>
 
-      <div className={`${!showChat ? 'hidden' : 'flex'} flex-col ${!isMobile && showChat ? 'flex-1' : 'w-full'} bg-black max-h-screen overflow-hidden`}>
+      <div className={`${!showChat ? 'hidden' : 'flex'} flex-col ${!isMobile && showChat ? 'flex-1' : 'w-full'} bg-black max-h-screen overflow-hidden border-r border-gray-800`}>
         {selectedUser ? (
           <ChatWindow me={me} other={selectedUser} />
         ) : (
@@ -473,7 +718,7 @@ export default function Messages() {
             <p className="text-gray-600 text-center">
               Choose from your existing conversations, start a new one, or just keep swimming.
             </p>
-            <button className="mt-6 bg-blue-500 text-white rounded-full px-4 py-2 font-bold">
+            <button className="mt-6 bg-blue-500 text-white rounded-full px-4 py-2 font-bold cursor-pointer">
               New message
             </button>
           </div>
