@@ -1,10 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-    Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Link as LinkIcon, Sparkles, ArrowUp, X, Send
+    Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Link as LinkIcon, Sparkles, ArrowUp, X, Send, Paperclip, File, Video, Smile
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { authAxios } from '../../api/useAxios';
 import { currentUser } from '../../api/users';
+import EmojiPicker from 'emoji-picker-react';
 
 export default function Layout({ children }) {
     const location = useLocation();
@@ -22,6 +23,11 @@ export default function Layout({ children }) {
     const [messages, setMessages] = useState([]);
     const messagesEndRef = useRef(null);
     const messageInputRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [filePreview, setFilePreview] = useState(null);
+    const [fileType, setFileType] = useState(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     
     useEffect(() => {
         const fetchCurrentUser = async () => {
@@ -316,42 +322,134 @@ export default function Layout({ children }) {
     
     const [isSending, setIsSending] = useState(false);
     
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            setSelectedFile(null);
+            setFilePreview(null);
+            setFileType(null);
+            return;
+        }
+        
+        setSelectedFile(file);
+        
+        if (file.type.startsWith('image/')) {
+            setFileType('image');
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFilePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+            setFileType('video');
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFilePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setFileType('file');
+            setFilePreview(null);
+        }
+    };
+    
+    const clearFileSelection = () => {
+        setSelectedFile(null);
+        setFilePreview(null);
+        setFileType(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+    
+    const onEmojiClick = (emojiObject) => {
+        setNewMessage(prev => prev + emojiObject.emoji);
+        setShowEmojiPicker(false);
+        if (messageInputRef.current) {
+            setTimeout(() => messageInputRef.current.focus(), 100);
+        }
+    };
+    
     const sendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedUser || isSending) return;
+        if ((!newMessage.trim() && !selectedFile) || !selectedUser || isSending) return;
         
         setIsSending(true);
         
         try {
-            const messageData = {
-                receiver: selectedUser.id,
-                content: newMessage.trim(),
-            };
+            const timestamp = new Date().toISOString();
+            let messageContent = newMessage.trim();
+            let messageData = {};
+            let response = {};
             
-            // Store message content before clearing input
-            const messageContent = newMessage.trim();
+            // Clear input immediately for better UX
             setNewMessage('');
             
-            // Add message to UI immediately with pending status
+            // Create a temporary message for UI
             const tempId = Date.now();
-            const newMsg = {
+            let newMsg = {
                 id: tempId,
                 sender: me.id,
                 recipient: selectedUser.id,
                 content: messageContent,
-                timestamp: new Date().toISOString(),
+                timestamp: timestamp,
                 is_read: false,
-                pending: true
+                pending: true,
+                file_type: null,
+                file_url: null
             };
             
-            setMessages(prev => [...prev, newMsg]);
-            
-            // Send message to server
-            const response = await authAxios.post('chat/send/', messageData);
+            // Handle file upload if there's a file
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('receiver', selectedUser.id);
+                formData.append('content', messageContent || `Sent a ${fileType}`);
+                
+                // Update message content if it's empty but there's a file
+                if (!messageContent) {
+                    messageContent = `Sent a ${fileType}`;
+                    newMsg.content = messageContent;
+                }
+                
+                // Add file info to the temporary message
+                newMsg.file_type = fileType;
+                newMsg.file_name = selectedFile.name;
+                
+                // Add message to UI immediately
+                setMessages(prev => [...prev, newMsg]);
+                
+                // Send file to server
+                response = await authAxios.post('chat/send-with-file/', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                
+                // Clear file selection
+                clearFileSelection();
+            } else {
+                // Text-only message
+                messageData = {
+                    receiver: selectedUser.id,
+                    content: messageContent,
+                };
+                
+                // Add message to UI immediately
+                setMessages(prev => [...prev, newMsg]);
+                
+                // Send message to server
+                response = await authAxios.post('chat/send/', messageData);
+            }
             
             // Update message with server response
             setMessages(prev => prev.map(msg => 
-                msg.id === tempId ? { ...msg, id: response.data.id || msg.id, pending: false } : msg
+                msg.id === tempId ? { 
+                    ...msg, 
+                    id: response.data.id || msg.id, 
+                    pending: false,
+                    file_url: response.data.file || null
+                } : msg
             ));
             
             // Update last message for this user
@@ -359,7 +457,7 @@ export default function Layout({ children }) {
                 ...prev,
                 [selectedUser.id]: {
                     content: messageContent,
-                    timestamp: new Date().toISOString()
+                    timestamp: timestamp
                 }
             }));
             
@@ -369,9 +467,11 @@ export default function Layout({ children }) {
                     action: 'send_message',
                     message: {
                         sender: me.id,
-                        receiver: messageData.receiver,
+                        receiver: selectedUser.id,
                         content: messageContent,
-                        timestamp: new Date().toISOString()
+                        timestamp: timestamp,
+                        file_type: fileType,
+                        file_url: response.data.file || null
                     }
                 }));
             }
@@ -391,8 +491,10 @@ export default function Layout({ children }) {
             // Remove the pending message on error
             setMessages(prev => prev.filter(msg => !msg.pending));
             
-            // Restore the message in the input
-            setNewMessage(newMessage);
+            // Restore the message in the input if it was a text message
+            if (!selectedFile) {
+                setNewMessage(newMessage);
+            }
         } finally {
             setIsSending(false);
         }
@@ -634,7 +736,45 @@ export default function Layout({ children }) {
                                                 <div 
                                                     className={`max-w-[80%] p-3 rounded-lg ${msg.sender === me?.id ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white'} ${msg.pending ? 'opacity-70' : ''}`}
                                                 >
+                                                    {/* File content based on type */}
+                                                    {msg.file_type === 'image' && msg.file_url && (
+                                                        <div className="mb-2">
+                                                            <img 
+                                                                src={msg.file_url} 
+                                                                alt="Image" 
+                                                                className="max-w-full rounded-lg" 
+                                                                style={{ maxHeight: '200px' }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {msg.file_type === 'video' && msg.file_url && (
+                                                        <div className="mb-2">
+                                                            <video 
+                                                                src={msg.file_url} 
+                                                                controls 
+                                                                className="max-w-full rounded-lg" 
+                                                                style={{ maxHeight: '200px' }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {msg.file_type === 'file' && msg.file_url && (
+                                                        <div className="mb-2 flex items-center gap-2">
+                                                            <File size={16} />
+                                                            <a 
+                                                                href={msg.file_url} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="underline text-blue-200"
+                                                            >
+                                                                {msg.file_name || 'Download file'}
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Text content */}
                                                     <div>{msg.content}</div>
+                                                    
+                                                    {/* Timestamp and status */}
                                                     <div className="text-xs opacity-70 mt-1 text-right flex items-center justify-end gap-1">
                                                         {formatTime(msg.timestamp)}
                                                         {msg.pending && (
@@ -647,9 +787,86 @@ export default function Layout({ children }) {
                                         <div ref={messagesEndRef} />
                                     </div>
                                     
+                                    {/* File Preview */}
+                                    {selectedFile && (
+                                        <div className="border-t border-gray-800 p-3">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    {fileType === 'image' && <Image size={18} />}
+                                                    {fileType === 'video' && <Video size={18} />}
+                                                    {fileType === 'file' && <File size={18} />}
+                                                    <span className="text-sm truncate">{selectedFile.name}</span>
+                                                </div>
+                                                <button 
+                                                    onClick={clearFileSelection}
+                                                    className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                            {filePreview && fileType === 'image' && (
+                                                <div className="relative rounded-lg overflow-hidden mb-2">
+                                                    <img 
+                                                        src={filePreview} 
+                                                        alt="Preview" 
+                                                        className="max-w-full max-h-[150px] object-contain" 
+                                                    />
+                                                </div>
+                                            )}
+                                            {filePreview && fileType === 'video' && (
+                                                <div className="relative rounded-lg overflow-hidden mb-2">
+                                                    <video 
+                                                        src={filePreview} 
+                                                        className="max-w-full max-h-[150px]" 
+                                                        controls
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Emoji Picker */}
+                                    {showEmojiPicker && (
+                                        <div className="absolute bottom-16 right-4">
+                                            <EmojiPicker 
+                                                onEmojiClick={onEmojiClick} 
+                                                width={280} 
+                                                height={350} 
+                                                theme="dark"
+                                            />
+                                        </div>
+                                    )}
+                                    
                                     {/* Message Input */}
                                     <form onSubmit={sendMessage} className="border-t border-gray-800 p-3">
                                         <div className="flex items-center gap-2">
+                                            {/* File upload button */}
+                                            <button 
+                                                type="button" 
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="text-gray-400 hover:text-blue-500 p-2 rounded-full hover:bg-gray-800 cursor-pointer"
+                                            >
+                                                <Paperclip size={18} />
+                                            </button>
+                                            
+                                            {/* Hidden file input */}
+                                            <input 
+                                                type="file" 
+                                                ref={fileInputRef} 
+                                                onChange={handleFileChange} 
+                                                className="hidden" 
+                                            />
+                                            
+                                            {/* Emoji button */}
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                className="text-gray-400 hover:text-yellow-500 p-2 rounded-full hover:bg-gray-800 cursor-pointer"
+                                            >
+                                                <Smile size={18} />
+                                            </button>
+                                            
+                                            {/* Text input */}
                                             <input
                                                 type="text"
                                                 value={newMessage}
@@ -663,10 +880,12 @@ export default function Layout({ children }) {
                                                     }
                                                 }}
                                             />
+                                            
+                                            {/* Send button */}
                                             <button 
                                                 type="submit" 
-                                                disabled={!newMessage.trim() || isSending}
-                                                className={`p-2 rounded-full transition-all duration-200 ${newMessage.trim() && !isSending ? 'text-blue-500 hover:bg-gray-800 active:scale-95' : 'text-gray-500 cursor-not-allowed'}`}
+                                                disabled={(!newMessage.trim() && !selectedFile) || isSending}
+                                                className={`p-2 rounded-full transition-all duration-200 ${(newMessage.trim() || selectedFile) && !isSending ? 'text-blue-500 hover:bg-gray-800 active:scale-95' : 'text-gray-500 cursor-not-allowed'}`}
                                             >
                                                 {isSending ? (
                                                     <div className="w-4 h-4 border-2 border-t-transparent border-blue-500 rounded-full animate-spin"></div>

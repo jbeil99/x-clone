@@ -112,3 +112,58 @@ def get_unread_count(request):
     ).count()
     
     return Response({'count': unread_count})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_as_read(request):
+    """
+    Mark messages from a specific sender as read
+    """
+    sender_id = request.data.get('sender')
+    if not sender_id:
+        return Response({'detail': 'sender id required'}, status=400)
+    
+    # Mark all messages from this sender to the current user as read
+    updated = Message.objects.filter(
+        sender_id=sender_id,
+        receiver=request.user,
+        read=False
+    ).update(read=True)
+    
+    return Response({'updated': updated})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_all_as_read(request):
+    """
+    Mark all messages for the current user as read
+    """
+    # Mark all messages to the current user as read
+    updated = Message.objects.filter(
+        receiver=request.user,
+        read=False
+    ).update(read=True)
+    
+    return Response({'updated': updated})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_unread_by_user(request):
+    """
+    Get the count of unread messages grouped by sender
+    """
+    # Get all users who have sent unread messages to the current user
+    unread_messages = Message.objects.filter(
+        receiver=request.user,
+        read=False
+    ).values('sender').annotate(count=models.Count('id'))
+    
+    # Convert to a dictionary with user_id as key and count as value
+    unread_counts = {}
+    for item in unread_messages:
+        unread_counts[str(item['sender'])] = item['count']
+    
+    return Response(unread_counts)
