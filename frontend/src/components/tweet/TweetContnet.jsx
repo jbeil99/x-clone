@@ -20,7 +20,7 @@ const TweetContent = ({ tweet, isTweetLong = false }) => {
       while ((match = regex.exec(content)) !== null) {
         if (match[1]) {
           const username = match[1].substring(1);
-          console.log(tweet.mentions.includes(username), " hi")
+          console.log(tweet.mentions?.includes(username), " hi")
           if (tweet.mentions?.includes(username)) {
             parts.push(
               <UserCard username={username} match={match} key={`mention-${parts.length}`} />
