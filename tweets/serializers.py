@@ -1,42 +1,19 @@
 from rest_framework import serializers
-from .models import Tweet, Comment, Likes, Hashtag, Mention
+from .models import Tweet, Likes, Hashtag, Mention
 from django.contrib.auth import get_user_model
 from core.utils.helpers import build_absolute_url, time_ago
 from accounts.serializers import UserSerializer
-import re
 
 User = get_user_model()
 
-def extract_mentions(content):
-    return re.findall(r'@(\w+)', content)
 
-class TweetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tweet
-        fields = ['id', 'content', 'created_at']
-
-    def create(self, validated_data):
-        tweet = Tweet.objects.create(**validated_data)
-        usernames = extract_mentions(tweet.content)
-        for username in usernames:
-            try:
-                user = User.objects.get(username=username)
-                Mention.objects.create(tweet=tweet, mentioned_user=user)
-            except User.DoesNotExist:
-                continue
-        return tweet
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source="user.username")
-    avatar = serializers.ReadOnlyField(source="user.avatar.url")
+class MentionSerializer(serializers.ModelSerializer):
+    mentioned_username = serializers.CharField(source='mentioned_user.username', read_only=True)
 
     class Meta:
-        model = Comment
-        fields = "__all__"
+        model = Mention
+        fields = ['mentioned_user', 'mentioned_username', 'created_at']
 
-    def get_avatar(self, obj):
-        return obj.user.avatar.url
 
 
 class MyTweetSerializer(serializers.ModelSerializer):
@@ -48,6 +25,7 @@ class MyTweetSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='name')
+
 
     class Meta:
         model = Tweet
@@ -64,6 +42,7 @@ class MyTweetSerializer(serializers.ModelSerializer):
             "retweets_count",
             "is_retweet",
             'hashtags',
+            'mentions'
         ]
 
     def get_avatar(self, obj):
@@ -89,7 +68,8 @@ class TweetSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='name')
-
+    mentions = MentionSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Tweet
         fields = [
@@ -107,6 +87,7 @@ class TweetSerializer(serializers.ModelSerializer):
             "parent",
             "is_retweet",
             'hashtags',
+            "mentions"
 
         ]
         extra_kwargs = {

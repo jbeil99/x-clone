@@ -1,15 +1,10 @@
 from django.db import models
 from accounts.models import User
-from django.contrib.auth import get_user_model #
+from django.contrib.auth import get_user_model 
 import re
 
 
 User = get_user_model()
-
-class Mention(models.Model):
-    tweet = models.ForeignKey('Tweet', on_delete=models.CASCADE, related_name='mentions')
-    mentioned_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mentions_received')
-    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Hashtag(models.Model):
@@ -54,28 +49,34 @@ class Tweet(models.Model):
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)  # Save first so Tweet ID exists
-
-        # Hashtags
         hashtags = self.extract_hashtags(self.content)
         for tag in hashtags:
             hashtag, _ = Hashtag.objects.get_or_create(name=tag)
             self.hashtags.add(hashtag)
 
-        # Mentions
         mentions_in_content = self.extract_mentions(self.content)
         for username in mentions_in_content:
             try:
                 mentioned_user = User.objects.get(username=username)
-                # Avoid duplicate mentions
                 if not Mention.objects.filter(tweet=self, mentioned_user=mentioned_user).exists():
                     Mention.objects.create(tweet=self, mentioned_user=mentioned_user)
             except User.DoesNotExist:
-                continue  # Skip invalid usernames
+                continue  
 
     @staticmethod
     def extract_hashtags(content):
         """Extract hashtags from tweet content."""
         return [word[1:] for word in content.split() if word.startswith("#")]
+
+
+
+
+class Mention(models.Model):
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name='mentions')
+    mentioned_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mentions_received')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 
 class Likes(models.Model):
     user = models.ForeignKey(User, related_name="likes", on_delete=models.CASCADE)
@@ -99,37 +100,6 @@ class Retweets(models.Model):
 
     def __str__(self):
         return f"{self.user.username} retweeted {self.tweet.content[:20]}"
-
-
-class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name="comments")
-    body = models.CharField(max_length=140)
-    parent = models.ForeignKey(
-        "self", null=True, blank=True, related_name="replies", on_delete=models.CASCADE
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    hashtags = models.ManyToManyField(Hashtag, related_name="comments", blank=True)
-
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"{self.user.username} commented on {self.tweet.content[:20]}"
-    
-    def save(self, *args, **kwargs):
-        hashtags_in_body = self.extract_hashtags(self.body)
-        for tag in hashtags_in_body:
-            hashtag, created = Hashtag.objects.get_or_create(name=tag)
-            self.hashtags.add(hashtag)
-        super().save(*args, **kwargs)
-
-    @staticmethod
-    def extract_hashtags(body):
-        """Extract hashtags from comment body."""
-        return [word[1:] for word in body.split() if word.startswith("#")]
-
 
 
 
