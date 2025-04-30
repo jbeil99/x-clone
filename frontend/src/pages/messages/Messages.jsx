@@ -188,7 +188,6 @@ export default function Messages() {
     const emojiButtonRef = useRef(null);
 
     useEffect(() => {
-      // Handle clicks outside emoji picker
       const handleClickOutside = (event) => {
         if (
           showEmojiPicker && 
@@ -283,7 +282,6 @@ export default function Messages() {
       
       setSelectedFile(file);
       
-      // Determine file type
       if (file.type.startsWith('image/')) {
         setFileType('image');
         const reader = new FileReader();
@@ -329,7 +327,6 @@ export default function Messages() {
           file_url: null
         };
         
-        // Handle file upload if present
         if (selectedFile) {
           const formData = new FormData();
           formData.append('file', selectedFile);
@@ -342,7 +339,6 @@ export default function Messages() {
             }
           });
           
-          // Update message data with file information
           messageData = {
             ...messageData,
             id: Date.now(),
@@ -352,10 +348,8 @@ export default function Messages() {
             content: input.trim() || `Sent a ${fileType}`
           };
           
-          // Add to messages
           setMessages(prev => [...prev, messageData]);
           
-          // Notify via WebSocket if available
           if (socket && socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({
               action: "send_message",
@@ -363,7 +357,6 @@ export default function Messages() {
             }));
           }
         } else {
-          // Regular text message
           if (socket && socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({
               action: "send_message",
@@ -479,7 +472,7 @@ export default function Messages() {
           style={{ height: "calc(100vh - 130px)" }}
         >
           {messages.map((msg, i) => {
-            const senderId = String(msg.sender);
+            const senderId = String(msg.sender.id);
             const myId = String(me?.id);
             
             const isSentByMe = senderId === myId;
@@ -488,8 +481,8 @@ export default function Messages() {
               <div key={i} className={`flex ${isSentByMe ? 'justify-end' : 'justify-start'} mb-1`}>
                 {!isSentByMe && (
                   <img 
-                    src={other.avatar || `https://ui-avatars.com/api/?name=${other.username}&background=random`} 
-                    alt={other.username} 
+                    src={msg.sender.avatar || `https://ui-avatars.com/api/?name=${msg.sender.username}&background=random`} 
+                    alt={msg.sender.username} 
                     className="h-8 w-8 rounded-full mr-2 self-end mb-1 hidden sm:block" 
                   />
                 )}
@@ -503,6 +496,13 @@ export default function Messages() {
                     {formatTime(msg.timestamp)}
                   </div>
                 </div>
+                {isSentByMe && (
+                  <img 
+                    src={me.avatar || `https://ui-avatars.com/api/?name=${me.username}&background=random`} 
+                    alt={me.username} 
+                    className="h-8 w-8 rounded-full ml-2 self-end mb-1 hidden sm:block" 
+                  />
+                )}
               </div>
             );
           })}
@@ -560,7 +560,6 @@ export default function Messages() {
                   previewConfig={{ showPreview: false }}
                   theme="dark"
                 />
-                {/* Arrow pointing to emoji button */}
                 <div 
                   className="absolute w-4 h-4 bg-[#1F1F23] rotate-45 bottom-[-8px] right-[20px]"
                   style={{ boxShadow: '2px 2px 2px rgba(0,0,0,0.2)' }}
