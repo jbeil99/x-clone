@@ -42,7 +42,6 @@ function App() {
             </Layout>
           } />
 
-          <Route path="/:username" element={<UserProfile />} />
           <Route path="/profile" element={
             <Layout>
               <UserProfile />
@@ -50,10 +49,22 @@ function App() {
 
           } />
           <Route path="/profile/edit" element={<EditProfile />} /> {/* Add EditProfile route */}
-          <Route path="/messages" element={<Messages />} />
 
-
-
+          <Route path="/explore" element={
+            <Layout>
+              <Explore />
+            </Layout>
+          } />
+          <Route path="/messages" element={
+            <Layout>
+              <Messages />
+            </Layout>
+          } />
+          <Route path=":username" element={
+            <Layout>
+              <UserProfile />
+            </Layout>
+          } />
         </Route>
       </Routes>
     </BrowserRouter >
