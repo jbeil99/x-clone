@@ -69,6 +69,10 @@ class Tweet(models.Model):
         return cls.objects.filter(parent=None)
 
     @classmethod
+    def get_bookmarked_tweets(cls, user):
+        return cls.objects.filter(bookmarks=user)
+
+    @classmethod
     def get_top_tweets_by_hashtag(cls, hashtag):
         return (
             cls.objects.filter(hashtags=hashtag)

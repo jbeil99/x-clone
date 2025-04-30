@@ -45,3 +45,8 @@ export const bookmark = async (id) => {
     const res = await authAxios.post(`tweets/${id}/bookmark/`)
     return res.data
 }
+
+export const getBookmarks = async () => {
+    const res = await authAxios.get(`bookmarks/`)
+    return res.data
+}

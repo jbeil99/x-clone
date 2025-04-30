@@ -159,6 +159,19 @@ class BookmarkTweetView(APIView):
         return Response(serializer.data)
 
 
+class BookmarksList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tweets = Tweet.get_bookmarked_tweets(request.user)
+        paginator = PageNumberPagination()
+        paginated_tweets = paginator.paginate_queryset(tweets, request)
+        serializer = TweetSerializer(
+            paginated_tweets, many=True, context={"request": request}
+        )
+        return paginator.get_paginated_response(serializer.data)
+
+
 class ShareTweetView(APIView):
     permission_classes = [IsAuthenticated]
 
