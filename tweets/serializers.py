@@ -12,7 +12,7 @@ class MentionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mention
-        fields = ['mentioned_user', 'mentioned_username', 'created_at']
+        fields = ['mentioned_username']
 
 
 
@@ -68,8 +68,11 @@ class TweetSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
         slug_field='name')
-    mentions = MentionSerializer(many=True, read_only=True)
-    
+    mentions = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='mentioned_user.username'
+    )    
     class Meta:
         model = Tweet
         fields = [

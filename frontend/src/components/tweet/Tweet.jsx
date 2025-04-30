@@ -3,11 +3,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router';
 import { TweetActions } from './TweetActions';
 import TweetFooter from './TweetFooter';
+import TweetContent from './TweetContnet';
 
 export default function Tweet({ tweet, setPost }) {
-    const [expanded, setExpanded] = useState(false);
     const navigate = useNavigate();
-
     const handleClickTweet = () => {
         window.location.href = `/status/${tweet.id}`;
     };
@@ -17,37 +16,10 @@ export default function Tweet({ tweet, setPost }) {
         navigate(`/${tweet?.author?.username}`);
     };
 
-    const handleSeeMoreClick = (e) => {
-        e.stopPropagation();
-        setExpanded(true);
-    };
-
-    // Prevent tweet content from triggering tweet click
     const handleContentClick = (e) => {
         e.stopPropagation();
     };
 
-    const isTweetLong = tweet?.content?.length > 120;
-
-    const displayContent = () => {
-        if (!tweet?.content) return '';
-
-        if (isTweetLong && !expanded) {
-            return (
-                <>
-                    <span>{tweet.content.substring(0, 120)}...</span>
-                    <button
-                        onClick={handleSeeMoreClick}
-                        className="text-blue-500 hover:text-blue-400 font-medium ml-1"
-                    >
-                        See more
-                    </button>
-                </>
-            );
-        }
-
-        return tweet.content;
-    };
 
     return (
         <div
@@ -84,12 +56,12 @@ export default function Tweet({ tweet, setPost }) {
                                 </svg>
                                 <span className="text-gray-500 truncate max-w-full">@{tweet?.author?.username} · {tweet?.time}</span>
                             </div>
-                            <p
+                            <div
                                 className="my-2 whitespace-pre-wrap break-words cursor-text"
                                 onClick={handleContentClick}
                             >
-                                {displayContent()}
-                            </p>
+                                <TweetContent tweet={tweet} />
+                            </div>
                             {tweet?.image && (
                                 <img
                                     src={tweet?.image}
