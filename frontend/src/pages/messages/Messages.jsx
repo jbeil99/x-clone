@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X, Paperclip, File } from 'lucide-react';
+import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut } from 'lucide-react';
 import { currentUser } from "../../api/users";
 import { authAxios } from "../../api/useAxios";
 import EmojiPicker from 'emoji-picker-react';
+import { Link } from "react-router-dom";
 
 export default function Messages() {
   const [users, setUsers] = useState([]);
@@ -17,6 +18,10 @@ export default function Messages() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  const [showConversationInfo, setShowConversationInfo] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState({});
+  const [totalUnread, setTotalUnread] = useState(0);
+  const conversationInfoRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -26,6 +31,23 @@ export default function Messages() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showConversationInfo && 
+        conversationInfoRef.current && 
+        !conversationInfoRef.current.contains(event.target)
+      ) {
+        setShowConversationInfo(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showConversationInfo]);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -120,8 +142,19 @@ export default function Messages() {
           }
         }));
         
-        if (selectedUser && (senderId === selectedUser.id || receiverId === selectedUser.id)) {
-          if (senderId !== me.id) {
+        // Handle unread messages
+        if (senderId !== me.id) {
+          // If the message is not from the current user and not from the selected user or chat is not visible
+          if (!selectedUser || selectedUser.id !== senderId || !showChat) {
+            setUnreadMessages(prev => ({
+              ...prev,
+              [senderId]: (prev[senderId] || 0) + 1
+            }));
+            
+            setTotalUnread(prev => prev + 1);
+          }
+          
+          if (selectedUser && (senderId === selectedUser.id || receiverId === selectedUser.id)) {
             try {
               const audio = new Audio('/notification.mp3');
               audio.play().catch(e => console.log("Audio play failed:", e));
@@ -152,6 +185,17 @@ export default function Messages() {
       }
     };
   }, [me, selectedUser]);
+
+  // Mark messages as read when selecting a user
+  useEffect(() => {
+    if (selectedUser && unreadMessages[selectedUser.id]) {
+      setTotalUnread(prev => prev - unreadMessages[selectedUser.id]);
+      setUnreadMessages(prev => ({
+        ...prev,
+        [selectedUser.id]: 0
+      }));
+    }
+  }, [selectedUser, unreadMessages]);
 
   const filteredUsers = users.filter(u => me && u.id !== me.id && (
     u.display_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -443,25 +487,38 @@ export default function Messages() {
     return (
       <div className="flex flex-col h-full max-h-screen">
         <div className="sticky top-0 z-10 bg-black border-b border-gray-800 p-3">
-          <div className="flex items-center">
-            {isMobile && (
-              <button 
-                onClick={() => setShowList(true)}
-                className="p-2 rounded-full hover:bg-gray-800 mr-2 cursor-pointer"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              {isMobile && (
+                <button 
+                  onClick={() => setShowList(true)}
+                  className="p-2 rounded-full hover:bg-gray-800 mr-2 cursor-pointer"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )}
+              <div 
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => setShowConversationInfo(true)}
               >
-                <ArrowLeft size={18} />
-              </button>
-            )}
-            <div className="flex items-center gap-3">
-              <img 
-                src={other.avatar || `https://ui-avatars.com/api/?name=${other.username}&background=random`} 
-                alt={other.username} 
-                className="w-8 h-8 rounded-full object-cover" 
-              />
-              <div>
-                <div className="font-bold text-sm">{other.display_name || other.username}</div>
-                <div className="text-gray-500 text-xs">@{other.username}</div>
+                <img 
+                  src={other.avatar || `https://ui-avatars.com/api/?name=${other.username}&background=random`} 
+                  alt={other.username} 
+                  className="w-8 h-8 rounded-full object-cover" 
+                />
+                <div>
+                  <div className="font-bold text-sm">{other.display_name || other.username}</div>
+                  <div className="text-gray-500 text-xs">@{other.username}</div>
+                </div>
               </div>
+            </div>
+            <div>
+              <button 
+                className="p-2 rounded-full hover:bg-gray-800 cursor-pointer"
+                onClick={() => setShowConversationInfo(true)}
+              >
+                <Settings size={16} />
+              </button>
             </div>
           </div>
         </div>
@@ -678,6 +735,7 @@ export default function Messages() {
           
           {filteredUsers.map(user => {
             const lastMsg = lastMessages[user.id];
+            const hasUnread = unreadMessages[user.id] > 0;
             return (
               <div
                 key={user.id}
@@ -688,11 +746,18 @@ export default function Messages() {
                   if (isMobile) setShowList(false);
                 }}
               >
-                <img 
-                  src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`} 
-                  alt={user.username} 
-                  className="w-10 h-10 rounded-full object-cover" 
-                />
+                <div className="relative">
+                  <img 
+                    src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`} 
+                    alt={user.username} 
+                    className="w-10 h-10 rounded-full object-cover" 
+                  />
+                  {hasUnread && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white font-bold">
+                      {unreadMessages[user.id]}
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
                     <div className="font-bold text-sm">{user.display_name || user.username}</div>
@@ -723,6 +788,70 @@ export default function Messages() {
           </div>
         )}
       </div>
+
+      {/* Conversation Info Modal */}
+      {showConversationInfo && selectedUser && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div 
+            ref={conversationInfoRef}
+            className="bg-black border border-gray-800 rounded-xl w-full max-w-md overflow-hidden"
+          >
+            <div className="p-4 border-b border-gray-800 flex items-center">
+              <button 
+                onClick={() => setShowConversationInfo(false)}
+                className="p-2 rounded-full hover:bg-gray-800 mr-2 cursor-pointer"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <h2 className="text-xl font-bold">Conversation info</h2>
+            </div>
+            
+            <div className="p-4 flex items-center gap-3 border-b border-gray-800">
+              <img 
+                src={selectedUser.avatar || `https://ui-avatars.com/api/?name=${selectedUser.username}&background=random`} 
+                alt={selectedUser.username} 
+                className="w-12 h-12 rounded-full object-cover" 
+              />
+              <div>
+                <div className="font-bold">{selectedUser.display_name || selectedUser.username}</div>
+                <div className="text-gray-500 text-sm">@{selectedUser.username}</div>
+              </div>
+              <Link 
+                to={`/profile/${selectedUser.username}`}
+                className="ml-auto bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-bold"
+              >
+                Following
+              </Link>
+            </div>
+            
+            <div className="p-4 border-b border-gray-800">
+              <h3 className="text-lg font-bold mb-4">Notifications</h3>
+              <div className="flex items-center justify-between">
+                <span>Snooze notifications from {selectedUser.display_name || selectedUser.username}</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            </div>
+            
+            <div className="p-4 flex flex-col gap-4">
+              <button className="text-blue-500 hover:underline text-center">
+                Block DMs
+              </button>
+              <button className="text-blue-500 hover:underline text-center">
+                Block everything
+              </button>
+              <button className="text-blue-500 hover:underline text-center">
+                Report
+              </button>
+              <button className="text-red-500 hover:underline text-center">
+                Leave conversation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

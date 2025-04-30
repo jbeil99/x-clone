@@ -2,17 +2,109 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Link as LinkIcon, Sparkles
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { authAxios } from '../../api/useAxios';
+import { currentUser } from '../../api/users';
 
 export default function Layout({ children }) {
     const location = useLocation();
     const isMessagesPage = location.pathname === '/messages';
+    const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+    const [me, setMe] = useState(null);
+    const [socket, setSocket] = useState(null);
+    
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const userData = await currentUser();
+                setMe(userData);
+                return userData;
+            } catch (error) {
+                console.error("Failed to fetch current user:", error);
+                return null;
+            }
+        };
+        
+        fetchCurrentUser();
+    }, []);
+    
+    useEffect(() => {
+        if (!me) return;
+        
+        // Connect to WebSocket
+        const ws = new WebSocket(`ws://localhost:8000/ws/chat/${me.id}/`);
+        
+        ws.onopen = () => {
+            setSocket(ws);
+        };
+        
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            if (data.action === "message" && data.sender !== me.id) {
+                // If we're not on the messages page, increment the unread count
+                if (!isMessagesPage) {
+                    setUnreadMessageCount(prev => prev + 1);
+                    
+                    // Play notification sound
+                    try {
+                        const audio = new Audio('/notification.mp3');
+                        audio.play().catch(e => console.log("Audio play failed:", e));
+                    } catch (error) {
+                        console.error("Error playing notification sound:", error);
+                    }
+                }
+            }
+        };
+        
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+        
+        ws.onclose = (event) => {
+            setTimeout(() => {
+                if (me) {
+                    const newWs = new WebSocket(`ws://localhost:8000/ws/chat/${me.id}/`);
+                    setSocket(newWs);
+                }
+            }, 3000);
+        };
+        
+        return () => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        };
+    }, [me, isMessagesPage]);
+    
+    // Fetch unread messages count when component mounts
+    useEffect(() => {
+        const fetchUnreadMessages = async () => {
+            if (!me) return;
+            
+            try {
+                const response = await authAxios.get('/chat/unread-count/');
+                setUnreadMessageCount(response.data.count);
+            } catch (error) {
+                console.error("Failed to fetch unread message count:", error);
+            }
+        };
+        
+        fetchUnreadMessages();
+    }, [me]);
+    
+    // Reset unread count when navigating to messages page
+    useEffect(() => {
+        if (isMessagesPage) {
+            setUnreadMessageCount(0);
+        }
+    }, [isMessagesPage]);
     
     const sidebarItems = [
         { icon: Home, text: 'Home', path: '/' },
         { icon: Search, text: 'Explore', path: '/explore' },
         { icon: Bell, text: 'Notifications', path: '/notifications' },
-        { icon: Mail, text: 'Messages', path: '/messages' },
+        { icon: Mail, text: 'Messages', path: '/messages', badge: unreadMessageCount },
         { icon: Sparkles, text: 'Grok', path: '/grok' },
         { icon: Bookmark, text: 'Bookmarks', path: '/bookmarks' },
         { icon: Briefcase, text: 'Jobs', path: '/jobs' },
@@ -49,7 +141,14 @@ export default function Layout({ children }) {
                                     to={item.path}
                                     className={`flex items-center gap-4 text-lg font-medium hover:bg-gray-900 px-4 py-3 rounded-full transition-colors ${location.pathname === item.path ? 'font-bold' : ''}`}
                                 >
-                                    <item.icon className="h-6 w-6" />
+                                    <div className="relative">
+                                        <item.icon className="h-6 w-6" />
+                                        {item.badge > 0 && (
+                                            <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                                                {item.badge > 99 ? '99+' : item.badge}
+                                            </div>
+                                        )}
+                                    </div>
                                     <span>{item.text}</span>
                                 </Link>
                             ))}
