@@ -19,7 +19,6 @@ class ProfileView(APIView):
         serializer = ProfileSerializer(user)
         return Response(serializer.data)
 
-
 class FollowView(APIView):
     permission_classes = [IsAuthenticated]
 
