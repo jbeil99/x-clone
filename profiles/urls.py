@@ -1,6 +1,11 @@
 from django.urls import path
 from .views import ProfileView, FollowView, EditProfileView, ProfileTweetViewSet
-from .views import UserProfileByUsernameView, WhoToFollowView
+from .views import (
+    UserProfileByUsernameView,
+    WhoToFollowView,
+    UserFollowers,
+    UserFollowed,
+)
 
 tweet_list = ProfileTweetViewSet.as_view({"get": "list"})
 likes_view = ProfileTweetViewSet.as_view({"get": "likes"})
@@ -16,6 +21,12 @@ urlpatterns = [
     path("user/<int:user_id>/likes", likes_view, name="user-likes"),
     path("user/<int:user_id>/retweets", retweets_view, name="user-retweets"),
     path("user/<int:user_id>/replies", replies_view, name="user-replies"),
+    path(
+        "user/<str:username>/followers", UserFollowers.as_view(), name="user-followers"
+    ),
+    path(
+        "user/<str:username>/following", UserFollowed.as_view(), name="user-following"
+    ),
     path(
         "profile/<str:username>/",
         UserProfileByUsernameView.as_view(),

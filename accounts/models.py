@@ -40,12 +40,12 @@ class User(AbstractUser):
     ]
 
     @property
-    def followers(self):
+    def user_followers(self):
         """Returns a queryset of users who follow this user."""
         return User.objects.filter(following__followed=self)
 
     @property
-    def followed(self):
+    def user_followed(self):
         """Returns a queryset of users this user follows."""
         return User.objects.filter(followers__follower=self)
 

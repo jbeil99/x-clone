@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import EditProfile from "./components/EditProfile";
 import { getUserByUsername } from "../../api/users";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getUserLikes, getUserReplies, getUserTweets } from "../../api/tweets";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../../store/slices/auth";

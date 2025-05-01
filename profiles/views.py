@@ -9,6 +9,7 @@ from tweets.serializers import TweetSerializer
 from .serializers import ProfileSerializer
 import random
 from django.shortcuts import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 
 
 class ProfileView(APIView):
@@ -141,7 +142,7 @@ class WhoToFollowView(APIView):
     def get(self, request):
         current_user = request.user
         print(current_user, "ssssssssssssssssss")
-        following_users = current_user.followed.all()
+        following_users = current_user.following.all()
         excluded_users = [current_user.id] + [user.id for user in following_users]
         available_users = User.objects.exclude(id__in=excluded_users)
         random_users = random.sample(
@@ -151,3 +152,29 @@ class WhoToFollowView(APIView):
             random_users, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+
+class UserFollowers(APIView):
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        followers = user.user_followers
+        paginator = PageNumberPagination()
+        paginated_followers = paginator.paginate_queryset(followers, request)
+        serializer = ProfileSerializer(
+            paginated_followers, many=True, context={"request": request}
+        )
+
+        return paginator.get_paginated_response(serializer.data)
+
+
+class UserFollowed(APIView):
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        followed = user.user_followed
+        paginator = PageNumberPagination()
+        paginated_followed = paginator.paginate_queryset(followed, request)
+        serializer = ProfileSerializer(
+            paginated_followed, many=True, context={"request": request}
+        )
+
+        return paginator.get_paginated_response(serializer.data)
