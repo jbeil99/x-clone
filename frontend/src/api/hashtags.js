@@ -18,7 +18,16 @@ export const getTrendingHashtag = async () => {
 
 export const getExploreNews = async (sortBy = 'created_at') => {
     try {
-        const res = await authAxios.get(`explore/?category=news&sort=${sortBy}`)
+        const res = await authAxios.get(`explore/news/?category=news&sort=${sortBy}`)
+        return res.data
+    } catch (error) {
+        return { results: [] }
+    }
+}
+
+export const getExploreSports = async (sortBy = 'created_at') => {
+    try {
+        const res = await authAxios.get(`explore/sports/?category=sports&sort=${sortBy}`)
         return res.data
     } catch (error) {
         return { results: [] }

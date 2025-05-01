@@ -1,36 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { getExploreSports } from '../../api/hashtags';
+import Tweet from '../../components/tweet/Tweet';
 
 const SportsTab = () => {
-  const [sportsNews, setSportsNews] = useState([]);
+  const [sports, setSports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState('created_at');
 
   useEffect(() => {
-    const fetchSportsNews = async () => {
+    const fetchSports = async () => {
       try {
         setLoading(true);
-        // Aquí deberías usar una API real para obtener noticias deportivas
-        // Por ahora, simularemos una solicitud que podría fallar
-        const response = await axios.get('/api/sports/news');
-        setSportsNews(response.data);
-        setError(null);
+        const response = await getExploreSports(sortBy);
+        if (response && response.results && response.results.length > 0) {
+          const transformedSports = response.results.map(post => ({
+            id: post.id,
+            content: post.content || post.text || '',
+            image: post.image || post.img || null,
+            replies_count: post.replies_count || post.replies || 0,
+            likes_count: post.likes_count || post.likes || 0,
+            views_count: post.views_count || post.views || 0,
+            retweets_count: post.retweets_count || post.retweets || 0,
+            time: post.created_at || post.time || '',
+            author: post.user || post.author || {
+              username: 'undefined',
+              display_name: 'User',
+              avatar: 'https://via.placeholder.com/40'
+            },
+            iliked: post.iliked || false,
+            iretweeted: post.iretweeted || false,
+            ibookmarked: post.ibookmarked || false,
+            hashtags: post.hashtags || [],
+            mentions: post.mentions || []
+          }));
+          
+          setSports(transformedSports);
+          setError(null);
+        } else {
+          setError('No sports posts found');
+          setSports([]);
+        }
       } catch (err) {
-        console.error('Error fetching sports news:', err);
-        setError('Failed to load sports news');
-        setSportsNews([]);
+        setError('Failed to load sports');
+        setSports([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSportsNews();
-  }, []);
+    fetchSports();
+  }, [sortBy]);
+
+  const updatePost = (updatedPost) => {
+    setSports(prevSports => 
+      prevSports.map(post => 
+        post.id === updatedPost.id ? updatedPost : post
+      )
+    );
+  };
 
   if (loading) {
     return (
       <div className="max-w-xl mx-auto text-center py-8">
-        <div className="animate-pulse text-gray-400">Loading sports news...</div>
+        <div className="animate-pulse text-gray-400">Loading sports posts...</div>
       </div>
     );
   }
@@ -45,19 +78,32 @@ const SportsTab = () => {
 
   return (
     <div className="max-w-xl mx-auto">
-      {sportsNews.length > 0 ? (
-        sportsNews.map((item, i) => (
-          <div key={i} className="bg-black rounded-xl p-4 mb-4 border border-gray-800">
-            <div className="font-bold text-white mb-1">{item.title}</div>
-            <div className="text-gray-400 text-sm mb-2">{item.description}</div>
-            {item.image && (
-              <img src={item.image} alt={item.title} className="rounded-xl mb-2 max-h-80 object-cover w-full" />
-            )}
-            <div className="text-gray-500 text-xs">{item.category} · {item.time_ago}</div>
-          </div>
-        ))
+      <div className="flex justify-between items-center mb-4 px-4">
+        <div className="text-xl font-bold text-white">Sports</div>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setSortBy('created_at')}
+            className={`px-3 py-1 rounded-full text-sm ${sortBy === 'created_at' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300'}`}
+          >
+            Latest
+          </button>
+          <button 
+            onClick={() => setSortBy('likes')}
+            className={`px-3 py-1 rounded-full text-sm ${sortBy === 'likes' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300'}`}
+          >
+            Popular
+          </button>
+        </div>
+      </div>
+      
+      {sports.length > 0 ? (
+        <div>
+          {sports.map((post) => (
+            <Tweet key={post.id} tweet={post} setPost={updatePost} />
+          ))}
+        </div>
       ) : (
-        <div className="text-center py-8 text-gray-400">No sports news available</div>
+        <div className="text-center py-8 text-gray-400">No sports posts available</div>
       )}
     </div>
   );
