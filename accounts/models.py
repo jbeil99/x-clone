@@ -57,7 +57,7 @@ class User(AbstractUser):
     @property
     def followed_count(self):
         """Returns the number of users this user follows."""
-        return self.followed.count()
+        return self.following.count()
 
     def is_user_followed(self, user):
         return self.followers.filter(follower=user).exists()
