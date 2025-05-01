@@ -11,6 +11,8 @@ import TweetDetail from "./pages/main-page/components/TweetDetail";
 import Messages from "./pages/messages/Messages";
 import Hashtags from "./pages/hashtags/Hastags";
 import Bookmark from "./pages/main-page/Bookmark";
+import GrokPage from "./pages/grok/GrokPage"; 
+
 
 function App() {
   return (
@@ -29,7 +31,7 @@ function App() {
           <Route path="/messages" element={<Layout><Messages /></Layout>} />
           <Route path="/profile/:username" element={<Layout><UserProfile /></Layout>} />
           <Route path="/bookmarks" element={<Layout><Bookmark /></Layout>} />
-
+          <Route path="/grok" element={<Layout><GrokPage /></Layout>} />
         </Route>
         <Route path='*' element={<Layout><div > Not found</div></Layout>} />
 

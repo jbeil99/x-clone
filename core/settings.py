@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "tweets",
     "channels",
     "chat",
+    'grok',
 ]
 
 MIDDLEWARE = [
