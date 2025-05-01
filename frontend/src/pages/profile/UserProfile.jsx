@@ -15,6 +15,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../../store/slices/auth";
 import Tweet from "../../components/tweet/Tweet";
 import ProfileInfo from "./components/ProfileInfo";
+import Loader from "../../components/Loader";
 
 export default function UserProfile() {
   const { user } = useSelector((state) => state.auth)
@@ -60,11 +61,7 @@ export default function UserProfile() {
 
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-black">
-        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <Loader />
   }
 
   const tabs = [
@@ -91,10 +88,8 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {/* Cover & Avatar */}
       <ProfileInfo userData={userData} isProfile={isProfile} setIsOpen={setIsOpen} />
 
-      {/* Profile Info */}
       <div className=" px-4">
         <div className="mb-3">
           <div className="flex items-center gap-1">
@@ -252,7 +247,6 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
       <EditProfile open={isOpen} onClose={handleClose} />
     </div>
   );
