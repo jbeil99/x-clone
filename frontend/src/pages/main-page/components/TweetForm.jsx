@@ -60,6 +60,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                 content: ""
                 , image: null
             })
+            setPreviewUrl()
 
         } catch (error) {
             console.error("Error posting tweet:", error);

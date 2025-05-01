@@ -7,14 +7,28 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { getUserByUsername } from '../../api/users';
+import { follow } from '../../api/users';
+import { Link } from 'react-router';
 
 export default function UserCard({ username, match }) {
-    const [user, setUuser] = useState()
+    const [user, setUser] = useState()
+    const [isFollowing, setIsFollowing] = useState(user?.ifollow);
+
+    const handleFollowToggle = async () => {
+        try {
+            const res = await follow(username);
+            setIsFollowing(!isFollowing);
+        } catch (e) {
+            console.log(e)
+        }
+    };
+
     useEffect(() => {
         const getUserData = async () => {
             try {
                 const res = await getUserByUsername(username)
-                setUuser(res)
+                setUser(res)
+                setIsFollowing(res.ifollow)
             } catch (e) {
                 console.log(e)
             }
@@ -26,9 +40,11 @@ export default function UserCard({ username, match }) {
     return (
         <HoverCard>
             <HoverCardTrigger asChild>
-                <span className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer">
-                    {match[1]}
-                </span>
+                <Link to={`/profile/${username}`}>
+                    <span className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer">
+                        {match[1]}
+                    </span>
+                </Link>
             </HoverCardTrigger>
             <HoverCardContent className="w-72 p-0 bg-black text-white border border-gray-700">
                 <div className="relative">
@@ -44,8 +60,8 @@ export default function UserCard({ username, match }) {
                                 <p className="text-sm text-gray-400 truncate">@{username.toLowerCase()}</p>
                             </div>
                         </div>
-                        <Button variant="outline" className="rounded-full text-sm font-medium bg-white text-black hover:bg-gray-200 border-none">
-                            Follow
+                        <Button variant="outline" className="rounded-full text-sm font-medium bg-white text-black hover:bg-gray-200 border-none" onClick={handleFollowToggle}>
+                            {isFollowing ? "Following" : "Follow"}
                         </Button>
                     </div>
 
