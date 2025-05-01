@@ -19,6 +19,7 @@ class ProfileView(APIView):
         serializer = ProfileSerializer(user)
         return Response(serializer.data)
 
+
 class FollowView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -145,8 +146,11 @@ class UserProfileByUsernameView(APIView):
 
 
 class WhoToFollowView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request):
         current_user = request.user
+        print(current_user, "ssssssssssssssssss")
         following_users = current_user.followed.all()
         excluded_users = [current_user.id] + [user.id for user in following_users]
         available_users = User.objects.exclude(id__in=excluded_users)

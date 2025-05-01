@@ -1,13 +1,18 @@
 import { axi, authAxios } from "./useAxios";
 
 // TODO: Get the user id form token
-export const getUserProfile = async (username) => {
-    const res = await authAxios.get(`profile/`)
-    return res.data
-}
+// export const getUserProfile = async (username) => {
+//     const res = await authAxios.get(`profile/`)
+//     return res.data
+// }
 
 export const getUserByUsername = async (username) => {
-    const res = await authAxios.get(`profile/user-profile/${username}/`)
+    let res;
+    if (username) {
+        res = await authAxios.get(`profile/${username}/`)
+    } else {
+        res = await authAxios.get('/auth/users/me',)
+    }
     return res.data
 }
 
@@ -69,6 +74,6 @@ export const updateProfile = async (data) => {
 
 
 export const getWhoToFollow = async () => {
-    const res = await authAxios.get(`profile/who-to-follow/`)
+    const res = await authAxios.get(`who-to-follow/`)
     return res.data
 }

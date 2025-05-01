@@ -15,7 +15,6 @@ export default function TrendingHashtags() {
         getTrends()
     }, []);
 
-    console.log(trending)
 
     return (
         <div className="bg-black border border-gray-800 rounded-2xl p-4 mb-4">

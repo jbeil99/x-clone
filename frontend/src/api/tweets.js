@@ -50,3 +50,19 @@ export const getBookmarks = async () => {
     const res = await authAxios.get(`bookmarks/`)
     return res.data
 }
+
+
+export const getUserTweets = async (id) => {
+    const res = await authAxios.get(`user/${id}/tweets`)
+    return res.data
+}
+
+export const getUserLikes = async (id) => {
+    const res = await authAxios.get(`user/${id}/likes`)
+    return res.data
+}
+
+export const getUserReplies = async (id) => {
+    const res = await authAxios.get(`user/${id}/replies`)
+    return res.data
+}

@@ -1,4 +1,3 @@
-import EditProfile from "./pages/profile/EditProfile";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import UserProfile from "./pages/profile/UserProfile";
@@ -27,15 +26,15 @@ function App() {
           <Route path="/" element={<Layout><MainPage /></Layout>} />
           <Route path="status/:id" element={<Layout><TweetDetail /></Layout>} />
           <Route path="/hashtags/:name" element={<Layout><Hashtags /></Layout>} />
-          <Route path="/profile" element={<Layout><UserProfile /></Layout>} />
-          <Route path="/profile/edit" element={<Layout><EditProfile /></Layout>} />
           <Route path="/messages" element={<Layout><Messages /></Layout>} />
-          <Route path="/:username" element={<Layout><UserProfile /></Layout>} />
+          <Route path="/profile/:username" element={<Layout><UserProfile /></Layout>} />
           <Route path="/bookmarks" element={<Layout><Bookmark /></Layout>} />
 
         </Route>
+        <Route path='*' element={<Layout><div > Not found</div></Layout>} />
+
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter >
   );
 }
 

@@ -7,48 +7,44 @@ import {
   Link,
   Cake,
 } from "lucide-react";
-import EditProfile from "./EditProfile";
-import { getUserProfile } from "../../api/users";
-import { authAxios } from "../../api/useAxios";
-import { useParams } from "react-router-dom";
+import EditProfile from "./components/EditProfile";
+import { getUserByUsername } from "../../api/users";
+import { useParams, useLocation } from "react-router-dom";
+import { getUserLikes, getUserReplies, getUserTweets } from "../../api/tweets";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCurrentUser } from "../../store/slices/auth";
+import Tweet from "../../components/tweet/Tweet";
+import ProfileInfo from "./components/ProfileInfo";
 
 export default function UserProfile() {
+  const { user } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState({});
+  const [userData, setUserData] = useState(null);
   const [tweets, setTweets] = useState([]);
   const [likedTweets, setLikedTweets] = useState([]);
   const [replies, setReplies] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tweets");
-
-  const { userId } = useParams();
-
-  const handleOpen = () => setIsOpen(true);
+  const { username } = useParams();
   const handleClose = () => setIsOpen(false);
+  const dispatch = useDispatch()
+  const isProfile = user?.username === username || username === 'profile'
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const res = await getUserProfile(userId);
-        setUserData(res);
-        console.log("User data:", res);
+        const userData = await getUserByUsername(!username || username == 'profile' ? user?.username : username);
+        setUserData(userData);
+        if (userData && userData.id) {
+          const [tweetRes, likesRes, repliesRes] = await Promise.all([
+            getUserTweets(userData.id),
+            getUserLikes(userData.id),
+            getUserReplies(userData.id),
+          ]);
 
-        if (res && res.id) {
-          const tweetRes = await authAxios.get(
-            `http://127.0.0.1:8000/profile/tweets/${res.id}/`
-          );
-          setTweets(tweetRes.data);
-          console.log("Fetched tweets:", tweetRes.data);
-
-          const likesRes = await authAxios.get(
-            `http://127.0.0.1:8000/profile/tweets/likes/${res.id}/`
-          );
-          setLikedTweets(likesRes.data);
-
-          const repliesRes = await authAxios.get(
-            `http://127.0.0.1:8000/profile/tweets/replies/${res.id}/`
-          );
-          setReplies(repliesRes.data);
+          setTweets(tweetRes);
+          setLikedTweets(likesRes);
+          setReplies(repliesRes);
         }
       } catch (error) {
         console.error("Error fetching profile, tweets, likes, or replies:", error);
@@ -56,9 +52,12 @@ export default function UserProfile() {
         setLoading(false);
       }
     };
-  
+
     fetchProfileData();
-  }, [userId]);
+    dispatch(fetchCurrentUser())
+  }, [username]);
+
+
 
   if (loading) {
     return (
@@ -93,39 +92,10 @@ export default function UserProfile() {
       </div>
 
       {/* Cover & Avatar */}
-      <div className="relative">
-        <div className="h-48 bg-gray-800">
-          {userData.cover_url && (
-            <img
-              src={userData.cover_url}
-              alt="Cover"
-              className="w-full h-full object-cover"
-            />
-          )}
-        </div>
-        <div className="absolute -bottom-16 left-4">
-          <div className="w-32 h-32 rounded-full bg-gray-800 border-4 border-black overflow-hidden">
-            <img
-              src={
-                userData.avatar_url || "/media/default_profile_400x400.png"
-              }
-              alt="Avatar"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-        <div className="absolute bottom-4 right-4">
-          <button
-            className="px-4 py-1.5 rounded-full font-bold bg-transparent border border-gray-600 hover:border-gray-400 text-sm"
-            onClick={handleOpen}
-          >
-            Edit profile
-          </button>
-        </div>
-      </div>
+      <ProfileInfo userData={userData} isProfile={isProfile} setIsOpen={setIsOpen} />
 
       {/* Profile Info */}
-      <div className="pt-20 px-4">
+      <div className=" px-4">
         <div className="mb-3">
           <div className="flex items-center gap-1">
             <h1 className="text-xl font-bold">
@@ -207,9 +177,8 @@ export default function UserProfile() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`flex-1 py-3 relative font-medium text-sm hover:bg-gray-900 ${
-                activeTab === tab.id ? "text-white" : "text-gray-500"
-              }`}
+              className={`flex-1 py-3 relative font-medium text-sm hover:bg-gray-900 ${activeTab === tab.id ? "text-white" : "text-gray-500"
+                }`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -226,9 +195,7 @@ export default function UserProfile() {
             <>
               {tweets.length > 0 ? (
                 tweets.map((tweet) => (
-                  <div key={tweet.id} className="py-2 border-b border-gray-800">
-                    <p>{tweet.content}</p>
-                  </div>
+                  <Tweet tweet={tweet} />
                 ))
               ) : (
                 <div className="text-center text-gray-500 py-8">No tweets yet</div>
@@ -240,9 +207,7 @@ export default function UserProfile() {
             <>
               {replies.length > 0 ? (
                 replies.map((reply) => (
-                  <div key={reply.id} className="py-2 border-b border-gray-800">
-                    <p>{reply.content}</p>
-                  </div>
+                  <Tweet tweet={reply} />
                 ))
               ) : (
                 <div className="text-center text-gray-500 py-8">No replies yet</div>
@@ -275,9 +240,7 @@ export default function UserProfile() {
             <>
               {likedTweets.length > 0 ? (
                 likedTweets.map((tweet) => (
-                  <div key={tweet.id} className="py-2 border-b border-gray-800">
-                    <p>{tweet.content}</p>
-                  </div>
+                  <Tweet tweet={tweet} />
                 ))
               ) : (
                 <div className="text-center text-gray-500 py-8">
