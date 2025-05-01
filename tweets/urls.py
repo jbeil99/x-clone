@@ -11,6 +11,7 @@ from .views import (
     BookmarksList,
     RandomPostsView,
     ExploreNewsView,
+    ExploreSportsView,
 )
 
 urlpatterns = [
@@ -30,4 +31,7 @@ urlpatterns = [
     path("tweets/<int:pk>/share/", ShareTweetView.as_view(), name="share-tweet"),
     path("tweets/<int:pk>/view/", TweetViewCountView.as_view(), name="view-tweet"),
     path("tweets/random/", RandomPostsView.as_view(), name="random-posts"),
+
+    path("explore/news/", ExploreNewsView.as_view(), name="explore-news"),
+    path("explore/sports/", ExploreSportsView.as_view(), name="explore-sports"),
 ]

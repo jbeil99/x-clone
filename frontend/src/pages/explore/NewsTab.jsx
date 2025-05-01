@@ -13,7 +13,6 @@ const NewsTab = () => {
       try {
         setLoading(true);
         const response = await getExploreNews(sortBy);
-        console.log('News API response:', response); 
         if (response && response.results && response.results.length > 0) {
           const transformedNews = response.results.map(post => ({
             id: post.id,
@@ -43,7 +42,6 @@ const NewsTab = () => {
           setNews([]);
         }
       } catch (err) {
-        console.error('Error fetching news:', err);
         setError('Failed to load news');
         setNews([]);
       } finally {

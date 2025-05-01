@@ -20,7 +20,6 @@ const TrendingTab = () => {
         setTrendingTopics(response);
         setError(null);
       } catch (err) {
-        console.error('Error fetching trending topics:', err);
         setError('Failed to load trending topics');
         setTrendingTopics([]);
       } finally {
@@ -59,7 +58,6 @@ const TrendingTab = () => {
       
       setHashtagTweets(transformedTweets);
     } catch (err) {
-      console.error(`Error fetching tweets for hashtag #${hashtag}:`, err);
       setHashtagTweets([]);
     } finally {
       setTweetsLoading(false);
