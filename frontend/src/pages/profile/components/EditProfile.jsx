@@ -5,7 +5,6 @@ import * as z from "zod";
 import { useSelector } from "react-redux";
 import { updateProfile } from "../../../api/users";
 import { Camera, X, Calendar } from "lucide-react";
-import { format } from "date-fns";
 
 // Import shadcn components
 import {
@@ -41,7 +40,7 @@ const editProfileSchema = z.object({
     .optional(),
 });
 
-const EditProfile = ({ open, onClose }) => {
+const EditProfile = ({ open, onClose, setUserData }) => {
   const { user } = useSelector((state) => state.auth);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [coverPreview, setCoverPreview] = useState(null);
@@ -77,7 +76,6 @@ const EditProfile = ({ open, onClose }) => {
       setCoverPreview(user.cover_image);
     }
 
-    // Set the date_of_birth field with user data if it exists
     if (user?.date_of_birth) {
       setValue("date_of_birth", user.date_of_birth);
     }
@@ -101,7 +99,8 @@ const EditProfile = ({ open, onClose }) => {
 
   const onSubmit = async (data) => {
     try {
-      await updateProfile(data);
+      const user = await updateProfile(data);
+      setUserData(user)
       onClose();
       reset();
     } catch (error) {

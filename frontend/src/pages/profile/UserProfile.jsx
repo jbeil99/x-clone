@@ -254,7 +254,7 @@ export default function UserProfile() {
         </div>
       </div>
 
-      <EditProfile open={isOpen} onClose={handleClose} />
+      <EditProfile open={isOpen} onClose={handleClose} setUserData={setUserData} />
     </div>
   );
 }
