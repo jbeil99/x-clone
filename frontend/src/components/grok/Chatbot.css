@@ -1,4 +1,4 @@
-.chat-container {
+/* .chat-container {
   max-width: 700px;
   margin: 0 auto;
   border-radius: 8px;
@@ -8,8 +8,8 @@
 
 .chat-messages {
   padding: 1rem;
-  height: 400px; /* Adjust as needed */
-}
+  height: 400px;
+  }
 
 .message {
   display: flex;
@@ -17,7 +17,7 @@
 }
 
 .user-message .message-content {
-  background-color: #3498db; /* Dark blue for user */
+  background-color: #3498db;
   color: white;
   margin-left: auto;
   max-width: 70%;
@@ -25,14 +25,14 @@
 }
 
 .bot-message .message-content {
-  background-color: #2ecc71; /* Dark green for bot */
+  background-color: #2ecc71; 
   color: white;
   margin-right: auto;
   max-width: 70%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Optional: Add subtle borders */
+
 .user-message::after,
 .bot-message::after {
   content: '';
@@ -55,7 +55,7 @@
   border-color: #2ecc71 transparent transparent transparent;
 }
 
-/* Loading indicator */
+
 .message-content.loading {
   animation: typing 1s infinite;
 }
@@ -64,4 +64,415 @@
   0% { opacity: 0.5; }
   50% { opacity: 1; }
   100% { opacity: 0.5; }
+} */
+
+
+
+/* Chatbot.css */
+:root {
+  --grok-bg: #15171a;
+  --grok-container-bg: #1d1f23;
+  --grok-header-bg: #1d1f23;
+  --grok-text: #e1e3e6;
+  --grok-secondary-text: #8b8d92;
+  --grok-border: #2e3136;
+  --grok-primary: #1c9bef;
+  --grok-user-message-bg: #2d2f34;
+  --grok-bot-message-bg: #1d1f23;
+  --grok-input-bg: #2d2f34;
+  --grok-avatar-user-bg: #1c9bef;
+  --grok-avatar-bot-bg: #444;
+}
+
+/* Main container */
+.grok-container {
+  display: flex;
+  height: 600px;
+  width: 100%;
+  background-color: var(--grok-container-bg);
+  border-radius: 0;
+  border: 1px solid var(--grok-border);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--grok-text);
+  position: relative;
+}
+
+/* History Sidebar */
+.grok-history-sidebar {
+  width: 300px;
+  border-right: 1px solid var(--grok-border);
+  background-color: var(--grok-container-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(-100%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+  transition: transform 0.3s ease;
+}
+
+.grok-history-sidebar.show {
+  transform: translateX(0);
+}
+
+.grok-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--grok-border);
+}
+
+.grok-history-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.grok-new-chat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--grok-primary);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.grok-history-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grok-history-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.grok-history-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.grok-history-item.active {
+  background-color: rgba(29, 155, 240, 0.1);
+}
+
+.grok-history-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--grok-avatar-bot-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.grok-history-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.grok-history-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.grok-history-date {
+  font-size: 12px;
+  color: var(--grok-secondary-text);
+}
+
+.grok-history-preview {
+  font-size: 14px;
+  color: var(--grok-secondary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Main chat area */
+.grok-main-area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+}
+
+/* Header */
+.grok-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: var(--grok-header-bg);
+  border-bottom: 1px solid var(--grok-border);
+}
+
+.grok-history-toggle {
+  background: none;
+  border: none;
+  color: var(--grok-text);
+  margin-right: 12px;
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grok-history-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.grok-logo {
+  background-color: var(--grok-avatar-bot-bg);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.grok-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Messages area */
+.grok-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background-color: var(--grok-bg);
+}
+
+/* Empty state */
+.grok-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  gap: 16px;
+  margin: auto 0;
+  padding: 20px;
+}
+
+.grok-empty-icon {
+  width: 64px;
+  height: 64px;
+  background-color: var(--grok-avatar-bot-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.grok-empty-state h3 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.grok-empty-state p {
+  color: var(--grok-secondary-text);
+  margin: 0;
+  max-width: 320px;
+}
+
+.grok-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 16px;
+}
+
+.grok-suggestions button {
+  background-color: var(--grok-user-message-bg);
+  border: 1px solid var(--grok-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--grok-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.grok-suggestions button:hover {
+  background-color: #363a40;
+}
+
+/* Message */
+.grok-message {
+  display: flex;
+  gap: 12px;
+  padding: 0 8px;
+}
+
+.grok-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.grok-user-message .grok-avatar {
+  background-color: var(--grok-avatar-user-bg);
+}
+
+.grok-bot-message .grok-avatar {
+  background-color: var(--grok-avatar-bot-bg);
+}
+
+.grok-message-content {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  line-height: 1.5;
+  font-size: 15px;
+  border: 1px solid var(--grok-border);
+}
+
+.grok-user-message .grok-message-content {
+  background-color: var(--grok-user-message-bg);
+}
+
+.grok-bot-message .grok-message-content {
+  background-color: var(--grok-bot-message-bg);
+}
+
+/* Typing indicator */
+.grok-typing-indicator {
+  display: flex;
+  gap: 4px;
+}
+
+.grok-typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: var(--grok-secondary-text);
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.6;
+  animation: grokTyping 1.4s infinite both;
+}
+
+.grok-typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.grok-typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes grokTyping {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* Input area */
+.grok-input-container {
+  display: flex;
+  align-items: flex-end;
+  padding: 12px 16px;
+  border-top: 1px solid var(--grok-border);
+  background-color: var(--grok-container-bg);
+  position: relative;
+}
+
+.grok-input {
+  flex: 1;
+  padding: 12px 16px;
+  padding-right: 44px;
+  border-radius: 20px;
+  background-color: var(--grok-input-bg);
+  border: 1px solid transparent;
+  color: var(--grok-text);
+  font-size: 15px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.grok-input:focus {
+  border-color: var(--grok-primary);
+}
+
+.grok-input::placeholder {
+  color: var(--grok-secondary-text);
+}
+
+.grok-send-button {
+  position: absolute;
+  right: 24px;
+  bottom: 20px;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: var(--grok-secondary-text);
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.grok-send-button.active {
+  color: white;
+  background-color: var(--grok-primary);
+}
+
+.grok-send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
