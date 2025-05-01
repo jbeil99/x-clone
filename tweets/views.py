@@ -196,3 +196,27 @@ class TweetViewCountView(APIView):
             return Response({"message": "Tweet already viewed"})
         tweet.views.add(user)
         return Response({"message": "Tweet view recorded"})
+
+
+class RandomPostsView(APIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = PageNumberPagination
+
+    def get(self, request):
+        user = request.user
+        following_users = user.followed.all()
+        
+        limit = request.query_params.get('limit', 10)
+        try:
+            limit = int(limit)
+        except ValueError:
+            limit = 10
+        
+        random_tweets = Tweet.objects.exclude(
+            user__in=following_users
+        ).exclude(
+            user=user
+        ).order_by('?')[:limit]
+        
+        serializer = TweetSerializer(random_tweets, many=True, context={"request": request})
+        return Response(serializer.data)

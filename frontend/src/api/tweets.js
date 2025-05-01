@@ -66,3 +66,11 @@ export const getUserReplies = async (id) => {
     const res = await authAxios.get(`user/${id}/replies`)
     return res.data
 }
+export const getRandomPosts = async (limit = 10) => {
+    try {
+        const res = await authAxios.get(`tweets/random?limit=${limit}`);
+        return res.data;
+    } catch (error) {
+        return [];
+    }
+}
