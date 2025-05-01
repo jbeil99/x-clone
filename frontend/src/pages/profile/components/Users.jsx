@@ -4,7 +4,7 @@ import {
     ArrowLeft,
 } from "lucide-react";
 
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { followers, followings, getUserByUsername } from '../../../api/users';
 
 
@@ -71,9 +71,9 @@ export default function Users({ top, latest }) {
         <div className="min-h-screen bg-black text-white">
             <div className="sticky top-0 z-10 bg-black backdrop-blur-md border-b border-gray-800">
                 <div className="sticky top-0 z-10 bg-black bg-opacity-70 backdrop-blur-md px-4 py-3 flex items-center">
-                    <button className="mr-6">
+                    <Link className="mr-6" to={`/profile/${userData?.username}`}>
                         <ArrowLeft className="w-5 h-5" />
-                    </button>
+                    </Link>
                     <div>
                         <h2 className="font-bold text-lg">
                             {userData?.display_name || "Profile"}

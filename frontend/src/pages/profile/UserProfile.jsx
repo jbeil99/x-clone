@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Calendar,
   MapPin,
   Verified,
   ArrowLeft,
-  Link,
+  Link as LinkIcon,
   Cake,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import EditProfile from "./components/EditProfile";
 import { getUserByUsername } from "../../api/users";
 import { useParams } from "react-router-dom";
@@ -118,7 +120,7 @@ export default function UserProfile() {
           )}
           {userData.website && (
             <div className="flex items-center gap-1 mr-3">
-              <Link className="w-4 h-4" />
+              <LinkIcon className="w-4 h-4" />
               <a
                 href={userData.website}
                 className="text-blue-500 hover:underline"
@@ -157,14 +159,19 @@ export default function UserProfile() {
         </div>
 
         <div className="flex gap-5 mb-4 text-sm">
-          <div>
-            <span className="font-bold">{userData.followed_count || 0}</span>{" "}
-            <span className="text-gray-500">Following</span>
-          </div>
-          <div>
-            <span className="font-bold">{userData.followers_count || 0}</span>{" "}
-            <span className="text-gray-500">Followers</span>
-          </div>
+          <Link to={`/profile/${user.username}/followers`}>
+            <div>
+              <span className="font-bold">{userData.followed_count || 0}</span>{" "}
+              <span className="text-gray-500">Following</span>
+            </div>
+          </Link>
+          <Link to={`/profile/${user.username}/followers`}>
+            <div>
+              <span className="font-bold">{userData.followers_count || 0}</span>{" "}
+              <span className="text-gray-500">Followers</span>
+            </div>
+          </Link>
+
         </div>
 
         {/* Tabs */}
