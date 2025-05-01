@@ -10,6 +10,7 @@ from .views import (
     TrendingHashtagsView,
     BookmarksList,
     RandomPostsView,
+    ExploreNewsView,
 )
 
 urlpatterns = [
