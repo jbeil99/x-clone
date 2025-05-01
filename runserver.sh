@@ -12,5 +12,7 @@ echo "🔍 Checking if port 8000 is in use..."
 fuser -k 8000/tcp > /dev/null 2>&1
 
 echo "✅ Port 8000 is now free."
-echo "🚀 Starting Django server on http://localhost:8000 ..."
-python manage.py runserver
+echo "🚀 Starting Daphne server on http://localhost:8000 ..."
+
+# 🏃‍♂️ Running Daphne with ASGI application
+daphne core.asgi:application --port 8000 --bind 0.0.0.0

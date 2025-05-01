@@ -10,6 +10,7 @@ from google.auth.transport import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
+from core.utils.helpers import download_image, make_username
 
 User = get_user_model()
 
@@ -88,7 +89,8 @@ class GoogleAuthView(APIView):
             name = idinfo.get("name")
             email_verified = idinfo.get("email_verified")
             picture = idinfo.get("picture")
-            username = idinfo.get("given_name") + user_id
+            username = make_username(idinfo.get("given_name"), user_id)
+
         except ValueError as e:
             print(e)
             raise AuthenticationFailed("Invalid token")
@@ -119,17 +121,22 @@ class GoogleAuthView(APIView):
                 status=status.HTTP_200_OK,
             )
         else:
+            avatar_content = download_image(picture, f"{username}_avatar.jpg")
+
             user = User(
                 email=email,
                 display_name=name,
                 google_id=user_id,
                 is_active=email_verified,
-                avatar=picture,
                 username=username,
             )
+            if avatar_content:
+                user.avatar.save(avatar_content.name, avatar_content, save=False)
+
             user.save()
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
+
             return Response(
                 {
                     "access": access_token,

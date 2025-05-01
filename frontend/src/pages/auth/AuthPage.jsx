@@ -1,30 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { FaXTwitter } from "react-icons/fa6";
 import LoginDialog from './LoginDialog';
 import RegisterDialog from './RegisterDialog';
 import { Button } from "@/components/ui/button"
-import { googleLogin } from '../../api/users';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { googleSignIn, clearError } from '../../store/slices/auth';
+
 export default function AuthPage() {
     const [dialogType, setDialogType] = useState(null);
-    const navigate = useNavigate()
-    const handleLogin = async (credentialResponse) => {
-        try {
-            const res = await googleLogin(credentialResponse)
-            if (res) {
-                // setErrors()
-                toast(`Welcome ${res.display_name}!`)
-                navigate("/")
-            }
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
 
-        } catch (error) {
-            // for (const k in error.response.data) {
-            //     setErrors(error.response.data[k].join("/n"))
-            // }
-            console.log(error)
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            toast(`Welcome ${user.display_name}!`);
+            navigate('/');
         }
+        return () => {
+            dispatch(clearError());
+        };
+    }, [isAuthenticated, navigate, user, dispatch]);
+
+    const handleGoogleLogin = async (credentialResponse) => {
+        dispatch(googleSignIn(credentialResponse));
     };
 
     return (
@@ -39,7 +41,7 @@ export default function AuthPage() {
 
                 <div className="flex flex-col gap-4 max-w-xs md:max-w-sm">
                     <GoogleLogin
-                        onSuccess={(credentialResponse) => handleLogin(credentialResponse)}
+                        onSuccess={handleGoogleLogin}
                         onError={() => console.log('Login Failed')}
                         shape="pill"
                         text="signup_with"
@@ -51,7 +53,7 @@ export default function AuthPage() {
                         <div className="flex-grow h-px bg-gray-700"></div>
                     </div>
 
-                    <Button variant="primary" onClick={() => setDialogType("register")}>
+                    <Button variant="primary" onClick={() => setDialogType("register")} disabled={loading}>
                         Create Your Account
                     </Button>
 
@@ -66,13 +68,23 @@ export default function AuthPage() {
                 {/* Sign in section */}
                 <div className="mt-8 md:mt-12">
                     <p className="mb-4 font-semibold">Already have an account?</p>
-                    <Button variant="twitter" onClick={() => setDialogType("login")}>
+                    <Button variant="twitter" onClick={() => setDialogType("login")} disabled={loading}>
                         Sign In
                     </Button>
                 </div>
                 {/* Dialogs */}
-                <LoginDialog open={dialogType === "login"} onOpenChange={(open) => setDialogType(open ? "login" : null)} setDialogType={setDialogType} />
-                <RegisterDialog open={dialogType === "register"} onOpenChange={(open) => setDialogType(open ? "register" : null)} setDialogType={setDialogType} />
+                <LoginDialog
+                    open={dialogType === "login"}
+                    onOpenChange={(open) => setDialogType(open ? "login" : null)}
+                    setDialogType={setDialogType}
+                />
+                <RegisterDialog
+                    open={dialogType === "register"}
+                    onOpenChange={(open) => setDialogType(open ? "register" : null)}
+                    setDialogType={setDialogType}
+                />
+                {loading && <p className="text-gray-500 text-sm mt-4">Loading...</p>}
+                {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
             </div>
         </div>
     );

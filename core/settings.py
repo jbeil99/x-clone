@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     "djoser",
     "accounts",
     "corsheaders",
+    "profiles",
+    "tweets",
+    "channels",
+    "chat",
 ]
 
 MIDDLEWARE = [
@@ -62,7 +66,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = "core.urls"
@@ -166,6 +169,7 @@ SIMPLE_JWT = {
 }
 
 FRONTEND_URL = "http://localhost:3000"
+BASE_URL = "http://localhost:8000"
 
 DJOSER = {
     "EMAIL_FRONTEND_DOMAIN": FRONTEND_URL.replace("http://", ""),
@@ -185,7 +189,7 @@ DJOSER = {
     "SERIALIZERS": {
         "user_create": "accounts.serializers.UserRegistrationSerializer",
         "user": "accounts.serializers.UserSerializer",
-        "current_user": "accounts.serializers.UserProfileSerializer",
+        "current_user": "profiles.serializers.ProfileSerializer",
         "user_delete": "djoser.serializers.UserDeleteSerializer",
     },
     "EMAIL": {
@@ -214,13 +218,17 @@ EMAIL_USE_SSL = False
 EMAIL_HOST_USER = EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 
 PASSWORD_RESET_TIMEOUT = 86400
 
-# Media files configuration
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+ASGI_APPLICATION = "core.asgi.application"
+
+# Channel layers
+CHANNEL_LAYERS = {
+    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
+}

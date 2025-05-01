@@ -4,47 +4,41 @@ import { jwtDecode } from "jwt-decode";
 const baseURL = import.meta.env.VITE_BACKEND_URL
 
 export const axi = axios.create({
-    baseURL,
+  baseURL,
 })
 
 export const authAxios = axios.create({
-    baseURL,
-    withCredentials: true,
+  baseURL,
+  withCredentials: true,
 })
 
 authAxios.interceptors.request.use(async (config) => {
-    const access = sessionStorage.getItem('access')
+  const access = sessionStorage.getItem("access");
+  const refresh = sessionStorage.getItem("refresh");
 
-    config.headers = {
-        'Authorization': `Bearer ${access}`,
-    }
+  if (access) {
+    const decoded = jwtDecode(access);
+    const exp = new Date(decoded.exp * 1000);
+    const now = new Date();
 
-    const decoded = jwtDecode(access)
-
-    const exp = new Date(decoded.exp * 1000)
-    const now = new Date()
-    const five = 1000 * 60 * 5
-
-    if (exp.getTime() - now.getTime() < five) {
-
-        try {
-            const oldRefresh = sessionStorage.getItem('refresh')
-            const res = await axi.post('/users/refresh/', { oldRefresh })
-            const { access, refresh } = res.data
-
-            sessionStorage.setItem('access', access)
-            sessionStorage.setItem('refresh', refresh)
-
-        } catch (err) {
-            sessionStorage.clear()
-            window.location.href = '/login'
-        }
+    if (exp.getTime() < now.getTime()) {
+      try {
+        const response = await axi.post("/auth/jwt/refresh/", { refresh });
+        const { access: newAccess } = response.data;
+        sessionStorage.setItem("access", newAccess);
+        config.headers.Authorization = `Bearer ${newAccess}`;
+      } catch (error) {
+        console.error("Failed to refresh token:", error.response || error);
+        sessionStorage.clear();
+        window.location.href = "/login";
+      }
     } else {
-        return config
+      config.headers.Authorization = `Bearer ${access}`;
     }
+  }
 
-    return config
-})
+  return config;
+});
 
 
 

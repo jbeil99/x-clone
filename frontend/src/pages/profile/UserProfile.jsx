@@ -1,234 +1,253 @@
-import { useState } from 'react';
-import { Calendar, Link, MapPin, Verified } from 'lucide-react';
-import Tweet from '../../components/Tweet';
-import { useEffect } from 'react';
-import TabButton from "./components/TabButton";
-import Loader from '../../components/Loader';
-import EmptyState from './components/EmptyState';
+import React, { useState, useEffect } from "react";
+import {
+  Calendar,
+  MapPin,
+  Verified,
+  ArrowLeft,
+  Link,
+  Cake,
+} from "lucide-react";
+import EditProfile from "./components/EditProfile";
+import { getUserByUsername } from "../../api/users";
+import { useParams, useLocation } from "react-router-dom";
+import { getUserLikes, getUserReplies, getUserTweets } from "../../api/tweets";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCurrentUser } from "../../store/slices/auth";
+import Tweet from "../../components/tweet/Tweet";
+import ProfileInfo from "./components/ProfileInfo";
+import Loader from "../../components/Loader";
 
-
-export default function TwitterProfile() {
-  const [following, setFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState('posts');
+export default function UserProfile() {
+  const { user } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(true);
-  const [contentMap, setContentMap] = useState({
-    posts: [],
-    replies: [],
-    media: [],
-    likes: []
-  });
+  const [userData, setUserData] = useState(null);
+  const [tweets, setTweets] = useState([]);
+  const [likedTweets, setLikedTweets] = useState([]);
+  const [replies, setReplies] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("tweets");
+  const { username } = useParams();
+  const handleClose = () => setIsOpen(false);
+  const dispatch = useDispatch()
+  const isProfile = user?.username === username || username === 'profile'
 
-  // Simulate API loading
   useEffect(() => {
-    setLoading(true);
+    const fetchProfileData = async () => {
+      try {
+        const userData = await getUserByUsername(!username || username == 'profile' ? user?.username : username);
+        setUserData(userData);
+        if (userData && userData.id) {
+          const [tweetRes, likesRes, repliesRes] = await Promise.all([
+            getUserTweets(userData.id),
+            getUserLikes(userData.id),
+            getUserReplies(userData.id),
+          ]);
 
-    // Simulate network delay
-    const timer = setTimeout(() => {
-      const tweets = [
-        {
-          id: 1,
-          content: "Just launched our new product! Check it out at the link below. Excited to hear your feedback! #ProductLaunch #Tech",
-          time: "2h",
-          likes: 1243,
-          retweets: 328,
-          replies: 78,
-          type: "posts"
-        },
-        {
-          id: 2,
-          content: "Thanks everyone for the amazing response to our recent announcement. The team has been working hard on this for months, and we're thrilled to finally share it with the world!",
-          time: "5h",
-          likes: 2947,
-          retweets: 671,
-          replies: 123,
-          type: "posts"
-        },
-        {
-          id: 3,
-          content: "Looking forward to speaking at @TechConference next month about the future of AI in everyday applications. Who else will be there?",
-          time: "1d",
-          likes: 854,
-          retweets: 201,
-          replies: 54,
-          type: "posts"
+          setTweets(tweetRes);
+          setLikedTweets(likesRes);
+          setReplies(repliesRes);
         }
-      ];
+      } catch (error) {
+        console.error("Error fetching profile, tweets, likes, or replies:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      const replies = [
-        {
-          id: 4,
-          replyingTo: "@codecraft",
-          content: "We're definitely interested in this collaboration! Let's set up a meeting next week to discuss the details further.",
-          time: "4h",
-          likes: 42,
-          retweets: 5,
-          replies: 3,
-          type: "replies"
-        },
-        {
-          id: 5,
-          replyingTo: "@techweekly",
-          content: "Thanks for featuring our project! The feedback from your community has been invaluable for our development process.",
-          time: "2d",
-          likes: 128,
-          retweets: 21,
-          replies: 7,
-          type: "replies"
-        }
-      ];
+    fetchProfileData();
+    dispatch(fetchCurrentUser())
+  }, [username]);
 
-      const media = [
-        {
-          id: 6,
-          content: "Check out our new office space! Excited to welcome the team to our new headquarters next month. #NewBeginnings",
-          time: "3d",
-          likes: 1852,
-          retweets: 412,
-          replies: 143,
-          hasMedia: true,
-          type: "media"
-        },
-        {
-          id: 7,
-          content: "Product demo day! Here's a sneak peek at what we've been working on for the past quarter. #Innovation",
-          time: "1w",
-          likes: 2104,
-          retweets: 587,
-          replies: 96,
-          hasMedia: true,
-          type: "media"
-        }
-      ];
 
-      const likes = [
-        {
-          id: 8,
-          author: "Tech Weekly",
-          handle: "@techweekly",
-          content: "The top 10 innovations that are changing how we interact with technology in 2025. What would you add to this list?",
-          time: "6h",
-          likes: 3241,
-          retweets: 942,
-          replies: 217,
-          type: "likes"
-        },
-        {
-          id: 9,
-          author: "AI Research Group",
-          handle: "@airesearch",
-          content: "Our new paper on sustainable AI development practices has been published today. Link in bio for the full read.",
-          time: "1d",
-          likes: 1564,
-          retweets: 503,
-          replies: 89,
-          type: "likes"
-        }
-      ];
 
-      const newContentMap = {
-        posts: tweets,
-        replies: replies,
-        media: [],
-        likes: likes
-      };
+  if (loading) {
+    return <Loader />
+  }
 
-      setContentMap(newContentMap);
-      setLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const getTabContent = () => {
-    return contentMap[activeTab] || [];
-  };
-
-  const renderContentSection = () => {
-    if (loading) {
-      return <Loader />;
-    }
-
-    const content = getTabContent();
-
-    if (content.length === 0) {
-      return <EmptyState tabName={activeTab} />;
-    }
-
-    return (
-      <div className="divide-y divide-gray-800">
-        {content.map(item => (
-          <Tweet key={item.id} tweet={item} />
-        ))}
-      </div>
-    );
-  };
+  const tabs = [
+    { id: "tweets", label: "Tweets" },
+    { id: "replies", label: "Replies" },
+    { id: "media", label: "Media" },
+    { id: "likes", label: "Likes" },
+  ];
 
   return (
-    <div className="max-w-xl mx-auto bg-black text-white">
-      <div className="relative">
-        <div className="h-48 bg-blue-600"></div>
-        <div className="absolute -bottom-16 left-4">
-          <div className="w-32 h-32 rounded-full bg-gray-800 border-4 border-black"></div>
+    <div className="max-w-xl mx-auto bg-black text-white min-h-screen">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-black bg-opacity-70 backdrop-blur-md px-4 py-3 flex items-center">
+        <button className="mr-6">
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <h2 className="font-bold text-lg">
+            {userData.display_name || "Profile"}
+          </h2>
+          <p className="text-xs text-gray-500">
+            {userData.tweets_count || 0} tweets
+          </p>
         </div>
       </div>
 
-      <div className="pt-20 px-4">
-        <div className="flex justify-end mb-4">
-          <button
-            className={`px-4 py-2 rounded-full font-bold ${following ? 'bg-transparent border border-gray-600 hover:border-red-500 hover:text-red-500' : 'bg-white text-black'}`}
-            onClick={() => setFollowing(!following)}
-          >
-            {following ? 'Following' : 'Follow'}
-          </button>
+      <ProfileInfo userData={userData} isProfile={isProfile} setIsOpen={setIsOpen} />
+
+      <div className=" px-4">
+        <div className="mb-3">
+          <div className="flex items-center gap-1">
+            <h1 className="text-xl font-bold">
+              {userData.display_name || "User"}
+            </h1>
+            {userData.verified && (
+              <Verified className="w-5 h-5 text-blue-500" />
+            )}
+          </div>
+          <p className="text-gray-500">@{userData.username || "username"}</p>
         </div>
 
-        <div className="mb-4">
-          <div className="flex items-center gap-1">
-            <h1 className="text-xl font-bold">Tech Innovations</h1>
-            <Verified className="w-5 h-5 text-blue-500" />
+        {userData.bio && (
+          <div className="mb-3">
+            <p>{userData.bio}</p>
           </div>
-          <p className="text-gray-500">@techinnovate</p>
+        )}
+
+        <div className="flex flex-wrap gap-y-1 text-gray-500 text-sm mb-3">
+          {userData.country && (
+            <div className="flex items-center gap-1 mr-3">
+              <MapPin className="w-4 h-4" />
+              <span>{userData.country}</span>
+            </div>
+          )}
+          {userData.website && (
+            <div className="flex items-center gap-1 mr-3">
+              <Link className="w-4 h-4" />
+              <a
+                href={userData.website}
+                className="text-blue-500 hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {userData.website.replace(/(https?:\/\/)?(www\.)?/, "")}
+              </a>
+            </div>
+          )}
+          {userData.date_joined && (
+            <div className="flex items-center gap-1 mr-3">
+              <Calendar className="w-4 h-4" />
+              <span>
+                Joined{" "}
+                {new Date(userData.date_joined).toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          )}
+          {userData.date_of_birth && (
+            <div className="flex items-center gap-1">
+              <Cake className="w-4 h-4" />
+              <span>
+                Born{" "}
+                {new Date(userData.date_of_birth).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          )}
         </div>
 
-        <div className="mb-4">
-          <p>Building the future of technology. Official account for Tech Innovations - where ideas become reality.</p>
-        </div>
-
-        <div className="flex flex-wrap gap-4 text-gray-500 text-sm mb-4">
-          <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
-            <span>San Francisco, CA</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Link className="w-4 h-4" />
-            <span className="text-blue-500">techinnovations.com</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4" />
-            <span>Joined March 2018</span>
-          </div>
-        </div>
-
-        <div className="flex gap-4 mb-4">
+        <div className="flex gap-5 mb-4 text-sm">
           <div>
-            <span className="font-bold">1,234</span> <span className="text-gray-500">Following</span>
+            <span className="font-bold">{userData.followed_count || 0}</span>{" "}
+            <span className="text-gray-500">Following</span>
           </div>
           <div>
-            <span className="font-bold">45.6K</span> <span className="text-gray-500">Followers</span>
+            <span className="font-bold">{userData.followers_count || 0}</span>{" "}
+            <span className="text-gray-500">Followers</span>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-gray-800">
-          <TabButton name="posts" label="Posts" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <TabButton name="replies" label="Replies" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <TabButton name="media" label="Media" activeTab={activeTab} setActiveTab={setActiveTab} />
-          <TabButton name="likes" label="Likes" activeTab={activeTab} setActiveTab={setActiveTab} />
+        {/* Tabs */}
+        <div className="border-b border-gray-800 flex mt-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`flex-1 py-3 relative font-medium text-sm hover:bg-gray-900 ${activeTab === tab.id ? "text-white" : "text-gray-500"
+                }`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+              {activeTab === tab.id && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-full"></div>
+              )}
+            </button>
+          ))}
         </div>
 
-        {/* Content based on active tab */}
-        {renderContentSection()}
+        {/* Tab Content */}
+        <div className="py-4">
+          {activeTab === "tweets" && (
+            <>
+              {tweets.length > 0 ? (
+                tweets.map((tweet) => (
+                  <Tweet tweet={tweet} />
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">No tweets yet</div>
+              )}
+            </>
+          )}
+
+          {activeTab === "replies" && (
+            <>
+              {replies.length > 0 ? (
+                replies.map((reply) => (
+                  <Tweet tweet={reply} />
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">No replies yet</div>
+              )}
+            </>
+          )}
+
+          {activeTab === "media" && (
+            <>
+              {tweets.filter((tweet) => tweet.media_url).length > 0 ? (
+                tweets
+                  .filter((tweet) => tweet.media_url)
+                  .map((tweet) => (
+                    <div key={tweet.id} className="py-2 border-b border-gray-800">
+                      <p>{tweet.content}</p>
+                      <img
+                        src={tweet.media_url}
+                        alt="Tweet Media"
+                        className="mt-2 rounded-lg max-w-full"
+                      />
+                    </div>
+                  ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">No media content</div>
+              )}
+            </>
+          )}
+
+          {activeTab === "likes" && (
+            <>
+              {likedTweets.length > 0 ? (
+                likedTweets.map((tweet) => (
+                  <Tweet tweet={tweet} />
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  No liked tweets
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
+
+      <EditProfile open={isOpen} onClose={handleClose} />
     </div>
   );
 }
