@@ -1,5 +1,4 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .views import ProfileView, FollowView, EditProfileView, ProfileTweetViewSet
 from .views import UserProfileByUsernameView, WhoToFollowView
 
@@ -11,7 +10,7 @@ replies_view = ProfileTweetViewSet.as_view({"get": "replies"})
 
 urlpatterns = [
     path("profile", ProfileView.as_view(), name="profile"),
-    path("profile/follow/", FollowView.as_view(), name="follow"),
+    path("user/<str:username>/follow/", FollowView.as_view(), name="follow"),
     path("profile/edit/", EditProfileView.as_view(), name="edit-profile"),
     path("user/<int:user_id>/tweets", tweet_list, name="user-tweets"),
     path("user/<int:user_id>/likes", likes_view, name="user-likes"),

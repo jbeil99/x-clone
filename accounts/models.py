@@ -59,6 +59,9 @@ class User(AbstractUser):
         """Returns the number of users this user follows."""
         return self.followed.count()
 
+    def is_user_followed(self, user):
+        return self.followers.filter(follower=user).exists()
+
 
 class Follow(models.Model):
     follower = models.ForeignKey(

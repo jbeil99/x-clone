@@ -78,7 +78,7 @@ export const getWhoToFollow = async () => {
     return res.data
 }
 
-export const follow = async () => {
-    const res = await authAxios.get(`who-to-follow/`)
+export const follow = async (username) => {
+    const res = await authAxios.post(`user/${username}/follow/`)
     return res.data
 }

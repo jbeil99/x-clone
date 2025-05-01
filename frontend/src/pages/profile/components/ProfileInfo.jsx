@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { follow } from "../../../api/users";
 
-export default function ProfileInfo({ userData, isProfile, setIsOpen }) {
+export default function ProfileInfo({ userData, isProfile, setIsOpen, username }) {
     const [isFollowing, setIsFollowing] = useState(false);
-    const handleFollowToggle = () => {
-        setIsFollowing(!isFollowing);
+    const handleFollowToggle = async () => {
+        try {
+            const res = await follow(userData.username);
+            setIsFollowing(!isFollowing);
+
+        } catch (e) {
+            console.log(e)
+        }
     };
     const handleOpen = () => setIsOpen(true);
 
