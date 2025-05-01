@@ -15,3 +15,12 @@ export const getTrendingHashtag = async () => {
     const res = await authAxios.get(`trending_hashtags`)
     return res.data
 }
+
+export const getExploreNews = async (sortBy = 'created_at') => {
+    try {
+        const res = await authAxios.get(`explore/?category=news&sort=${sortBy}`)
+        return res.data
+    } catch (error) {
+        return { results: [] }
+    }
+}

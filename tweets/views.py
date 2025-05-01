@@ -221,3 +221,36 @@ class RandomPostsView(APIView):
             random_tweets, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+
+class ExploreNewsView(APIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = PageNumberPagination
+    
+    def get(self, request):
+        category = request.query_params.get('category', None)
+        if category != 'news':
+            return Response({"detail": "Invalid category."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        news_keywords = ['#news', '#breaking', '#urgent', '#latestnews']
+        
+        from django.db.models import Q
+        query = Q()
+        for keyword in news_keywords:
+            query |= Q(content__icontains=keyword)
+        
+        sort_by = request.query_params.get('sort', 'created_at')
+        
+        if sort_by == 'likes':
+            from django.db.models import Count
+            tweets = Tweet.objects.filter(query).annotate(
+                likes_count=Count('likes')
+            ).order_by('-likes_count')
+        else:
+            tweets = Tweet.objects.filter(query).order_by('-created_at')
+        
+        paginator = PageNumberPagination()
+        paginated_tweets = paginator.paginate_queryset(tweets, request)
+        serializer = TweetSerializer(paginated_tweets, many=True, context={"request": request})
+        
+        return paginator.get_paginated_response(serializer.data)
