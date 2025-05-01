@@ -1,28 +1,25 @@
-// src/api/grok.js
+
 import axios from 'axios';
+
+const getToken = () => {
+  return sessionStorage.getItem('access'); // 
+};
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:8000/grok',
   timeout: 10000,
 });
 
-// ✅ Add interceptor to attach JWT token
 apiClient.interceptors.request.use(
   config => {
-    const accessToken = localStorage.getItem('access'); // Use 'access' key
-    if (accessToken) {
-      config.headers['Authorization'] = `Bearer ${accessToken}`;
+    const token = getToken();
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
   error => Promise.reject(error)
 );
-
-export const sendMessage = async (message) => {
-  return apiClient.post('/api/chat/', { message });
-};
-
-
 
 apiClient.interceptors.response.use(
   response => response,
@@ -30,29 +27,31 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
 
     if (
-      error.response.status === 401 &&
+      error.response?.status === 401 &&
       !originalRequest._retry &&
-      localStorage.getItem('refresh')
+      sessionStorage.getItem('refresh')
     ) {
-      originalRequest._retry = true; // Prevent infinite loop
+      originalRequest._retry = true;
 
       try {
-        // Replace with your actual refresh endpoint
-        const { data } = await axios.post(
+        const refreshResponse = await axios.post(
           'http://localhost:8000/auth/token/refresh/',
-          { refresh: localStorage.getItem('refresh') }
+          { refresh: sessionStorage.getItem('refresh') }
         );
 
-        localStorage.setItem('access', data.access);
-        originalRequest.headers['Authorization'] = `Bearer ${data.access}`;
+        sessionStorage.setItem('access', refreshResponse.data.access);
+        originalRequest.headers['Authorization'] = `Bearer ${refreshResponse.data.access}`;
 
-        return apiClient(originalRequest); // Retry the original request
+        return apiClient(originalRequest);
       } catch (refreshError) {
-        console.error('Failed to refresh token:', refreshError);
-        // Redirect to login or show error
+        console.error('Token refresh failed:', refreshError);
       }
     }
 
     return Promise.reject(error);
   }
 );
+
+export const sendMessage = async (message) => {
+  return apiClient.post('/api/chat/', { message });
+};

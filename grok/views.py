@@ -1,5 +1,6 @@
 # grok/views.py
 
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -8,6 +9,7 @@ from rest_framework import status
 from .models import Conversation, Message
 from .utils import get_chat_response
 
+@csrf_exempt  
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def chat_api(request):

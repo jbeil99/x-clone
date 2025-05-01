@@ -1,6 +1,5 @@
-// src/components/grok/Chatbot.jsx
 import React, { useState } from 'react';
-import './Chatbot.css'; // Custom styles
+import './Chatbot.css'; 
 import { sendMessage } from '../../api/grok';
 
 const Chatbot = () => {
