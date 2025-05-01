@@ -50,3 +50,12 @@ export const getBookmarks = async () => {
     const res = await authAxios.get(`bookmarks/`)
     return res.data
 }
+
+export const getRandomPosts = async (limit = 10) => {
+    try {
+        const res = await authAxios.get(`tweets/random?limit=${limit}`);
+        return res.data;
+    } catch (error) {
+        return [];
+    }
+}

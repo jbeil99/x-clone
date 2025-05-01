@@ -7,7 +7,7 @@ import MainPage from "./pages/main-page/Home";
 import Layout from "./components/layout";
 import PrivateRoute from "./components/guards/PrivateRoute";
 import ActivateAccount from "./pages/auth/ActivationPage";
-import Explore from "./pages/main-page/Explore";
+import Explore from "./pages/explore";
 import TweetDetail from "./pages/main-page/components/TweetDetail";
 import Messages from "./pages/messages/Messages";
 import Hashtags from "./pages/hashtags/Hastags";

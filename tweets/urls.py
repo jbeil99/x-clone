@@ -9,6 +9,7 @@ from .views import (
     TweetViewCountView,
     TrendingHashtagsView,
     BookmarksList,
+    RandomPostsView,
 )
 
 urlpatterns = [
@@ -27,4 +28,5 @@ urlpatterns = [
     path("bookmarks/", BookmarksList.as_view(), name="bookmark"),
     path("tweets/<int:pk>/share/", ShareTweetView.as_view(), name="share-tweet"),
     path("tweets/<int:pk>/view/", TweetViewCountView.as_view(), name="view-tweet"),
+    path("tweets/random/", RandomPostsView.as_view(), name="random-posts"),
 ]
