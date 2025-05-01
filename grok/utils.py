@@ -1,4 +1,3 @@
-# grok/utils.py
 import openai
 
 def get_chat_response(message):

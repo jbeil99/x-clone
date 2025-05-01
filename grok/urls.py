@@ -1,7 +1,8 @@
+# grok/urls.py
+
 from django.urls import path
-from .views import ChatView, grok_page
+from grok.views import chat_api
 
 urlpatterns = [
-    path('', grok_page, name='grok'),
-    path('api/chat/', ChatView.as_view(), name='chat_api'),
+    path('api/chat/', chat_api, name='chat_api'),
 ]

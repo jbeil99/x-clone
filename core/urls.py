@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -22,13 +22,16 @@ from django.conf.urls.static import static
 from tweets.views import ExploreNewsView
 
 urlpatterns = [
+    path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("admin/", admin.site.urls),
     path("api/", include("accounts.urls")),
     path("api/", include("tweets.urls")),
     path("api/chat/", include("chat.urls")),
     path("api/explore/", ExploreNewsView.as_view(), name="explore-news"),
-
     path("api/", include("profiles.urls")),
+    path('grok/', include('grok.urls')), 
+
 ]
 
 
