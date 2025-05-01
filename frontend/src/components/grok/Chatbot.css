@@ -1,93 +1,22 @@
-/* .chat-container {
-  max-width: 700px;
-  margin: 0 auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  background-color: black;
-}
-
-.chat-messages {
-  padding: 1rem;
-  height: 400px;
-  }
-
-.message {
-  display: flex;
-  width: 100%;
-}
-
-.user-message .message-content {
-  background-color: #3498db;
-  color: white;
-  margin-left: auto;
-  max-width: 70%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.bot-message .message-content {
-  background-color: #2ecc71; 
-  color: white;
-  margin-right: auto;
-  max-width: 70%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-
-.user-message::after,
-.bot-message::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 10px 10px 0 0;
-  border-color: transparent;
-}
-
-.user-message::after {
-  right: -10px;
-  border-color: #3498db transparent transparent transparent;
-}
-
-.bot-message::after {
-  left: -10px;
-  border-color: #2ecc71 transparent transparent transparent;
-}
-
-
-.message-content.loading {
-  animation: typing 1s infinite;
-}
-
-@keyframes typing {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
-} */
-
-
-
-/* Chatbot.css */
 :root {
-  --grok-bg: #15171a;
-  --grok-container-bg: #1d1f23;
-  --grok-header-bg: #1d1f23;
-  --grok-text: #e1e3e6;
-  --grok-secondary-text: #8b8d92;
-  --grok-border: #2e3136;
-  --grok-primary: #1c9bef;
-  --grok-user-message-bg: #2d2f34;
-  --grok-bot-message-bg: #1d1f23;
-  --grok-input-bg: #2d2f34;
-  --grok-avatar-user-bg: #1c9bef;
-  --grok-avatar-bot-bg: #444;
+  --grok-bg: #000000; /* Dark background */
+  --grok-container-bg: #000000;
+  --grok-header-bg: #161b22;
+  --grok-text: #c9d1d9;
+  --grok-secondary-text: #8b949e;
+  --grok-border: #30363d;
+  --grok-primary: #1f6feb; /* Blue primary */
+  --grok-user-message-bg: #21262d;
+  --grok-bot-message-bg: #161b22;
+  --grok-input-bg: #0d1117;
+  --grok-avatar-user-bg: #1f6feb;
+  --grok-avatar-bot-bg: #30363d;
 }
 
 /* Main container */
 .grok-container {
   display: flex;
-  height: 600px;
+  height: 100vh;
   width: 100%;
   background-color: var(--grok-container-bg);
   border-radius: 0;
@@ -476,3 +405,5 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+

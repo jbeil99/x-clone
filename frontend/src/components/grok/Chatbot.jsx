@@ -8,7 +8,7 @@
 //   const [isLoading, setIsLoading] = useState(false);
 
 //   const handleSendMessage = async () => {
-//     if (!input.trim()) return;
+//     if (!input.trim()) return; 
 
 //     setMessages((prev) => [...prev, { text: input, sender: 'user' }]);
 //     setInput('');
@@ -159,6 +159,7 @@ const Chatbot = () => {
   };
 
   return (
+    
     <div className="grok-container">
       {/* History Sidebar */}
       <div className={`grok-history-sidebar ${showHistory ? 'show' : ''}`}>
