@@ -10,7 +10,6 @@ export default function WhoToFollow() {
             const res = await follow(u.username);
             setUsers(users.map(user => {
                 if (user.username === u.username) {
-                    // Create a new object with all existing properties but toggle ifollow
                     return {
                         ...user,
                         ifollow: !user.ifollow
@@ -40,7 +39,7 @@ export default function WhoToFollow() {
             <h2 className="text-xl font-bold mb-4 text-white">Who to follow</h2>
             <div className="space-y-4">
                 {users.map((u, i) => (
-                    <div className="flex items-center justify-between" key={u.id + i}>
+                    <div className="flex items-center justify-between" key={u.id + u.username}>
                         <Link to={`/profile/${u.username}`}>
                             <div className="flex items-center gap-3">
                                 <img src={u.avatar_url} alt="avatar" className="w-10 h-10 rounded-full object-cover" />

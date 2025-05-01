@@ -77,9 +77,9 @@ export default function UserProfile() {
     <div className="max-w-xl mx-auto bg-black text-white min-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-black bg-opacity-70 backdrop-blur-md px-4 py-3 flex items-center">
-        <button className="mr-6">
+        <Link className="mr-6" to="/">
           <ArrowLeft className="w-5 h-5" />
-        </button>
+        </Link>
         <div>
           <h2 className="font-bold text-lg">
             {userData.display_name || "Profile"}

@@ -20,6 +20,24 @@ export default function Tweet({ tweet, setPost }) {
         e.stopPropagation();
     };
 
+    // Function to determine media type based on file extension
+    const getMediaType = (url) => {
+        if (!url) return null;
+
+        const extension = url.split('.').pop().toLowerCase();
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        const videoExtensions = ['mp4', 'mov', 'webm', 'avi'];
+
+        if (imageExtensions.includes(extension)) return 'image';
+        if (videoExtensions.includes(extension)) return 'video';
+
+        return null;
+    };
+
+    // Get media from tweet (if any)
+    const media = tweet?.media && tweet.media.length > 0 ? tweet.media[0] : null;
+    const mediaUrl = media?.file_url || null;
+    const mediaType = mediaUrl ? getMediaType(mediaUrl) : null;
 
     return (
         <div
@@ -56,19 +74,36 @@ export default function Tweet({ tweet, setPost }) {
                                 </svg>
                                 <span className="text-gray-500 truncate max-w-full">@{tweet?.author?.username} · {tweet?.time}</span>
                             </div>
-                            <div
-                                className="my-2 whitespace-pre-wrap break-words cursor-text"
-                                onClick={handleContentClick}
-                            >
-                                <TweetContent tweet={tweet} />
-                            </div>
-                            {tweet?.image && (
-                                <img
-                                    src={tweet?.image}
-                                    alt="Tweet Image"
-                                    className="bg-gray-800 rounded-xl mb-3 w-full object-cover aspect-square"
+
+                            {/* Display tweet content if it exists */}
+                            {tweet?.content && (
+                                <div
+                                    className="my-2 whitespace-pre-wrap break-words cursor-text"
                                     onClick={handleContentClick}
-                                />
+                                >
+                                    <TweetContent tweet={tweet} />
+                                </div>
+                            )}
+
+                            {mediaUrl && (
+                                <div className="rounded-xl overflow-hidden mb-3 w-full" onClick={handleContentClick}>
+                                    {mediaType === 'image' && (
+                                        <img
+                                            src={mediaUrl}
+                                            alt="Tweet Image"
+                                            className="w-full object-cover rounded-xl"
+                                            style={{ maxHeight: '500px' }}
+                                        />
+                                    )}
+                                    {mediaType === 'video' && (
+                                        <video
+                                            src={mediaUrl}
+                                            className="w-full rounded-xl"
+                                            controls
+                                            style={{ maxHeight: '500px' }}
+                                        />
+                                    )}
+                                </div>
                             )}
                         </div>
                         <TweetActions />

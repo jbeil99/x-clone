@@ -61,7 +61,7 @@ class TweetList(generics.ListCreateAPIView):
     pagination_class = PageNumberPagination
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save()
 
 
 class TweetDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -226,85 +226,174 @@ class RandomPostsView(APIView):
 class ExploreNewsView(APIView):
     permission_classes = [IsAuthenticated]
     pagination_class = PageNumberPagination
-    
+
     def get(self, request):
-        category = request.query_params.get('category', None)
-        if category != 'news':
-            return Response({"detail": "Invalid category."}, status=status.HTTP_400_BAD_REQUEST)
-        
+        category = request.query_params.get("category", None)
+        if category != "news":
+            return Response(
+                {"detail": "Invalid category."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         news_keywords = [
-    '#news', '#breaking', '#urgent', '#latestnews', '#headlines', '#alert', '#update',
-    '#justin', '#developing', '#live', '#trending', '#exclusive', '#hotnews',
-    '#breakingnews', '#worldnews', '#localnews', '#globalnews', '#topstory',
-    '#flashnews', '#breaking_story', '#currentevents', '#instanews', '#onair', '#newsflash',
-    '#liveupdate', '#livecoverage', '#newstoday', '#morningnews', '#eveningnews'
-]
-        
+            "#news",
+            "#breaking",
+            "#urgent",
+            "#latestnews",
+            "#headlines",
+            "#alert",
+            "#update",
+            "#justin",
+            "#developing",
+            "#live",
+            "#trending",
+            "#exclusive",
+            "#hotnews",
+            "#breakingnews",
+            "#worldnews",
+            "#localnews",
+            "#globalnews",
+            "#topstory",
+            "#flashnews",
+            "#breaking_story",
+            "#currentevents",
+            "#instanews",
+            "#onair",
+            "#newsflash",
+            "#liveupdate",
+            "#livecoverage",
+            "#newstoday",
+            "#morningnews",
+            "#eveningnews",
+        ]
+
         from django.db.models import Q
+
         query = Q()
         for keyword in news_keywords:
             query |= Q(content__icontains=keyword)
-        
-        sort_by = request.query_params.get('sort', 'created_at')
-        
-        if sort_by == 'likes':
+
+        sort_by = request.query_params.get("sort", "created_at")
+
+        if sort_by == "likes":
             from django.db.models import Count
-            tweets = Tweet.objects.filter(query).annotate(
-                likes_count=Count('likes')
-            ).order_by('-likes_count')
+
+            tweets = (
+                Tweet.objects.filter(query)
+                .annotate(likes_count=Count("likes"))
+                .order_by("-likes_count")
+            )
         else:
-            tweets = Tweet.objects.filter(query).order_by('-created_at')
-        
+            tweets = Tweet.objects.filter(query).order_by("-created_at")
+
         paginator = PageNumberPagination()
         paginator.page_size = 10
         result_page = paginator.paginate_queryset(tweets, request)
-        serializer = TweetSerializer(result_page, many=True, context={"request": request})
+        serializer = TweetSerializer(
+            result_page, many=True, context={"request": request}
+        )
         return paginator.get_paginated_response(serializer.data)
 
 
 class ExploreSportsView(APIView):
     permission_classes = [IsAuthenticated]
     pagination_class = PageNumberPagination
-    
+
     def get(self, request):
-        category = request.query_params.get('category', None)
-        if category != 'sports':
-            return Response({"detail": "Invalid category."}, status=status.HTTP_400_BAD_REQUEST)
-        
+        category = request.query_params.get("category", None)
+        if category != "sports":
+            return Response(
+                {"detail": "Invalid category."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         sports_keywords = [
-    '#sports', '#football', '#soccer', '#basketball', '#tennis', '#baseball',
-    '#cricket', '#golf', '#volleyball', '#rugby', '#nba', '#nfl', '#fifa',
-    '#ufc', '#olympics', '#worldcup', '#premierleague', '#laliga', '#seriea',
-    '#bundesliga', '#ligue1', '#euro2024', '#afcon', '#caf', '#championsleague',
-    '#ucl', '#europaleague', '#ballonDor', '#messi', '#ronaldo', '#neymar',
-    '#sportsnews', '#matchday', '#goal', '#livefootball', '#sportupdate',
-    '#team', '#coach', '#transfernews', '#injuryupdate', '#fulltime', '#halftime',
-    '#highlights', '#postmatch', '#athletics', '#marathon', '#formula1', '#motogp',
-    '#esports', '#gaming', '#varsity', '#kickoff', '#penalty', '#redcard', '#yellowcard',
-    '#stadium', '#fans', '#supporters', '#sportsman', '#sportswoman'
-   
-]
+            "#sports",
+            "#football",
+            "#soccer",
+            "#basketball",
+            "#tennis",
+            "#baseball",
+            "#cricket",
+            "#golf",
+            "#volleyball",
+            "#rugby",
+            "#nba",
+            "#nfl",
+            "#fifa",
+            "#ufc",
+            "#olympics",
+            "#worldcup",
+            "#premierleague",
+            "#laliga",
+            "#seriea",
+            "#bundesliga",
+            "#ligue1",
+            "#euro2024",
+            "#afcon",
+            "#caf",
+            "#championsleague",
+            "#ucl",
+            "#europaleague",
+            "#ballonDor",
+            "#messi",
+            "#ronaldo",
+            "#neymar",
+            "#sportsnews",
+            "#matchday",
+            "#goal",
+            "#livefootball",
+            "#sportupdate",
+            "#team",
+            "#coach",
+            "#transfernews",
+            "#injuryupdate",
+            "#fulltime",
+            "#halftime",
+            "#highlights",
+            "#postmatch",
+            "#athletics",
+            "#marathon",
+            "#formula1",
+            "#motogp",
+            "#esports",
+            "#gaming",
+            "#varsity",
+            "#kickoff",
+            "#penalty",
+            "#redcard",
+            "#yellowcard",
+            "#stadium",
+            "#fans",
+            "#supporters",
+            "#sportsman",
+            "#sportswoman",
+        ]
 
         from django.db.models import Q
+
         query = Q()
-        
+
         for keyword in sports_keywords:
-            query |= Q(content__regex=r'{}(\s|[,.!?;:]|$)'.format(keyword))
-            keyword_no_hash = keyword[1:]  
-            query |= Q(content__icontains='#' + keyword_no_hash)
-            
-        sort_by = request.query_params.get('sort', 'created_at')
-        
-        if sort_by == 'likes':
+            query |= Q(content__regex=r"{}(\s|[,.!?;:]|$)".format(keyword))
+            keyword_no_hash = keyword[1:]
+            query |= Q(content__icontains="#" + keyword_no_hash)
+
+        sort_by = request.query_params.get("sort", "created_at")
+
+        if sort_by == "likes":
             from django.db.models import Count
-            tweets = Tweet.objects.filter(query).annotate(
-                likes_count=Count('likes')
-            ).order_by('-likes_count')
+
+            tweets = (
+                Tweet.objects.filter(query)
+                .annotate(likes_count=Count("likes"))
+                .order_by("-likes_count")
+            )
         else:
-            tweets = Tweet.objects.filter(query).order_by('-created_at')
-        
+            tweets = Tweet.objects.filter(query).order_by("-created_at")
+
         paginator = PageNumberPagination()
         paginator.page_size = 10
         result_page = paginator.paginate_queryset(tweets, request)
-        serializer = TweetSerializer(result_page, many=True, context={"request": request})
+        serializer = TweetSerializer(
+            result_page, many=True, context={"request": request}
+        )
         return paginator.get_paginated_response(serializer.data)

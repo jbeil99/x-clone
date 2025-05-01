@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from accounts.models import User, Follow
-from tweets.models import Tweet
-from tweets.serializers import TweetSerializer
+from tweets.models import Tweet, Media
+from tweets.serializers import TweetSerializer, MediaSerializer
 from .serializers import ProfileSerializer
 import random
 from django.shortcuts import get_object_or_404
@@ -178,3 +178,23 @@ class UserFollowed(APIView):
         )
 
         return paginator.get_paginated_response(serializer.data)
+
+
+class UserMediaView(APIView):
+    def get(self, request, username):
+        try:
+            user = get_object_or_404(User, username=username)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        tweets_with_media = (
+            Tweet.objects.filter(user=user).filter(media__isnull=False).distinct()
+        )
+
+        media_items = Media.objects.filter(tweet__in=tweets_with_media)
+
+        serializer = MediaSerializer(media_items, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -17,8 +17,8 @@ export const addTweet = async (data, parent = null) => {
     console.log(parent)
     const formData = new FormData();
     formData.append('content', data.content);
-    if (data.image) {
-        formData.append('image', data.image);
+    if (data.media) {
+        formData.append('media', data.media);
     }
     if (parent) {
         formData.append('parent', parent);
