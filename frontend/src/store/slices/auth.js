@@ -1,11 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { currentUser, getUserProfile, googleLogin, login, registerUser } from '../../api/users';
+import { currentUser, getUserByUsername, googleLogin, login, registerUser } from '../../api/users';
 
 export const fetchUserProfile = createAsyncThunk(
     'user/fetchProfile',
     async (username, { rejectWithValue }) => {
         try {
-            const res = await getUserProfile(username);
+            const res = await getUserByUsername(username);
             return res;
         } catch (error) {
             return rejectWithValue(error.response ? error.response.data : error.message);

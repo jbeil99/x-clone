@@ -5,7 +5,6 @@ from rest_framework.views import APIView
 from .models import Tweet, Likes, Retweets, Hashtag, Mention, TweetShare, HashtagLog
 from .serializers import (
     TweetSerializer,
-    MyTweetSerializer,
     HashtagSerializer,
 )
 from .permissions import IsUserOrReadOnly
@@ -205,20 +204,22 @@ class RandomPostsView(APIView):
     def get(self, request):
         user = request.user
         following_users = user.followed.all()
-        
-        limit = request.query_params.get('limit', 10)
+
+        limit = request.query_params.get("limit", 10)
         try:
             limit = int(limit)
         except ValueError:
             limit = 10
-        
-        random_tweets = Tweet.objects.exclude(
-            user__in=following_users
-        ).exclude(
-            user=user
-        ).order_by('?')[:limit]
-        
-        serializer = TweetSerializer(random_tweets, many=True, context={"request": request})
+
+        random_tweets = (
+            Tweet.objects.exclude(user__in=following_users)
+            .exclude(user=user)
+            .order_by("?")[:limit]
+        )
+
+        serializer = TweetSerializer(
+            random_tweets, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
 

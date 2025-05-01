@@ -9,7 +9,7 @@ export default function WhoToFollow() {
                 const res = await getWhoToFollow()
                 setUsers(res)
             } catch (e) {
-                console.log(e)
+                console.log(e.response)
             }
         }
         getUsers()
@@ -20,7 +20,7 @@ export default function WhoToFollow() {
             <div className="space-y-4">
                 {users.map((u, i) => {
                     return (
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between" key={u.id + i}>
                             <div className="flex items-center gap-3">
                                 <img src={u.avatar_url} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
                                 <div>

@@ -1,11 +1,12 @@
 from rest_framework import serializers
-from accounts.models import User  # Import the User model
+from accounts.models import User
 from core.utils.helpers import build_absolute_url
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     avatar_url = serializers.SerializerMethodField()
     cover_url = serializers.SerializerMethodField()
+    ifollow = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -27,6 +28,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "followed_count",
             "avatar",
             "cover_image",
+            "ifollow",
         ]
 
     def get_avatar_url(self, obj):
@@ -34,3 +36,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_cover_url(self, obj):
         return build_absolute_url(obj.cover_image.url)
+
+    def get_ifollow(self, obj):
+        print(obj.followers, self.context["request"].user)
+        return obj.is_user_followed(
+            self.context["request"].user,
+        )

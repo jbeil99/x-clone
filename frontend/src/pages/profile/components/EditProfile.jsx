@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, useRef } from "react";
 import * as z from "zod";
 import { useSelector } from "react-redux";
-import { updateProfile } from "../../api/users";
+import { updateProfile } from "../../../api/users";
 import { Camera, X, Calendar } from "lucide-react";
 import { format } from "date-fns";
 

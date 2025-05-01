@@ -51,6 +51,21 @@ export const getBookmarks = async () => {
     return res.data
 }
 
+
+export const getUserTweets = async (id) => {
+    const res = await authAxios.get(`user/${id}/tweets`)
+    return res.data
+}
+
+export const getUserLikes = async (id) => {
+    const res = await authAxios.get(`user/${id}/likes`)
+    return res.data
+}
+
+export const getUserReplies = async (id) => {
+    const res = await authAxios.get(`user/${id}/replies`)
+    return res.data
+}
 export const getRandomPosts = async (limit = 10) => {
     try {
         const res = await authAxios.get(`tweets/random?limit=${limit}`);

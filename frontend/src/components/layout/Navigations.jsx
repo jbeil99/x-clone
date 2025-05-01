@@ -18,7 +18,7 @@ export default function Navigations() {
         { icon: Users, text: 'Communities', path: '/communities' },
         { icon: Zap, text: 'Premium', path: '/premium' },
         { icon: CheckCircle2, text: 'Verified Orgs', path: '/verified-orgs' },
-        { icon: User, text: 'Profile', path: '/profile' },
+        { icon: User, text: 'Profile', path: `/profile/${user?.username}` },
         { icon: MoreHorizontal, text: 'More', path: '/more' },
     ];
 

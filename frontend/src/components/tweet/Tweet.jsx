@@ -13,7 +13,7 @@ export default function Tweet({ tweet, setPost }) {
 
     const handleUsernameClick = (e) => {
         e.stopPropagation();
-        navigate(`/${tweet?.author?.username}`);
+        navigate(`/profile/${tweet?.author?.username}`);
     };
 
     const handleContentClick = (e) => {

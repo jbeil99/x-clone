@@ -4,10 +4,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from accounts.models import User, Follow
-from tweets.models import Tweet, Likes
+from tweets.models import Tweet
 from tweets.serializers import TweetSerializer
 from .serializers import ProfileSerializer
 import random
+from django.shortcuts import get_object_or_404
 
 
 class ProfileView(APIView):
@@ -19,43 +20,31 @@ class ProfileView(APIView):
         serializer = ProfileSerializer(user)
         return Response(serializer.data)
 
+
 class FollowView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request, username):
         """Follow or unfollow a user."""
-        user_to_follow_id = request.data.get("user_id")
-        if not user_to_follow_id:
-            return Response(
-                {"error": "User ID is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+        user_to_follow = get_object_or_404(User, username=username)
+        following_user = request.user
 
-        try:
-            user_to_follow = User.objects.get(id=user_to_follow_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        if user_to_follow == request.user:
+        if user_to_follow == following_user:
             return Response(
                 {"error": "You cannot follow yourself."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Check if the follow relationship already exists
-        follow, created = Follow.objects.get_or_create(
-            follower=request.user, followed=user_to_follow
-        )
-
-        if created:
+        if user_to_follow.is_user_followed(following_user):
+            following_user.following.filter(followed=user_to_follow).delete()
             return Response(
-                {"detail": "You are now following this user."},
-                status=status.HTTP_201_CREATED,
+                {"message": f"You have unfollowed {username}."},
+                status=status.HTTP_200_OK,
             )
         else:
+            Follow.objects.create(follower=following_user, followed=user_to_follow)
             return Response(
-                {"detail": "You are already following this user."},
+                {"message": f"You are now following {username}."},
                 status=status.HTTP_200_OK,
             )
 
@@ -145,8 +134,11 @@ class UserProfileByUsernameView(APIView):
 
 
 class WhoToFollowView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request):
         current_user = request.user
+        print(current_user, "ssssssssssssssssss")
         following_users = current_user.followed.all()
         excluded_users = [current_user.id] + [user.id for user in following_users]
         available_users = User.objects.exclude(id__in=excluded_users)

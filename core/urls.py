@@ -26,10 +26,9 @@ urlpatterns = [
     path("api/", include("accounts.urls")),
     path("api/", include("tweets.urls")),
     path("api/chat/", include("chat.urls")),
-    path("api/profile/", include("profiles.urls")),
-    path('profile/', include('profiles.urls')),
     path("api/explore/", ExploreNewsView.as_view(), name="explore-news"),
 
+    path("api/", include("profiles.urls")),
 ]
 
 
