@@ -4,6 +4,11 @@ export const getTweets = async () => {
     const res = await authAxios.get(`tweets`)
     return res.data
 }
+
+export const getForYouTweets = async () => {
+    const res = await authAxios.get(`tweets?type=discover`)
+    return res.data
+}
 export const getTweetByID = async (id) => {
     const res = await authAxios.get(`tweets/${id}`)
     return res.data

@@ -13,7 +13,6 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Q
 
 
 class Like(APIView):
@@ -63,43 +62,40 @@ class TweetList(generics.ListCreateAPIView):
         user = self.request.user
         tweet_type = self.request.query_params.get("type", "following").lower()
 
+        following_users_ids = list(
+            user.following.values_list("following__id", flat=True)
+        )
+
         if tweet_type == "all":
             return (
                 Tweet.objects.all()
                 .select_related("user")
                 .prefetch_related("likes", "retweets", "replies", "media")
             )
+
         elif tweet_type == "following":
-            # Get tweets by the current user and users they follow
-            following_users_ids = list(user.following.values_list("id", flat=True))
-            following_users_ids.append(user.id)  # Include current user's tweets
+            following_users_ids.append(user.id)
 
-            # Get original tweets by the user and followed users
             original_tweets = Tweet.objects.filter(user__id__in=following_users_ids)
-
-            # Get tweets that have been retweeted by the user or followed users
             retweets = Tweet.objects.filter(retweets__user__id__in=following_users_ids)
 
-            # Combine both querysets and remove duplicates
             return (
                 (original_tweets | retweets)
                 .distinct()
                 .select_related("user")
                 .prefetch_related("likes", "retweets", "replies", "media")
             )
+
         elif tweet_type == "discover":
-            # Get tweets by users that the current user doesn't follow
-            following_users_ids = list(user.following.values_list("id", flat=True))
-            following_users_ids.append(user.id)  # Exclude current user's tweets
+            following_users_ids.append(user.id)
 
             return (
                 Tweet.objects.exclude(user__id__in=following_users_ids)
                 .select_related("user")
                 .prefetch_related("likes", "retweets", "replies", "media")
             )
+
         else:
-            # Default to following
-            following_users_ids = list(user.following.values_list("id", flat=True))
             following_users_ids.append(user.id)
 
             return (

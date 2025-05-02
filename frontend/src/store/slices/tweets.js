@@ -1,12 +1,18 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { addTweet, bookmark, getTweets, likeTweet, retweet } from '../../api/tweets';
+import { addTweet, bookmark, getTweets, likeTweet, retweet, getForYouTweets } from '../../api/tweets';
 
 export const fetchTweets = createAsyncThunk(
     'tweets/fetchTweets',
     async (args, { rejectWithValue }) => {
         try {
-            const res = await getTweets();
-            return res.results;
+            const [tweetRes, forYouTweetsRes] = await Promise.all([
+                getTweets(),
+                getForYouTweets(),
+            ]);
+            return {
+                tweets: forYouTweetsRes.results,
+                followingTweets: tweetRes.results,
+            };
         } catch (error) {
             return rejectWithValue(error.response ? error.response.data : error.message);
         }
@@ -66,6 +72,7 @@ const tweetsSlice = createSlice({
     name: 'tweets',
     initialState: {
         tweets: [],
+        followingTweets: [],
         loading: false,
         error: null,
     },
@@ -73,14 +80,15 @@ const tweetsSlice = createSlice({
 
     },
     extraReducers: (builder) => {
-        // fetch Twees
         builder.addCase(fetchTweets.pending, (state) => {
             state.loading = true;
             state.error = null;
         });
         builder.addCase(fetchTweets.fulfilled, (state, action) => {
             state.loading = false;
-            state.tweets = action.payload;
+            state.tweets = action.payload.tweets;
+            state.followingTweets = action.payload.followingTweets;
+
         });
         builder.addCase(fetchTweets.rejected, (state, action) => {
             state.loading = false;
@@ -88,22 +96,20 @@ const tweetsSlice = createSlice({
             state.tweets = null;
         });
 
-        // post tweets
-        // builder.addCase(postTweets.pending, (state) => {
-        //     state.loading = true;
-        //     state.error = null;
-        // });
+
         builder.addCase(postTweets.fulfilled, (state, action) => {
             state.loading = false;
-            state.tweets = [action.payload, ...state.tweets];
+            state.followingTweets = [action.payload, ...state.tweets];
         });
-        // builder.addCase(postTweets.rejected, (state, action) => {
-        //     state.loading = false;
-        //     state.error = action.payload;
-        // });
+
         builder.addCase(postLikes.fulfilled, (state, action) => {
             state.loading = false;
             state.tweets = state.tweets.map(tweet =>
+                tweet.id === action.payload.id
+                    ? action.payload
+                    : tweet
+            );
+            state.followingTweets = state.followingTweets.map(tweet =>
                 tweet.id === action.payload.id
                     ? action.payload
                     : tweet
@@ -116,10 +122,20 @@ const tweetsSlice = createSlice({
                     ? action.payload
                     : tweet
             );
+            state.followingTweets = state.followingTweets.map(tweet =>
+                tweet.id === action.payload.id
+                    ? action.payload
+                    : tweet
+            );
         });
         builder.addCase(postBookmark.fulfilled, (state, action) => {
             state.loading = false;
             state.tweets = state.tweets.map(tweet =>
+                tweet.id === action.payload.id
+                    ? action.payload
+                    : tweet
+            );
+            state.followingTweets = state.followingTweets.map(tweet =>
                 tweet.id === action.payload.id
                     ? action.payload
                     : tweet

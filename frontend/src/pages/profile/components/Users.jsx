@@ -8,28 +8,35 @@ import { Link, useParams } from "react-router-dom";
 import { followers, followings, getUserByUsername } from '../../../api/users';
 
 
-const Followers = ({ followers }) => (
-    < div className="max-w-xl mx-auto" >
-        {
-            followers.map((user, i) => (
-                <div className="w-full p-0 bg-black text-white border-t border-b border-gray-700" key={user.id + i}>
-                    <UserInfo user={user} />
-                </div>
-            ))
-        }
-    </div >
-);
+
+const Followers = ({ followers }) => {
+    return (
+        < div className="max-w-xl mx-auto" >
+            {
+                followers.map((user, i) => (
+                    <div className="w-full p-0 bg-black text-white border-t border-b border-gray-700" key={user.id + i}>
+                        <UserInfo user={user} />
+                    </div>
+                ))
+            }
+        </div >
+    )
+};
 
 
-const Following = ({ following }) => (
-    <div className="max-w-xl mx-auto">
-        {following.map((user, i) => (
-            <div className="w-full p-0 bg-black text-white border-t border-b border-gray-700" key={user.id + i}>
-                <UserInfo user={user} />
-            </div>
-        ))}
-    </div>
-);
+const Following = ({ following }) => {
+    return (
+        < div className="max-w-xl mx-auto" >
+            {
+                following.map((user, i) => (
+                    <div className="w-full p-0 bg-black text-white border-t border-b border-gray-700" key={user.id + i}>
+                        <UserInfo user={user} />
+                    </div>
+                ))
+            }
+        </div >
+    )
+};
 
 export default function Users({ top, latest }) {
     const [activeTab, setActiveTab] = useState('Followers');

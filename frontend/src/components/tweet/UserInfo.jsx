@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import { follow } from '../../api/users';
 
 export default function UserInfo({ user, isFollowing, setIsFollowing }) {
+    if (isFollowing === undefined) {
+        isFollowing = user.ifollow
+    }
     const handleFollowToggle = async () => {
         try {
             const res = await follow(user?.username);
