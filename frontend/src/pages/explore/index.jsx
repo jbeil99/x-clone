@@ -4,7 +4,6 @@ import ForYouTab from './ForYouTab';
 import TrendingTab from './TrendingTab';
 import NewsTab from './NewsTab';
 import SportsTab from './SportsTab';
-import EntertainmentTab from './EntertainmentTab';
 
 export default function Explore() {
   const [activeTab, setActiveTab] = useState('For You');
@@ -13,7 +12,6 @@ export default function Explore() {
   else if (activeTab === 'Trending') content = <TrendingTab />;
   else if (activeTab === 'News') content = <NewsTab />;
   else if (activeTab === 'Sports') content = <SportsTab />;
-  else if (activeTab === 'Entertainment') content = <EntertainmentTab />;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -34,7 +32,7 @@ export default function Explore() {
           </button>
         </div>
         <div className="flex border-b border-gray-800">
-          {['For You', 'Trending', 'News', 'Sports', 'Entertainment'].map(tab => (
+          {['For You', 'Trending', 'News', 'Sports'].map(tab => (
             <button
               key={tab}
               className={`flex-1 py-3 text-center font-bold focus:outline-none text-white border-b-2 transition-colors ${activeTab === tab ? 'border-blue-500' : 'border-transparent hover:bg-gray-900'}`}

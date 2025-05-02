@@ -48,4 +48,3 @@ export default function LoginDialog({ open, onOpenChange, setDialogType }) {
     </Dialog>
   )
 }
-
