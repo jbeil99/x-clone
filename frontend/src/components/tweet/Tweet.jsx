@@ -4,8 +4,11 @@ import { useNavigate } from 'react-router';
 import { TweetActions } from './TweetActions';
 import TweetFooter from './TweetFooter';
 import TweetContent from './TweetContnet';
+import { Repeat, } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 export default function Tweet({ tweet, setPost }) {
+    const { user } = useSelector(store => store.auth)
     const navigate = useNavigate();
     const handleClickTweet = () => {
         window.location.href = `/status/${tweet.id}`;
@@ -44,6 +47,12 @@ export default function Tweet({ tweet, setPost }) {
             className="py-4 border-b border-gray-800 cursor-pointer transition-colors duration-200 hover:bg-gray-950"
             onClick={handleClickTweet}
         >
+            {tweet?.is_retweet && (
+                <div className="mb-1 ml-12 text-gray-500 flex items-center gap-1">
+                    <Repeat size={15} />
+                    <span>{tweet.retweeted_by.username === user.username ? "You" : tweet.retweeted_by.display_name} Reposted</span>
+                </div>
+            )}
             <div className="flex items-start gap-3">
                 <Avatar className="w-10 h-10 rounded-full">
                     <AvatarImage

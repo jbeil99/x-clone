@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from accounts.models import User, Follow
-from tweets.models import Tweet, Media
+from tweets.models import Tweet, Media, Retweets
 from tweets.serializers import TweetSerializer, MediaSerializer
 from .serializers import ProfileSerializer
 import random
@@ -69,16 +69,14 @@ class ProfileTweetViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, user_id=None):
-        """List all tweets by a specific user."""
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        tweets = Tweet.objects.filter(user=user, parent=None)
-        serializer = TweetSerializer(tweets, many=True, context={"request": request})
+        user = get_object_or_404(User, pk=user_id)
+        original_tweets = Tweet.objects.filter(user=user, parent=None)
+        retweets = Retweets.objects.filter(user=user)
+        retweeted_tweets = [retweet.tweet for retweet in retweets]
+        all_tweets = list(original_tweets) + retweeted_tweets
+        serializer = TweetSerializer(
+            all_tweets, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="likes/(?P<user_id>[^/.]+)")
@@ -98,15 +96,13 @@ class ProfileTweetViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"], url_path="retweets/(?P<user_id>[^/.]+)")
     def retweets(self, request, user_id=None):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        retweets = Tweet.objects.filter(user=user).exclude(parent=None)
-        serializer = TweetSerializer(retweets, many=True, context={"request": request})
+        tweet = get_object_or_404(Tweet, pk=user_id)
+        retweets = Retweets.objects.filter(tweet=tweet)  # Filter by the Retweets model
+        serializer = TweetSerializer(
+            [retweet.tweet for retweet in retweets],
+            many=True,
+            context={"request": request},
+        )
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="replies/(?P<user_id>[^/.]+)")
@@ -182,19 +178,12 @@ class UserFollowed(APIView):
 
 class UserMediaView(APIView):
     def get(self, request, username):
-        try:
-            user = get_object_or_404(User, username=username)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
+        user = get_object_or_404(User, username=username)
         tweets_with_media = (
             Tweet.objects.filter(user=user).filter(media__isnull=False).distinct()
         )
-
         media_items = Media.objects.filter(tweet__in=tweets_with_media)
-
-        serializer = MediaSerializer(media_items, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = PageNumberPagination()
+        paginated_media = paginator.paginate_queryset(media_items, request)
+        serializer = MediaSerializer(paginated_media, many=True)
+        return paginator.get_paginated_response(serializer.data)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Tweet, Likes, Hashtag, Mention, Media  # Import Media
+from .models import Tweet, Likes, Hashtag, Mention, Media, Retweets
 from django.contrib.auth import get_user_model
 from core.utils.helpers import build_absolute_url, time_ago
 from accounts.serializers import UserSerializer
@@ -18,17 +18,32 @@ class MentionSerializer(serializers.ModelSerializer):
 
 
 class MediaSerializer(serializers.ModelSerializer):
-    """Serializer for media attachments"""
-
     file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Media
-        fields = ["id", "file_url", "created_at"]
-        extra_kwargs = {"file": {"write_only": True}}
+        fields = ["id", "file_url", "tweet", "created_at"]
+        extra_kwargs = {"file": {"write_only": True}, "tweet": {"read_only": True}}
 
     def get_file_url(self, obj):
         return build_absolute_url(obj.file.url)
+
+
+class RetweetUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+    display_name = serializers.CharField(source="user.display_name", read_only=True)
+
+    class Meta:
+        model = User
+        fields = ["username", "display_name"]
+
+
+class RetweetSerializer(serializers.ModelSerializer):
+    user = RetweetUserSerializer(read_only=True)
+
+    class Meta:
+        model = Retweets
+        fields = ["user", "created_at"]
 
 
 class TweetSerializer(serializers.ModelSerializer):
@@ -41,13 +56,13 @@ class TweetSerializer(serializers.ModelSerializer):
     author = UserSerializer(source="user", read_only=True)
     replies_count = serializers.SerializerMethodField()
     is_retweet = serializers.SerializerMethodField()
+    retweeted_by = serializers.SerializerMethodField()  # New field
     hashtags = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="name"
     )
     mentions = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="mentioned_user.username"
     )
-    # Single media file field
     media = serializers.FileField(
         max_length=None,
         allow_empty_file=False,
@@ -73,6 +88,7 @@ class TweetSerializer(serializers.ModelSerializer):
             "replies_count",
             "parent",
             "is_retweet",
+            "retweeted_by",  # Include the new field
             "hashtags",
             "mentions",
             "media",  # Write-only field for file upload
@@ -110,7 +126,14 @@ class TweetSerializer(serializers.ModelSerializer):
         return time_ago(obj.created_at)
 
     def get_is_retweet(self, obj):
-        return obj.parent is not None
+        return Retweets.objects.filter(tweet=obj).exists()
+
+    def get_retweeted_by(self, obj):
+        retweet = Retweets.objects.filter(tweet=obj).first()
+        if retweet:
+            serializer = RetweetUserSerializer(retweet)
+            return serializer.data
+        return None
 
     def validate(self, data):
         content = data.get("content", "")

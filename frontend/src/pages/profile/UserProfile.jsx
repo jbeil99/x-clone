@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import EditProfile from "./components/EditProfile";
 import { getUserByUsername } from "../../api/users";
 import { useParams } from "react-router-dom";
-import { getUserLikes, getUserReplies, getUserTweets } from "../../api/tweets";
+import { getUserLikes, getUserReplies, getUserTweets, getUserMedia } from "../../api/tweets";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../../store/slices/auth";
 import Tweet from "../../components/tweet/Tweet";
@@ -26,6 +26,7 @@ export default function UserProfile() {
   const [tweets, setTweets] = useState([]);
   const [likedTweets, setLikedTweets] = useState([]);
   const [replies, setReplies] = useState([]);
+  const [media, setMedia] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tweets");
   const { username } = useParams();
@@ -39,15 +40,17 @@ export default function UserProfile() {
         const userData = await getUserByUsername(!username || username == 'profile' ? user?.username : username);
         setUserData(userData);
         if (userData && userData.id) {
-          const [tweetRes, likesRes, repliesRes] = await Promise.all([
+          const [tweetRes, likesRes, repliesRes, mediaRes] = await Promise.all([
             getUserTweets(userData.id),
             getUserLikes(userData.id),
             getUserReplies(userData.id),
+            getUserMedia(userData?.username)
           ]);
 
           setTweets(tweetRes);
           setLikedTweets(likesRes);
           setReplies(repliesRes);
+          setMedia(mediaRes.results)
         }
       } catch (error) {
         console.error("Error fetching profile, tweets, likes, or replies:", error);
@@ -196,9 +199,13 @@ export default function UserProfile() {
           {activeTab === "tweets" && (
             <>
               {tweets.length > 0 ? (
-                tweets.map((tweet) => (
-                  <Tweet tweet={tweet} />
-                ))
+                tweets.map((tweet) => {
+                  if (isProfile) {
+                    return <Tweet tweet={tweet} />
+                  }
+                  console.log(userData)
+                  return <Tweet tweet={tweet} user={userData} />
+                })
               ) : (
                 <div className="text-center text-gray-500 py-8">No tweets yet</div>
               )}
@@ -219,21 +226,30 @@ export default function UserProfile() {
 
           {activeTab === "media" && (
             <>
-              {tweets.filter((tweet) => tweet.media_url).length > 0 ? (
-                tweets
-                  .filter((tweet) => tweet.media_url)
-                  .map((tweet) => (
-                    <div key={tweet.id} className="py-2 border-b border-gray-800">
-                      <p>{tweet.content}</p>
-                      <img
-                        src={tweet.media_url}
-                        alt="Tweet Media"
-                        className="mt-2 rounded-lg max-w-full"
-                      />
-                    </div>
-                  ))
+              {media && media.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {media.map((media) => (
+                    <Link to={`/status/${media.tweet}`}>
+                      <div key={media.id} className="rounded-lg overflow-hidden shadow-md">
+                        {media.file_url.endsWith('.mp4') || media.file_url.endsWith('.mov') ? (
+                          <video
+                            src={media.file_url}
+                            alt="User Media"
+                            className="w-full h-40 object-cover aspect-video"
+                          />
+                        ) : (
+                          <img
+                            src={media.file_url}
+                            alt="User Media"
+                            className="w-full h-40 object-cover aspect-square"
+                          />
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">No media content</div>
+                <div className="text-center text-gray-500 py-8">No media content available</div>
               )}
             </>
           )}

@@ -5,6 +5,7 @@ from .views import (
     WhoToFollowView,
     UserFollowers,
     UserFollowed,
+    UserMediaView,
 )
 
 tweet_list = ProfileTweetViewSet.as_view({"get": "list"})
@@ -27,6 +28,7 @@ urlpatterns = [
     path(
         "user/<str:username>/following", UserFollowed.as_view(), name="user-following"
     ),
+    path("user/<str:username>/media", UserMediaView.as_view(), name="user-following"),
     path(
         "profile/<str:username>/",
         UserProfileByUsernameView.as_view(),
