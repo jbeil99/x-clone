@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserProfileSerializer
 from rest_framework import status
 from rest_framework.response import Response
@@ -73,6 +73,8 @@ User = get_user_model()
 
 
 class GoogleAuthView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         token = request.data.get("token")
         if not token:
