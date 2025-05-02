@@ -140,9 +140,11 @@ class WhoToFollowView(APIView):
 
     def get(self, request):
         current_user = request.user
-        following_users = current_user.following.all()
-        excluded_users = [current_user.id] + [user.id for user in following_users]
-        available_users = User.objects.exclude(id__in=excluded_users)
+        following_user_ids = current_user.following.values_list(
+            "following__id", flat=True
+        )
+        excluded_user_ids = list(following_user_ids) + [current_user.id]
+        available_users = User.objects.exclude(id__in=excluded_user_ids)
         random_users = random.sample(
             list(available_users), min(5, available_users.count())
         )
