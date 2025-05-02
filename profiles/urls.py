@@ -3,8 +3,8 @@ from .views import ProfileView, FollowView, EditProfileView, ProfileTweetViewSet
 from .views import (
     UserProfileByUsernameView,
     WhoToFollowView,
-    UserFollowers,
-    UserFollowed,
+    UserFollowersView,
+    UserFollowingView,
     UserMediaView,
 )
 
@@ -23,10 +23,14 @@ urlpatterns = [
     path("user/<int:user_id>/retweets", retweets_view, name="user-retweets"),
     path("user/<int:user_id>/replies", replies_view, name="user-replies"),
     path(
-        "user/<str:username>/followers", UserFollowers.as_view(), name="user-followers"
+        "user/<str:username>/followers",
+        UserFollowersView.as_view(),
+        name="user-followers",
     ),
     path(
-        "user/<str:username>/following", UserFollowed.as_view(), name="user-following"
+        "user/<str:username>/following",
+        UserFollowingView.as_view(),
+        name="user-following",
     ),
     path("user/<str:username>/media", UserMediaView.as_view(), name="user-following"),
     path(

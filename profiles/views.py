@@ -36,14 +36,17 @@ class FollowView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if user_to_follow.is_user_followed(following_user):
-            following_user.following.filter(followed=user_to_follow).delete()
+        try:
+            follow_instance = Follow.objects.get(
+                follower=following_user, following=user_to_follow
+            )
+            follow_instance.delete()
             return Response(
                 {"message": f"You have unfollowed {username}."},
                 status=status.HTTP_200_OK,
             )
-        else:
-            Follow.objects.create(follower=following_user, followed=user_to_follow)
+        except Follow.DoesNotExist:
+            Follow.objects.create(follower=following_user, following=user_to_follow)
             return Response(
                 {"message": f"You are now following {username}."},
                 status=status.HTTP_200_OK,
@@ -137,7 +140,6 @@ class WhoToFollowView(APIView):
 
     def get(self, request):
         current_user = request.user
-        print(current_user, "ssssssssssssssssss")
         following_users = current_user.following.all()
         excluded_users = [current_user.id] + [user.id for user in following_users]
         available_users = User.objects.exclude(id__in=excluded_users)
@@ -150,7 +152,7 @@ class WhoToFollowView(APIView):
         return Response(serializer.data)
 
 
-class UserFollowers(APIView):
+class UserFollowersView(APIView):
     def get(self, request, username):
         user = get_object_or_404(User, username=username)
         followers = user.user_followers
@@ -159,20 +161,18 @@ class UserFollowers(APIView):
         serializer = ProfileSerializer(
             paginated_followers, many=True, context={"request": request}
         )
-
         return paginator.get_paginated_response(serializer.data)
 
 
-class UserFollowed(APIView):
+class UserFollowingView(APIView):
     def get(self, request, username):
         user = get_object_or_404(User, username=username)
-        followed = user.user_followed
+        following = user.user_following
         paginator = PageNumberPagination()
-        paginated_followed = paginator.paginate_queryset(followed, request)
+        paginated_following = paginator.paginate_queryset(following, request)
         serializer = ProfileSerializer(
-            paginated_followed, many=True, context={"request": request}
+            paginated_following, many=True, context={"request": request}
         )
-
         return paginator.get_paginated_response(serializer.data)
 
 

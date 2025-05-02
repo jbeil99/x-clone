@@ -40,43 +40,47 @@ class User(AbstractUser):
     ]
 
     @property
-    def user_followers(self):
-        """Returns a queryset of users who follow this user."""
-        return User.objects.filter(following__followed=self)
+    def user_following(self):
+        """Returns a queryset of users this user follows."""
+        return User.objects.filter(
+            id__in=self.following.all().values_list("following_id", flat=True)
+        )
 
     @property
-    def user_followed(self):
-        """Returns a queryset of users this user follows."""
-        return User.objects.filter(followers__follower=self)
+    def user_followers(self):
+        """Returns a queryset of users who follow this user."""
+        return User.objects.filter(
+            id__in=self.followers.all().values_list("follower_id", flat=True)
+        )
+
+    @property
+    def following_count(self):
+        """Returns the number of users this user follows."""
+        return self.following.count()
 
     @property
     def followers_count(self):
         """Returns the number of users who follow this user."""
         return self.followers.count()
 
-    @property
-    def followed_count(self):
-        """Returns the number of users this user follows."""
-        return self.following.count()
-
-    def is_user_followed(self, user):
+    def is_user_follower(self, user):
         return self.followers.filter(follower=user).exists()
 
 
 class Follow(models.Model):
+    following = models.ForeignKey(
+        User, related_name="followers", on_delete=models.CASCADE
+    )
     follower = models.ForeignKey(
         User, related_name="following", on_delete=models.CASCADE
-    )
-    followed = models.ForeignKey(
-        User, related_name="followers", on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("follower", "followed")
+        unique_together = ("follower", "following")
 
     def __str__(self):
-        return f"{self.follower.username} follows {self.followed.username}"
+        return f"{self.follower.username} follows {self.following.username}"
 
 
 class ActivationToken(models.Model):

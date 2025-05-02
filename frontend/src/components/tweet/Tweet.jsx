@@ -23,7 +23,6 @@ export default function Tweet({ tweet, setPost }) {
         e.stopPropagation();
     };
 
-    // Function to determine media type based on file extension
     const getMediaType = (url) => {
         if (!url) return null;
 

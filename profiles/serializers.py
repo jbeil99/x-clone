@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from accounts.models import User
+from accounts.models import User, Follow
 from core.utils.helpers import build_absolute_url
 
 
@@ -26,7 +26,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "date_of_birth",
             "country",
             "followers_count",
-            "followed_count",
+            "following_count",
             "avatar",
             "cover_image",
             "ifollow",
@@ -40,9 +40,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         return build_absolute_url(obj.cover_image.url)
 
     def get_ifollow(self, obj):
-        return obj.is_user_followed(
-            self.context["request"].user,
-        )
+        following_user = self.context["request"].user
+        return Follow.objects.filter(follower=following_user, following=obj).exists()
 
     def get_tweets_count(self, obj):
         return obj.tweets.count()

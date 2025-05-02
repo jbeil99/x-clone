@@ -164,7 +164,7 @@ export default function UserProfile() {
         <div className="flex gap-5 mb-4 text-sm">
           <Link to={`/profile/${user.username}/followers`}>
             <div>
-              <span className="font-bold">{userData.followed_count || 0}</span>{" "}
+              <span className="font-bold">{userData.following_count || 0}</span>{" "}
               <span className="text-gray-500">Following</span>
             </div>
           </Link>
