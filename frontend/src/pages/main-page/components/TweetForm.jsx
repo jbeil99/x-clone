@@ -2,23 +2,35 @@ import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { MapPin, Calendar, Globe2, Film, BarChart2, Smile, Image, X } from 'lucide-react';
+import { MapPin, Calendar, Globe2, Film, BarChart2, Smile, Image, X, Video } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { postTweets } from '../../../store/slices/tweets';
 
 const tweetSchema = z.object({
     content: z.string()
-        .min(1, { message: "Tweet cannot be empty" })
-        .max(280, { message: "Tweet must be 280 characters or less" }),
-    image: z.any()
+        .max(280, { message: "Tweet must be 280 characters or less" })
+        .optional(),
+    media: z.any()
         .optional()
         .nullable()
-        .refine(file => !file || file.size <= 5 * 1024 * 1024, {
-            message: "Image must be 5MB or less"
+        .refine(file => !file || file.size <= 100 * 1024 * 1024, {
+            message: "Media must be 100MB or less"
         })
-        .refine(file => !file || ['image/jpeg', 'image/png', 'image/gif'].includes(file.type), {
-            message: "Only JPEG, PNG, and GIF images are supported"
+        .refine(file => !file || ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/mpeg', 'video/quicktime'].includes(file?.type), {
+            message: "Only JPEG, PNG, GIF images, and MP4, MPEG, MOV videos are supported"
         })
+}).superRefine((data, ctx) => {
+    if (!data.content && data.media) {
+        return z.NEVER;
+    }
+    if (!data.content && !data.media) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Tweet cannot be empty (either text or media is required)",
+            path: ['content'],
+        });
+        return z.NEVER;
+    }
 });
 
 export default function TweetForm({ parent, isReply = false, author, setReplies, replies }) {
@@ -26,6 +38,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
 
     const fileInputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [mediaType, setMediaType] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const buttonText = !isReply ? ['Post', 'Posting'] : ['Reply', 'Replying'];
     const textAreaText = !isReply ? "What's happening" : "Post Your Reply";
@@ -41,12 +54,13 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
         resolver: zodResolver(tweetSchema),
         defaultValues: {
             content: "",
-            image: null
+            media: null
         },
         mode: "onChange"
     });
 
     const content = watch("content");
+    const media = watch("media");
 
     const onSubmit = async (data) => {
         setIsSubmitting(true);
@@ -57,10 +71,11 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                 setReplies([action.payload, ...replies])
             }
             reset({
-                content: ""
-                , image: null
+                content: "",
+                media: null
             })
-            setPreviewUrl()
+            setPreviewUrl(null);
+            setMediaType(null);
 
         } catch (error) {
             console.error("Error posting tweet:", error);
@@ -72,18 +87,26 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setValue("image", file, { shouldValidate: true });
+            setValue("media", file, { shouldValidate: true });
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewUrl(reader.result);
             };
             reader.readAsDataURL(file);
+            if (file.type.startsWith('image/')) {
+                setMediaType('image');
+            } else if (file.type.startsWith('video/')) {
+                setMediaType('video');
+            } else {
+                setMediaType(null);
+            }
         }
     };
 
     const handleRemoveFile = () => {
-        setValue("image", null, { shouldValidate: true });
+        setValue("media", null, { shouldValidate: true });
         setPreviewUrl(null);
+        setMediaType(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -114,11 +137,20 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                             <div className="mb-3 relative">
                                 <div className="border border-gray-800 rounded-lg overflow-hidden">
                                     <div className="relative">
-                                        <img
-                                            src={previewUrl}
-                                            alt="Preview"
-                                            className="w-full h-32 object-cover"
-                                        />
+                                        {mediaType === 'image' && (
+                                            <img
+                                                src={previewUrl}
+                                                alt="Preview"
+                                                className="w-full h-32 object-cover"
+                                            />
+                                        )}
+                                        {mediaType === 'video' && (
+                                            <video
+                                                src={previewUrl}
+                                                controls
+                                                className="w-full h-32 object-cover"
+                                            />
+                                        )}
                                         <button
                                             onClick={handleRemoveFile}
                                             className="absolute top-2 right-2 bg-black bg-opacity-70 text-white p-1 rounded-full hover:bg-opacity-90"
@@ -128,22 +160,16 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                                         </button>
                                     </div>
                                     <div className="p-2 bg-gray-900 text-sm border-t border-gray-800">
-                                        <span className="truncate block">{watch("image")?.name}</span>
+                                        <span className="truncate block">{watch("media")?.name}</span>
                                     </div>
                                 </div>
-                                {errors.image && (
-                                    <div className="text-red-500 text-sm mt-1">{errors.image.message}</div>
+                                {errors.media && (
+                                    <div className="text-red-500 text-sm mt-1">{errors.media.message}</div>
                                 )}
                             </div>
                         )}
 
-                        {/* <div className="flex items-center gap-1 mb-2">
-                            <Globe2 className="w-4 h-4 text-blue-500" />
-                            <span className="text-blue-500 text-sm font-bold cursor-pointer hover:underline">Everyone can reply</span>
-                        </div> */}
-
                         <div className="flex items-center justify-between">
-
                             <div className="text-sm text-gray-500">
                                 {content?.length > 0 && (
                                     <span className={content.length > 280 ? "text-red-500" : ""}>
@@ -153,21 +179,21 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                             </div>
                         </div>
 
-                        {/* <div className="border-b border-gray-800 mb-2" /> */}
                         <div className="flex items-center justify-between py-2">
                             <div className="flex gap-2 text-blue-500">
                                 <button
                                     className="p-1.5 hover:bg-blue-900/30 rounded-full relative"
                                     onClick={() => fileInputRef.current.click()}
-                                    title="Add image"
+                                    title="Add image or video"
                                     type="button"
                                 >
                                     <Image className="w-5 h-5" />
+                                    <Video className="w-5 h-5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60" />
                                     <input
                                         type="file"
                                         ref={fileInputRef}
                                         onChange={handleFileChange}
-                                        accept="image/jpeg,image/png,image/gif"
+                                        accept="image/jpeg,image/png,image/gif,video/mp4,video/mpeg,video/quicktime"
                                         className="hidden"
                                     />
                                 </button>

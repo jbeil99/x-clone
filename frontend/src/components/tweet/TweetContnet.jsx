@@ -20,7 +20,6 @@ const TweetContent = ({ tweet, isTweetLong = false }) => {
       while ((match = regex.exec(content)) !== null) {
         if (match[1]) {
           const username = match[1].substring(1);
-          console.log(tweet.mentions?.includes(username), " hi")
           if (tweet.mentions?.includes(username)) {
             parts.push(
               <UserCard username={username} match={match} key={`mention-${parts.length}`} />
@@ -34,8 +33,8 @@ const TweetContent = ({ tweet, isTweetLong = false }) => {
 
           if (tweet.hashtags?.includes(hashtag)) {
             parts.push(
-              <Link to={`/hashtags/${hashtag}`}>
-                <span key={`hashtag-${parts.length}`} className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer">
+              <Link to={`/hashtags/${hashtag}`} key={`hashtag-${parts.length}`}>
+                <span className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer">
                   {match[2]}
                 </span>
               </Link>

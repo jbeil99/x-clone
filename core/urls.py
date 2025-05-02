@@ -27,8 +27,8 @@ urlpatterns = [
     path("api/", include("tweets.urls")),
     path("api/chat/", include("chat.urls")),
     path("api/explore/", ExploreNewsView.as_view(), name="explore-news"),
-
     path("api/", include("profiles.urls")),
+    path("grok/", include("grok.urls")),
 ]
 
 

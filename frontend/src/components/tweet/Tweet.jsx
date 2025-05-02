@@ -4,8 +4,11 @@ import { useNavigate } from 'react-router';
 import { TweetActions } from './TweetActions';
 import TweetFooter from './TweetFooter';
 import TweetContent from './TweetContnet';
+import { Repeat, } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 export default function Tweet({ tweet, setPost }) {
+    const { user } = useSelector(store => store.auth)
     const navigate = useNavigate();
     const handleClickTweet = () => {
         window.location.href = `/status/${tweet.id}`;
@@ -20,12 +23,35 @@ export default function Tweet({ tweet, setPost }) {
         e.stopPropagation();
     };
 
+    const getMediaType = (url) => {
+        if (!url) return null;
+
+        const extension = url.split('.').pop().toLowerCase();
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        const videoExtensions = ['mp4', 'mov', 'webm', 'avi'];
+
+        if (imageExtensions.includes(extension)) return 'image';
+        if (videoExtensions.includes(extension)) return 'video';
+
+        return null;
+    };
+
+    // Get media from tweet (if any)
+    const media = tweet?.media && tweet.media.length > 0 ? tweet.media[0] : null;
+    const mediaUrl = media?.file_url || null;
+    const mediaType = mediaUrl ? getMediaType(mediaUrl) : null;
 
     return (
         <div
             className="py-4 border-b border-gray-800 cursor-pointer transition-colors duration-200 hover:bg-gray-950"
             onClick={handleClickTweet}
         >
+            {tweet?.is_retweet && (
+                <div className="mb-1 ml-12 text-gray-500 flex items-center gap-1">
+                    <Repeat size={15} />
+                    <span>{tweet.retweeted_by.username === user.username ? "You" : tweet.retweeted_by.display_name} Reposted</span>
+                </div>
+            )}
             <div className="flex items-start gap-3">
                 <Avatar className="w-10 h-10 rounded-full">
                     <AvatarImage
@@ -56,19 +82,36 @@ export default function Tweet({ tweet, setPost }) {
                                 </svg>
                                 <span className="text-gray-500 truncate max-w-full">@{tweet?.author?.username} · {tweet?.time}</span>
                             </div>
-                            <div
-                                className="my-2 whitespace-pre-wrap break-words cursor-text"
-                                onClick={handleContentClick}
-                            >
-                                <TweetContent tweet={tweet} />
-                            </div>
-                            {tweet?.image && (
-                                <img
-                                    src={tweet?.image}
-                                    alt="Tweet Image"
-                                    className="bg-gray-800 rounded-xl mb-3 w-full object-cover aspect-square"
+
+                            {/* Display tweet content if it exists */}
+                            {tweet?.content && (
+                                <div
+                                    className="my-2 whitespace-pre-wrap break-words cursor-text"
                                     onClick={handleContentClick}
-                                />
+                                >
+                                    <TweetContent tweet={tweet} />
+                                </div>
+                            )}
+
+                            {mediaUrl && (
+                                <div className="rounded-xl overflow-hidden mb-3 w-full" onClick={handleContentClick}>
+                                    {mediaType === 'image' && (
+                                        <img
+                                            src={mediaUrl}
+                                            alt="Tweet Image"
+                                            className="w-full object-cover rounded-xl"
+                                            style={{ maxHeight: '500px' }}
+                                        />
+                                    )}
+                                    {mediaType === 'video' && (
+                                        <video
+                                            src={mediaUrl}
+                                            className="w-full rounded-xl"
+                                            controls
+                                            style={{ maxHeight: '500px' }}
+                                        />
+                                    )}
+                                </div>
                             )}
                         </div>
                         <TweetActions />

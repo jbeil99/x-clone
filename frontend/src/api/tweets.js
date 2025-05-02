@@ -4,6 +4,11 @@ export const getTweets = async () => {
     const res = await authAxios.get(`tweets`)
     return res.data
 }
+
+export const getForYouTweets = async () => {
+    const res = await authAxios.get(`tweets?type=discover`)
+    return res.data
+}
 export const getTweetByID = async (id) => {
     const res = await authAxios.get(`tweets/${id}`)
     return res.data
@@ -17,8 +22,8 @@ export const addTweet = async (data, parent = null) => {
     console.log(parent)
     const formData = new FormData();
     formData.append('content', data.content);
-    if (data.image) {
-        formData.append('image', data.image);
+    if (data.media) {
+        formData.append('media', data.media);
     }
     if (parent) {
         formData.append('parent', parent);
@@ -64,6 +69,11 @@ export const getUserLikes = async (id) => {
 
 export const getUserReplies = async (id) => {
     const res = await authAxios.get(`user/${id}/replies`)
+    return res.data
+}
+
+export const getUserMedia = async (username) => {
+    const res = await authAxios.get(`user/${username}/media`)
     return res.data
 }
 export const getRandomPosts = async (limit = 10) => {

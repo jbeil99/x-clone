@@ -43,7 +43,6 @@ def get_messages(request):
     if unread_messages.exists():
         unread_messages.update(read=True)
     
-    print('Messages found:', messages.count())  # Debug
     serializer = MessageSerializer(messages, many=True, context={'request': request})
     return Response(serializer.data)
 

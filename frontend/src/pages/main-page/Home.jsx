@@ -1,7 +1,7 @@
-import React, { useState, useEffect, use } from "react";
 import Tab from "../../components/tab";
-import AllPosts from "./components/AllPosts";
+import ForYou from "./components/ForYou";
 import TweetForm from "./components/TweetForm";
+import Following from "./components/Following";
 export default function MainPage() {
     return (
         <div className="min-h-screen bg-black">
@@ -20,12 +20,10 @@ export default function MainPage() {
                 <TweetForm />
 
                 <Tab.Content id="all-posts">
-                    <AllPosts />
+                    <ForYou />
                 </Tab.Content>
                 <Tab.Content id="following">
-                    <div className="p-4 text-center text-gray-500">
-                        Follow some accounts to see their posts here.
-                    </div>
+                    <Following />
                 </Tab.Content>
             </Tab >
         </div >

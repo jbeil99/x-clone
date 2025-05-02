@@ -1,6 +1,8 @@
 from django.db import models
 from accounts.models import User
 import re
+from django.core.exceptions import ValidationError
+import os
 
 
 class Hashtag(models.Model):
@@ -28,11 +30,36 @@ class HashtagLog(models.Model):
         )
 
 
+def validate_media_type(value):
+    ext = os.path.splitext(value.name)[1].lower()
+    allowed_image_extensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"]
+    allowed_video_extensions = [".mp4", ".mov", ".webm", ".avi"]
+    allowed_extensions = allowed_image_extensions + allowed_video_extensions
+    if ext not in allowed_extensions:
+        raise ValidationError(
+            f"Unsupported file extension. Allowed extensions are: {', '.join(allowed_extensions)}"
+        )
+
+    if value.size > 50 * 1024 * 1024:  # 50MB limit
+        raise ValidationError("File size cannot exceed 50MB.")
+
+    return value
+
+
+class Media(models.Model):
+    file = models.FileField(upload_to="tweet_media/", validators=[validate_media_type])
+    tweet = models.ForeignKey(
+        "Tweet", on_delete=models.CASCADE, related_name="media", null=True, blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Media {self.id} for Tweet {self.tweet_id if self.tweet else 'None'}"
+
+
 class Tweet(models.Model):
-    views = models.PositiveIntegerField(default=0)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.CharField(max_length=280)
-    image = models.ImageField(blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tweets")
+    content = models.CharField(max_length=280, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     bookmarks = models.ManyToManyField(
         User, related_name="bookmarked_tweets", blank=True
@@ -41,19 +68,19 @@ class Tweet(models.Model):
         User, related_name="tweets_shared_directly", blank=True
     )
     views = models.ManyToManyField(User, related_name="viewed_tweets", blank=True)
-
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="replies", on_delete=models.CASCADE
     )
-
     hashtags = models.ManyToManyField(Hashtag, related_name="tweets", blank=True)
-
-    @staticmethod
-    def extract_mentions(content):
-        return re.findall(r"@(\w+)", content)
 
     class Meta:
         ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Tweet {self.id} by {self.user.username}"
+
+    def extract_mentions(self, content):
+        return re.findall(r"@(\w+)", content)
 
     def is_user_liked(self, user):
         return self.likes.filter(user=user).exists()
@@ -85,7 +112,7 @@ class Tweet(models.Model):
         return cls.objects.filter(hashtags=hashtag).order_by("-created_at")[:10]
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  # Save first so Tweet ID exists
+        super().save(*args, **kwargs)
         hashtags = self.extract_hashtags(self.content)
         for tag in hashtags:
             HashtagLog.objects.create(name=tag)

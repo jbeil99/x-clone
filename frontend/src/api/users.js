@@ -82,3 +82,12 @@ export const follow = async (username) => {
     const res = await authAxios.post(`user/${username}/follow/`)
     return res.data
 }
+
+export const followers = async (username) => {
+    const res = await authAxios.get(`user/${username}/followers`)
+    return res.data
+}
+export const followings = async (username) => {
+    const res = await authAxios.get(`user/${username}/following`)
+    return res.data
+}

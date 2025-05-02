@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Calendar,
   MapPin,
   Verified,
   ArrowLeft,
-  Link,
+  Link as LinkIcon,
   Cake,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import EditProfile from "./components/EditProfile";
 import { getUserByUsername } from "../../api/users";
-import { useParams, useLocation } from "react-router-dom";
-import { getUserLikes, getUserReplies, getUserTweets } from "../../api/tweets";
+import { useParams } from "react-router-dom";
+import { getUserLikes, getUserReplies, getUserTweets, getUserMedia } from "../../api/tweets";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../../store/slices/auth";
 import Tweet from "../../components/tweet/Tweet";
@@ -24,6 +26,7 @@ export default function UserProfile() {
   const [tweets, setTweets] = useState([]);
   const [likedTweets, setLikedTweets] = useState([]);
   const [replies, setReplies] = useState([]);
+  const [media, setMedia] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tweets");
   const { username } = useParams();
@@ -37,15 +40,17 @@ export default function UserProfile() {
         const userData = await getUserByUsername(!username || username == 'profile' ? user?.username : username);
         setUserData(userData);
         if (userData && userData.id) {
-          const [tweetRes, likesRes, repliesRes] = await Promise.all([
+          const [tweetRes, likesRes, repliesRes, mediaRes] = await Promise.all([
             getUserTweets(userData.id),
             getUserLikes(userData.id),
             getUserReplies(userData.id),
+            getUserMedia(userData?.username)
           ]);
 
           setTweets(tweetRes);
           setLikedTweets(likesRes);
           setReplies(repliesRes);
+          setMedia(mediaRes.results)
         }
       } catch (error) {
         console.error("Error fetching profile, tweets, likes, or replies:", error);
@@ -75,9 +80,9 @@ export default function UserProfile() {
     <div className="max-w-xl mx-auto bg-black text-white min-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-black bg-opacity-70 backdrop-blur-md px-4 py-3 flex items-center">
-        <button className="mr-6">
+        <Link className="mr-6" to="/">
           <ArrowLeft className="w-5 h-5" />
-        </button>
+        </Link>
         <div>
           <h2 className="font-bold text-lg">
             {userData.display_name || "Profile"}
@@ -118,7 +123,7 @@ export default function UserProfile() {
           )}
           {userData.website && (
             <div className="flex items-center gap-1 mr-3">
-              <Link className="w-4 h-4" />
+              <LinkIcon className="w-4 h-4" />
               <a
                 href={userData.website}
                 className="text-blue-500 hover:underline"
@@ -157,14 +162,19 @@ export default function UserProfile() {
         </div>
 
         <div className="flex gap-5 mb-4 text-sm">
-          <div>
-            <span className="font-bold">{userData.followed_count || 0}</span>{" "}
-            <span className="text-gray-500">Following</span>
-          </div>
-          <div>
-            <span className="font-bold">{userData.followers_count || 0}</span>{" "}
-            <span className="text-gray-500">Followers</span>
-          </div>
+          <Link to={`/profile/${user.username}/followers`}>
+            <div>
+              <span className="font-bold">{userData.following_count || 0}</span>{" "}
+              <span className="text-gray-500">Following</span>
+            </div>
+          </Link>
+          <Link to={`/profile/${user.username}/followers`}>
+            <div>
+              <span className="font-bold">{userData.followers_count || 0}</span>{" "}
+              <span className="text-gray-500">Followers</span>
+            </div>
+          </Link>
+
         </div>
 
         {/* Tabs */}
@@ -189,9 +199,13 @@ export default function UserProfile() {
           {activeTab === "tweets" && (
             <>
               {tweets.length > 0 ? (
-                tweets.map((tweet) => (
-                  <Tweet tweet={tweet} />
-                ))
+                tweets.map((tweet) => {
+                  if (isProfile) {
+                    return <Tweet tweet={tweet} />
+                  }
+                  console.log(userData)
+                  return <Tweet tweet={tweet} user={userData} />
+                })
               ) : (
                 <div className="text-center text-gray-500 py-8">No tweets yet</div>
               )}
@@ -212,21 +226,30 @@ export default function UserProfile() {
 
           {activeTab === "media" && (
             <>
-              {tweets.filter((tweet) => tweet.media_url).length > 0 ? (
-                tweets
-                  .filter((tweet) => tweet.media_url)
-                  .map((tweet) => (
-                    <div key={tweet.id} className="py-2 border-b border-gray-800">
-                      <p>{tweet.content}</p>
-                      <img
-                        src={tweet.media_url}
-                        alt="Tweet Media"
-                        className="mt-2 rounded-lg max-w-full"
-                      />
-                    </div>
-                  ))
+              {media && media.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {media.map((media) => (
+                    <Link to={`/status/${media.tweet}`}>
+                      <div key={media.id} className="rounded-lg overflow-hidden shadow-md">
+                        {media.file_url.endsWith('.mp4') || media.file_url.endsWith('.mov') ? (
+                          <video
+                            src={media.file_url}
+                            alt="User Media"
+                            className="w-full h-40 object-cover aspect-video"
+                          />
+                        ) : (
+                          <img
+                            src={media.file_url}
+                            alt="User Media"
+                            className="w-full h-40 object-cover aspect-square"
+                          />
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">No media content</div>
+                <div className="text-center text-gray-500 py-8">No media content available</div>
               )}
             </>
           )}
@@ -247,7 +270,7 @@ export default function UserProfile() {
         </div>
       </div>
 
-      <EditProfile open={isOpen} onClose={handleClose} />
+      <EditProfile open={isOpen} onClose={handleClose} setUserData={setUserData} />
     </div>
   );
 }

@@ -4,11 +4,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from accounts.models import User, Follow
-from tweets.models import Tweet
-from tweets.serializers import TweetSerializer
+from tweets.models import Tweet, Media, Retweets
+from tweets.serializers import TweetSerializer, MediaSerializer
 from .serializers import ProfileSerializer
 import random
 from django.shortcuts import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 
 
 class ProfileView(APIView):
@@ -35,14 +36,17 @@ class FollowView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if user_to_follow.is_user_followed(following_user):
-            following_user.following.filter(followed=user_to_follow).delete()
+        try:
+            follow_instance = Follow.objects.get(
+                follower=following_user, following=user_to_follow
+            )
+            follow_instance.delete()
             return Response(
                 {"message": f"You have unfollowed {username}."},
                 status=status.HTTP_200_OK,
             )
-        else:
-            Follow.objects.create(follower=following_user, followed=user_to_follow)
+        except Follow.DoesNotExist:
+            Follow.objects.create(follower=following_user, following=user_to_follow)
             return Response(
                 {"message": f"You are now following {username}."},
                 status=status.HTTP_200_OK,
@@ -68,16 +72,14 @@ class ProfileTweetViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, user_id=None):
-        """List all tweets by a specific user."""
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        tweets = Tweet.objects.filter(user=user, parent=None)
-        serializer = TweetSerializer(tweets, many=True, context={"request": request})
+        user = get_object_or_404(User, pk=user_id)
+        original_tweets = Tweet.objects.filter(user=user, parent=None)
+        retweets = Retweets.objects.filter(user=user)
+        retweeted_tweets = [retweet.tweet for retweet in retweets]
+        all_tweets = list(original_tweets) + retweeted_tweets
+        serializer = TweetSerializer(
+            all_tweets, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="likes/(?P<user_id>[^/.]+)")
@@ -97,15 +99,13 @@ class ProfileTweetViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"], url_path="retweets/(?P<user_id>[^/.]+)")
     def retweets(self, request, user_id=None):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        retweets = Tweet.objects.filter(user=user).exclude(parent=None)
-        serializer = TweetSerializer(retweets, many=True, context={"request": request})
+        tweet = get_object_or_404(Tweet, pk=user_id)
+        retweets = Retweets.objects.filter(tweet=tweet)  # Filter by the Retweets model
+        serializer = TweetSerializer(
+            [retweet.tweet for retweet in retweets],
+            many=True,
+            context={"request": request},
+        )
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="replies/(?P<user_id>[^/.]+)")
@@ -140,10 +140,11 @@ class WhoToFollowView(APIView):
 
     def get(self, request):
         current_user = request.user
-        print(current_user, "ssssssssssssssssss")
-        following_users = current_user.followed.all()
-        excluded_users = [current_user.id] + [user.id for user in following_users]
-        available_users = User.objects.exclude(id__in=excluded_users)
+        following_user_ids = current_user.following.values_list(
+            "following__id", flat=True
+        )
+        excluded_user_ids = list(following_user_ids) + [current_user.id]
+        available_users = User.objects.exclude(id__in=excluded_user_ids)
         random_users = random.sample(
             list(available_users), min(5, available_users.count())
         )
@@ -151,3 +152,40 @@ class WhoToFollowView(APIView):
             random_users, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+
+class UserFollowersView(APIView):
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        followers = user.user_followers
+        paginator = PageNumberPagination()
+        paginated_followers = paginator.paginate_queryset(followers, request)
+        serializer = ProfileSerializer(
+            paginated_followers, many=True, context={"request": request}
+        )
+        return paginator.get_paginated_response(serializer.data)
+
+
+class UserFollowingView(APIView):
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        following = user.user_following
+        paginator = PageNumberPagination()
+        paginated_following = paginator.paginate_queryset(following, request)
+        serializer = ProfileSerializer(
+            paginated_following, many=True, context={"request": request}
+        )
+        return paginator.get_paginated_response(serializer.data)
+
+
+class UserMediaView(APIView):
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        tweets_with_media = (
+            Tweet.objects.filter(user=user).filter(media__isnull=False).distinct()
+        )
+        media_items = Media.objects.filter(tweet__in=tweets_with_media)
+        paginator = PageNumberPagination()
+        paginated_media = paginator.paginate_queryset(media_items, request)
+        serializer = MediaSerializer(paginated_media, many=True)
+        return paginator.get_paginated_response(serializer.data)
