@@ -5,43 +5,49 @@ from .utils import create_notification
 
 User = get_user_model()
 
-@receiver(post_save, sender='profiles.Follow')
+
+@receiver(post_save, sender="accounts.Follow")
 def create_follow_notification(sender, instance, created, **kwargs):
     if created:
         create_notification(
             sender=instance.follower,
             recipient=instance.following,
-            notification_type='follow',
-            related_object=instance
+            notification_type="follow",
+            related_object=instance,
         )
 
-@receiver(post_save, sender='tweets.Like')
+
+@receiver(post_save, sender="tweets.Likes")
 def create_like_notification(sender, instance, created, **kwargs):
     if created:
         create_notification(
             sender=instance.user,
             recipient=instance.tweet.user,
-            notification_type='like',
-            related_object=instance.tweet
-        )
-
-@receiver(post_save, sender='tweets.Comment')
-def create_comment_notification(sender, instance, created, **kwargs):
-    if created:
-        create_notification(
-            sender=instance.user,
-            recipient=instance.tweet.user,
-            notification_type='comment',
+            notification_type="like",
             related_object=instance.tweet,
-            text=instance.content[:50]
         )
 
-@receiver(post_save, sender='tweets.Retweet')
+
+# TODO: Comment is a tweet with parent
+
+# @receiver(post_save, sender='tweets.Comment')
+# def create_comment_notification(sender, instance, created, **kwargs):
+#     if created:
+#         create_notification(
+#             sender=instance.user,
+#             recipient=instance.tweet.user,
+#             notification_type='comment',
+#             related_object=instance.tweet,
+#             text=instance.content[:50]
+#         )
+
+
+@receiver(post_save, sender="tweets.Retweets")
 def create_retweet_notification(sender, instance, created, **kwargs):
     if created:
         create_notification(
             sender=instance.user,
             recipient=instance.tweet.user,
-            notification_type='retweet',
-            related_object=instance.tweet
+            notification_type="retweet",
+            related_object=instance.tweet,
         )

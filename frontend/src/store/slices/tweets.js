@@ -3,15 +3,15 @@ import { addTweet, bookmark, getTweets, likeTweet, retweet, getForYouTweets } fr
 
 export const fetchTweets = createAsyncThunk(
     'tweets/fetchTweets',
-    async (args, { rejectWithValue }) => {
+    async (pageUrl, { rejectWithValue }) => {
         try {
             const [tweetRes, forYouTweetsRes] = await Promise.all([
-                getTweets(),
-                getForYouTweets(),
+                getTweets(pageUrl),
+                getForYouTweets(pageUrl),
             ]);
             return {
-                tweets: forYouTweetsRes.results,
-                followingTweets: tweetRes.results,
+                tweets: forYouTweetsRes,
+                followingTweets: tweetRes,
             };
         } catch (error) {
             return rejectWithValue(error.response ? error.response.data : error.message);
@@ -75,6 +75,8 @@ const tweetsSlice = createSlice({
         followingTweets: [],
         loading: false,
         error: null,
+        nextPageUrl: null,
+        hasMore: null
     },
     reducers: {
 
@@ -86,8 +88,16 @@ const tweetsSlice = createSlice({
         });
         builder.addCase(fetchTweets.fulfilled, (state, action) => {
             state.loading = false;
-            state.tweets = action.payload.tweets;
-            state.followingTweets = action.payload.followingTweets;
+            if (action.meta.arg === undefined) {
+                state.followingTweets = action.payload.followingTweets.results;
+                state.tweets = action.payload.tweets.results;
+            } else {
+                state.followingTweets = [...state.followingTweets, ...action.payload.followingTweets.results];
+                state.tweets = [...state.tweets, ...action.payload.tweets.results];
+            }
+
+            state.nextPageUrl = action.payload.followingTweets.next;
+            state.hasMore = action.payload.followingTweets.next ? true : false
 
         });
         builder.addCase(fetchTweets.rejected, (state, action) => {
@@ -99,7 +109,7 @@ const tweetsSlice = createSlice({
 
         builder.addCase(postTweets.fulfilled, (state, action) => {
             state.loading = false;
-            state.followingTweets = [action.payload, ...state.tweets];
+            state.followingTweets = [action.payload, ...state.followingTweets];
         });
 
         builder.addCase(postLikes.fulfilled, (state, action) => {

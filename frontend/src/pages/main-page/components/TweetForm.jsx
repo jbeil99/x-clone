@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { MapPin, Calendar, Globe2, Film, BarChart2, Smile, Image, X, Video } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { postTweets } from '../../../store/slices/tweets';
+import Tab from "../../../components/tab";
 
 const tweetSchema = z.object({
     content: z.string()
@@ -35,7 +36,7 @@ const tweetSchema = z.object({
 
 export default function TweetForm({ parent, isReply = false, author, setReplies, replies }) {
     const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
-
+    const { setActive } = useContext(Tab.Context)
     const fileInputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [mediaType, setMediaType] = useState(null);
@@ -65,7 +66,6 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
     const onSubmit = async (data) => {
         setIsSubmitting(true);
         try {
-            console.log("Tweet submitted:", data);
             const action = await dispatch(postTweets({ data, parent }));
             if (isReply) {
                 setReplies([action.payload, ...replies])
@@ -76,7 +76,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
             })
             setPreviewUrl(null);
             setMediaType(null);
-
+            setActive("following")
         } catch (error) {
             console.error("Error posting tweet:", error);
         } finally {

@@ -2,7 +2,15 @@ import Tab from "../../components/tab";
 import ForYou from "./components/ForYou";
 import TweetForm from "./components/TweetForm";
 import Following from "./components/Following";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchTweets } from "../../store/slices/tweets";
+import { useEffect } from "react";
+
 export default function MainPage() {
+    const dispatch = useDispatch()
+    useEffect(() => {
+        dispatch(fetchTweets());
+    }, [dispatch]);
     return (
         <div className="min-h-screen bg-black">
             <Tab activeTab="all-posts">
