@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "channels",
     "chat",
     'grok',
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -87,6 +88,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "core.wsgi.application"
+ASGI_APPLICATION = "core.asgi.application"
 
 
 # Database
@@ -231,9 +233,9 @@ PASSWORD_RESET_TIMEOUT = 86400
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-ASGI_APPLICATION = "core.asgi.application"
-
-# Channel layers
+# Channels configuration
 CHANNEL_LAYERS = {
-    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
 }
