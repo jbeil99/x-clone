@@ -1,12 +1,22 @@
 import { authAxios } from "./useAxios";
 
-export const getTweets = async () => {
-    const res = await authAxios.get(`tweets`)
+export const getTweets = async (pageUrl) => {
+    let res;
+    if (pageUrl) {
+        res = await authAxios.get(`${pageUrl}`)
+    } else {
+        res = await authAxios.get(`tweets`)
+    }
     return res.data
 }
 
-export const getForYouTweets = async () => {
-    const res = await authAxios.get(`tweets?type=discover`)
+export const getForYouTweets = async (pageUrl) => {
+    let res;
+    if (pageUrl) {
+        res = await authAxios.get(`${pageUrl}`)
+    } else {
+        res = await authAxios.get(`tweets?type=discover`)
+    }
     return res.data
 }
 export const getTweetByID = async (id) => {

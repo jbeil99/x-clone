@@ -55,4 +55,6 @@ Tab.Item = function TabItem({ children, id }) {
 Tab.Content = function TabContent({ children, id }) {
 	const { active } = useContext(TabContext)
 	return active === id ? <div>{children}</div> : null
-} 
+}
+
+Tab.Context = TabContext;
