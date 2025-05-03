@@ -78,24 +78,40 @@ export default function Messages() {
         }
         setLastMessages(lastMsgsObj);
         
-        for (const user of res.data) {
-          try {
-            const msgRes = await authAxios.get(`chat/messages/?user=${user.id}`);
-            
-            if (msgRes.data.length > 0) {
-              const lastMsg = msgRes.data[msgRes.data.length - 1];
-              setLastMessages(prev => ({
-                ...prev,
-                [user.id]: { 
-                  content: lastMsg.content, 
-                  timestamp: lastMsg.timestamp 
-                }
-              }));
+        const fetchLastMessages = async () => {
+          const promises = res.data.map(async (user) => {
+            try {
+              const msgRes = await authAxios.get(`chat/messages/?user=${user.id}&last_only=true`);
+              
+              if (msgRes.data.length > 0) {
+                const lastMsg = msgRes.data[msgRes.data.length - 1];
+                return {
+                  userId: user.id,
+                  content: lastMsg.content,
+                  timestamp: lastMsg.timestamp
+                };
+              }
+              return { userId: user.id, content: "", timestamp: null };
+            } catch (err) {
+              console.error(`Error fetching messages for user ${user.id}:`, err);
+              return { userId: user.id, content: "", timestamp: null };
             }
-          } catch (err) {
-            console.error(`Error fetching messages for user ${user.id}:`, err);
-          }
-        }
+          });
+          
+          const results = await Promise.all(promises);
+          
+          const newLastMessages = {};
+          results.forEach(result => {
+            newLastMessages[result.userId] = {
+              content: result.content,
+              timestamp: result.timestamp
+            };
+          });
+          
+          setLastMessages(newLastMessages);
+        };
+        
+        fetchLastMessages();
       } catch (error) {
         setError("Failed to load users. Please try again later.");
       } finally {
@@ -142,9 +158,7 @@ export default function Messages() {
           }
         }));
         
-        // Handle unread messages
         if (senderId !== me.id) {
-          // If the message is not from the current user and not from the selected user or chat is not visible
           if (!selectedUser || selectedUser.id !== senderId || !showChat) {
             setUnreadMessages(prev => ({
               ...prev,
@@ -152,6 +166,13 @@ export default function Messages() {
             }));
             
             setTotalUnread(prev => prev + 1);
+            
+            try {
+              const audio = new Audio('/notification.mp3');
+              audio.play().catch(e => console.log("Audio play failed:", e));
+            } catch (error) {
+              console.error("Error playing notification sound:", error);
+            }
           }
           
           if (selectedUser && (senderId === selectedUser.id || receiverId === selectedUser.id)) {
@@ -250,6 +271,7 @@ export default function Messages() {
       };
     }, [showEmojiPicker]);
 
+    // useEffect للحصول على الرسائل عند تغيير المستخدم المحدد فقط
     useEffect(() => {
       if (!other) return;
       
@@ -264,45 +286,52 @@ export default function Messages() {
       };
       
       fetchMessages();
+    }, [other]); // تنفيذ فقط عند تغيير المستخدم المحدد
+    
+    // useEffect منفصل للتعامل مع رسائل WebSocket
+    useEffect(() => {
+      if (!other || !socket) return;
       
-      if (socket) {
-        const messageHandler = (event) => {
-          const data = JSON.parse(event.data);
+      const messageHandler = (event) => {
+        const data = JSON.parse(event.data);
+        
+        if (data.action === "message" || data.action === "message_sent") {
+          const messageData = data.action === "message_sent" ? data.message : data;
+          const senderId = messageData.sender;
+          const receiverId = messageData.receiver;
           
-          if (data.action === "message" || data.action === "message_sent") {
-            const messageData = data.action === "message_sent" ? data.message : data;
-            const senderId = messageData.sender;
-            const receiverId = messageData.receiver;
+          if ((senderId === me.id && receiverId === other.id) || 
+              (senderId === other.id && receiverId === me.id)) {
             
-            if ((senderId === me.id && receiverId === other.id) || 
-                (senderId === other.id && receiverId === me.id)) {
-              
-              const isDuplicate = messages.some(msg => 
+            setMessages(prev => {
+              // التحقق من عدم وجود رسائل مكررة
+              const isDuplicate = prev.some(msg => 
                 msg.content === messageData.content && 
                 msg.sender === senderId && 
                 msg.timestamp === messageData.timestamp
               );
               
               if (!isDuplicate) {
-                setMessages(prev => [...prev, {
+                return [...prev, {
                   id: Date.now(),
                   sender: senderId,
                   receiver: receiverId,
                   content: messageData.content,
                   timestamp: messageData.timestamp
-                }]);
+                }];
               }
-            }
+              return prev;
+            });
           }
-        };
-        
-        socket.addEventListener("message", messageHandler);
-        
-        return () => {
-          socket.removeEventListener("message", messageHandler);
-        };
-      }
-    }, [other, socket, messages]);
+        }
+      };
+      
+      socket.addEventListener("message", messageHandler);
+      
+      return () => {
+        socket.removeEventListener("message", messageHandler);
+      };
+    }, [other, socket, me]);
 
     useEffect(() => {
       if (initialLoad || (messages.length > 0 && messages[messages.length - 1].sender === me.id)) {

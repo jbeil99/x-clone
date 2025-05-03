@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { authAxios } from '../../api/useAxios';
 import { currentUser } from '../../api/users';
 import EmojiPicker from 'emoji-picker-react';
+import messageEvents from '../../utils/messageEvents';
 export default function MessagesBox({ isMessagesPage }) {
     const navigate = useNavigate();
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
@@ -44,7 +45,6 @@ export default function MessagesBox({ isMessagesPage }) {
     useEffect(() => {
         if (!me) return;
 
-        // Connect to WebSocket
         const ws = new WebSocket(`ws://localhost:8000/ws/chat/${me.id}/`);
 
         ws.onopen = () => {
@@ -55,13 +55,11 @@ export default function MessagesBox({ isMessagesPage }) {
             const data = JSON.parse(event.data);
 
             if (data.action === "message" && data.sender !== me.id) {
-                // If we're not viewing messages from this sender, increment the unread count
                 const isViewingSender = (isMessagesPage || isMessagesTabOpen) && selectedUser && data.sender === selectedUser.id;
 
                 if (!isViewingSender) {
                     setUnreadMessageCount(prev => prev + 1);
 
-                    // Update last message for this user if we have them in our list
                     if (users.find(u => u.id === data.sender)) {
                         setLastMessages(prev => ({
                             ...prev,
@@ -72,7 +70,6 @@ export default function MessagesBox({ isMessagesPage }) {
                         }));
                     }
 
-                    // Play notification sound
                     try {
                         const audio = new Audio('/notification.mp3');
                         audio.play().catch(e => console.log("Audio play failed:", e));
@@ -81,7 +78,6 @@ export default function MessagesBox({ isMessagesPage }) {
                     }
                 }
 
-                // If messages tab is open and we have a selected user that matches the sender
                 if (isMessagesTabOpen && selectedUser && data.sender === selectedUser.id) {
                     // Add the message to the current conversation
                     const newMsg = {
@@ -137,11 +133,15 @@ export default function MessagesBox({ isMessagesPage }) {
             if (!me) return;
 
             try {
-                // Get total unread count
-                const totalResponse = await authAxios.get('/chat/unread-count/');
-                setUnreadMessageCount(totalResponse.data.count);
 
-                // Get unread count by user
+                const totalResponse = await authAxios.get('/chat/unread-count/');
+                const count = totalResponse.data.count;
+                setUnreadMessageCount(count);
+                
+
+                messageEvents.emit('unreadMessagesUpdated', count);
+
+
                 const byUserResponse = await authAxios.get('/chat/unread-by-user/');
                 setUnreadByUser(byUserResponse.data);
             } catch (error) {
@@ -152,8 +152,8 @@ export default function MessagesBox({ isMessagesPage }) {
         // Initial fetch
         fetchUnreadMessages();
 
-        // Set up periodic polling (every 15 seconds) as a fallback
-        const intervalId = setInterval(fetchUnreadMessages, 15000);
+        // Set up periodic polling (every 5 seconds) for more frequent updates
+        const intervalId = setInterval(fetchUnreadMessages, 5000);
 
         return () => clearInterval(intervalId);
     }, [me]);
@@ -215,7 +215,11 @@ export default function MessagesBox({ isMessagesPage }) {
             // Reset unread count for this specific user only
             if (unreadByUser[selectedUser.id]) {
                 // Update total unread count
-                setUnreadMessageCount(prev => Math.max(0, prev - unreadByUser[selectedUser.id]));
+                const newCount = Math.max(0, unreadMessageCount - unreadByUser[selectedUser.id]);
+                setUnreadMessageCount(newCount);
+                
+                // إرسال إشارة بتحديث عداد الرسائل
+                messageEvents.emit('unreadMessagesUpdated', newCount);
 
                 // Reset unread count for this specific user
                 setUnreadByUser(prev => ({
@@ -232,6 +236,9 @@ export default function MessagesBox({ isMessagesPage }) {
             if (unreadMessageCount > 0) {
                 setUnreadMessageCount(0);
                 setUnreadByUser({});
+                
+                // إرسال إشارة بتحديث عداد الرسائل
+                messageEvents.emit('unreadMessagesUpdated', 0);
 
                 // Mark all messages as read
                 authAxios.post('chat/mark-all-as-read/')

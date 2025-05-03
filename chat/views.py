@@ -12,7 +12,7 @@ import mimetypes
 
 User = get_user_model()
 
-# Create your views here.
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -32,13 +32,13 @@ def get_messages(request):
     except (TypeError, ValueError):
         return Response({'detail': 'user id must be integer'}, status=400)
     
-    # Get all messages between the current user and the other user
+
     messages = Message.objects.filter(
         (models.Q(sender=request.user, receiver_id=other_id) |
          models.Q(sender_id=other_id, receiver=request.user))
     ).order_by('timestamp')
     
-    # Mark messages as read if the current user is the receiver
+
     unread_messages = messages.filter(receiver=request.user, read=False)
     if unread_messages.exists():
         unread_messages.update(read=True)
@@ -76,7 +76,7 @@ def send_message_with_file(request):
     if not receiver:
         return Response({'detail': 'receiver not found'}, status=404)
     
-    # Determine file type
+
     file_type = 'file'
     mime_type = mimetypes.guess_type(file.name)[0]
     if mime_type:
@@ -101,10 +101,8 @@ def send_message_with_file(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_unread_count(request):
-    """
-    Get the count of unread messages for the current user
-    """
-    # Count messages where the current user is the receiver and has not read them
+
+
     unread_count = Message.objects.filter(
         receiver=request.user,
         read=False
@@ -116,14 +114,12 @@ def get_unread_count(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mark_as_read(request):
-    """
-    Mark messages from a specific sender as read
-    """
+
     sender_id = request.data.get('sender')
     if not sender_id:
         return Response({'detail': 'sender id required'}, status=400)
     
-    # Mark all messages from this sender to the current user as read
+
     updated = Message.objects.filter(
         sender_id=sender_id,
         receiver=request.user,
@@ -136,10 +132,8 @@ def mark_as_read(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mark_all_as_read(request):
-    """
-    Mark all messages for the current user as read
-    """
-    # Mark all messages to the current user as read
+
+
     updated = Message.objects.filter(
         receiver=request.user,
         read=False
@@ -151,16 +145,14 @@ def mark_all_as_read(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_unread_by_user(request):
-    """
-    Get the count of unread messages grouped by sender
-    """
-    # Get all users who have sent unread messages to the current user
+
+
     unread_messages = Message.objects.filter(
         receiver=request.user,
         read=False
     ).values('sender').annotate(count=models.Count('id'))
     
-    # Convert to a dictionary with user_id as key and count as value
+
     unread_counts = {}
     for item in unread_messages:
         unread_counts[str(item['sender'])] = item['count']

@@ -3,9 +3,34 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSelector } from "react-redux";
+import { useState, useEffect } from 'react';
+import { authAxios } from '../../api/useAxios';
+import messageEvents from '../../utils/messageEvents';
 
 export default function Navigations() {
     const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
+    const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+    
+    useEffect(() => {
+        const fetchUnreadMessages = async () => {
+            try {
+                const response = await authAxios.get('/chat/unread-count/');
+                setUnreadMessageCount(response.data.count);
+            } catch (error) {
+                console.error("Failed to fetch unread message count:", error);
+            }
+        };
+
+        fetchUnreadMessages();
+        
+        const unsubscribe = messageEvents.on('unreadMessagesUpdated', (count) => {
+            setUnreadMessageCount(count);
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
 
     const sidebarItems = [
         { icon: Home, text: 'Home', path: '/' },
@@ -35,9 +60,16 @@ export default function Navigations() {
                         <Link
                             key={item.text}
                             to={item.path}
-                            className="flex items-center gap-4 text-lg font-medium hover:bg-gray-900 px-4 py-3 rounded-full transition-colors"
+                            className="flex items-center gap-4 text-lg font-medium hover:bg-gray-900 px-4 py-3 rounded-full transition-colors relative"
                         >
-                            <item.icon className="h-6 w-6" />
+                            <div className="relative">
+                                <item.icon className="h-6 w-6" />
+                                {item.text === 'Messages' && unreadMessageCount > 0 && (
+                                    <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                                        {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
+                                    </div>
+                                )}
+                            </div>
                             <span>{item.text}</span>
                         </Link>
                     ))}
