@@ -24,7 +24,7 @@ def create_follow_notification(sender, instance, created, **kwargs):
             related_object=instance,
         )
 
-@receiver(post_save, sender='tweets.Like')
+@receiver(post_save, sender='tweets.Likes')
 def create_like_notification(sender, instance, created, **kwargs):
     # Skip migrations and other non-Likes objects
     if not hasattr(instance, 'user') or not hasattr(instance, 'tweet'):
@@ -38,14 +38,19 @@ def create_like_notification(sender, instance, created, **kwargs):
             related_object=instance.tweet
         )
 
-@receiver(post_save, sender='tweets.Comment')
+@receiver(post_save, sender='tweets.Tweet')
 def create_comment_notification(sender, instance, created, **kwargs):
-    if created:
+    # Skip if this is not a comment (reply) or if there's no parent tweet
+    if not created or not instance.parent:
+        return
+        
+    # Don't notify yourself
+    if instance.user.id != instance.parent.user.id:
         create_notification(
             sender=instance.user,
-            recipient=instance.tweet.user,
+            recipient=instance.parent.user,
             notification_type='comment',
-            related_object=instance.tweet,
+            related_object=instance.parent,
             text=instance.content[:50]
         )
 
@@ -62,3 +67,4 @@ def create_retweet_notification(sender, instance, created, **kwargs):
             notification_type='retweet',
             related_object=instance.tweet
         )
+
