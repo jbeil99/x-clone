@@ -11,6 +11,10 @@ from channels.auth import AuthMiddlewareStack
 import chat.routing
 import notifications.routing
 
+# استيراد تطبيق Socket.IO
+from notifications.socketio import sio
+
+# تكوين تطبيق ASGI
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(

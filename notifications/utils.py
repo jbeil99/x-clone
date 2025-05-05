@@ -1,7 +1,6 @@
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 from django.contrib.contenttypes.models import ContentType
 import json
+import asyncio
 
 from .models import Notification
 
@@ -23,30 +22,49 @@ def create_notification(sender, recipient, notification_type, related_object=Non
     
     notification.save()
     
-    channel_layer = get_channel_layer()
-    notification_data = {
-        "type": "notification_message",
-        "id": notification.id,
-        "sender": {
-            "id": sender.id,
-            "username": sender.username,
-        },
-        "notification_type": notification_type,
-        "text": text,
-        "created_at": notification.created_at.isoformat(),
-        "is_read": False
-    }
-    
-    if related_object:
-        notification_data["related_object"] = {
-            "id": related_object.id,
-            "type": related_object.__class__.__name__.lower()
-        }
-    
-    async_to_sync(channel_layer.group_send)(
-        f"notifications_{recipient.id}",
-        notification_data
-    )
+    try:
+        from .socketio import sio, get_user_id_from_sid
+        import asyncio
+        
+        async def send_notification(notification):
+            notification_data = {
+                "type": "notification",
+                "id": notification.id,
+                "sender": {
+                    "id": sender.id,
+                    "username": sender.username,
+                },
+                "notification_type": notification_type,
+                "text": text,
+                "created_at": notification.created_at.isoformat(),
+                "is_read": False
+            }
+            
+            if related_object:
+                notification_data["related_object"] = {
+                    "id": related_object.id,
+                    "type": related_object.__class__.__name__.lower()
+                }
+            
+            # Send to all user's sessions
+            from .socketio import user_sessions
+            if recipient.id in user_sessions:
+                for sid in user_sessions[recipient.id]:
+                    await sio.emit('notification', notification_data, room=sid)
+        
+        # Get or create event loop
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        if loop.is_running():
+            asyncio.run_coroutine_threadsafe(send_notification(notification), loop)
+        else:
+            loop.run_until_complete(send_notification(notification))
+    except ImportError:
+        pass  # Socket.IO not available
     
     return notification
 

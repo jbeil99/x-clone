@@ -1,6 +1,6 @@
 from django.urls import path
-from . import consumers
+from .socketio import NotificationConsumerSocketIO
 
 websocket_urlpatterns = [
-    path('ws/notifications/', consumers.NotificationConsumer.as_asgi()),
+    path('ws/socketio/', NotificationConsumerSocketIO.as_asgi()),
 ]

@@ -13,6 +13,7 @@ import Hashtags from "./pages/hashtags/Hastags";
 import Bookmark from "./pages/main-page/Bookmark";
 import Users from "./pages/profile/components/Users";
 import GrokPage from "./pages/grok/GrokPage";
+import Notifications from "./pages/Notifications";
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
           <Route path="status/:id" element={<Layout><TweetDetail /></Layout>} />
           <Route path="/hashtags/:name" element={<Layout><Hashtags /></Layout>} />
           <Route path="/messages" element={<Layout><Messages /></Layout>} />
+          <Route path="/notifications" element={<Layout><Notifications /></Layout>} />
           <Route path="/profile/:username" element={<Layout><UserProfile /></Layout>} />
           <Route path="/bookmarks" element={<Layout><Bookmark /></Layout>} />
           <Route path="/profile/:username/followers" element={<Layout><Users /></Layout>} />

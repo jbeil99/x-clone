@@ -1,37 +1,124 @@
 import {
     Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Link as LinkIcon, Sparkles
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from "react-redux";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { authAxios } from '../../api/useAxios';
 import messageEvents from '../../utils/messageEvents';
+import notificationEvents from '../../utils/notificationEvents';
 import { UserAction } from './UserAction';
 
 export default function Navigations() {
     const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+    const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+    const [socketReady, setSocketReady] = useState(false);
+    const location = useLocation();
 
+    // Fetch unread message count - memoized with useCallback
+    const fetchUnreadMessages = useCallback(async () => {
+        try {
+            const response = await authAxios.get('/chat/unread-count/');
+            setUnreadMessageCount(response.data.count);
+        } catch (error) {
+            console.error("Failed to fetch unread message count:", error);
+        }
+    }, []);
+
+    // Fetch unread notification count - memoized with useCallback
+    const fetchUnreadNotifications = useCallback(async () => {
+        try {
+            const response = await authAxios.get('/notifications/unread_count/');
+            console.log("Unread notification count fetched:", response.data);
+            setUnreadNotificationCount(response.data.count);
+        } catch (error) {
+            console.error("Failed to fetch unread notification count:", error);
+        }
+    }, []);
+
+    // Handle messages
     useEffect(() => {
-        const fetchUnreadMessages = async () => {
-            try {
-                const response = await authAxios.get('/chat/unread-count/');
-                setUnreadMessageCount(response.data.count);
-            } catch (error) {
-                console.error("Failed to fetch unread message count:", error);
-            }
-        };
-
+        // Initial fetch
         fetchUnreadMessages();
 
+        // Listen for message updates
         const unsubscribe = messageEvents.on('unreadMessagesUpdated', (count) => {
             setUnreadMessageCount(count);
         });
 
+        // Polling for messages
+        const intervalId = setInterval(fetchUnreadMessages, 60000);
+
         return () => {
             unsubscribe();
+            clearInterval(intervalId);
         };
-    }, []);
+    }, [fetchUnreadMessages]);
+
+    // Set up WebSocket connection for notifications
+    useEffect(() => {
+        // Connect to the socket for notifications
+        notificationEvents.connect()
+            .then(() => {
+                setSocketReady(true);
+                console.log("Socket connection established successfully in Navigations");
+                // Fetch notification count after socket is connected
+                fetchUnreadNotifications();
+            })
+            .catch(error => {
+                console.error("Failed to establish socket connection:", error);
+                // Still try to fetch notification count even if socket fails
+                fetchUnreadNotifications();
+            });
+        
+        // Listen for unread notification count updates
+        const unsubscribeUnreadCount = notificationEvents.on('unread_count', (data) => {
+            console.log("Unread notification count updated:", data);
+            if (data && typeof data.count === 'number') {
+                setUnreadNotificationCount(data.count);
+            }
+        });
+        
+        // Listen for new notifications
+        const unsubscribeNewNotification = notificationEvents.on('notification_message', (data) => {
+            console.log("New notification received in Navigations:", data);
+            // Only increment counter if not on notifications page
+            if (location.pathname !== '/notifications') {
+                setUnreadNotificationCount(prev => prev + 1);
+            }
+        });
+        
+        // Listen for notification read status updates
+        const unsubscribeNotificationRead = notificationEvents.on('notification_read', (data) => {
+            console.log("Notification marked as read in Navigations:", data);
+            // Update counter when a notification is marked as read
+            if (data && typeof data.unread_count === 'number') {
+                setUnreadNotificationCount(data.unread_count);
+            } else {
+                // If unread_count is not provided, decrement the counter
+                setUnreadNotificationCount(prev => Math.max(0, prev - 1));
+            }
+        });
+        
+        // Listen for all notifications read status update
+        const unsubscribeAllRead = notificationEvents.on('all_notifications_read', () => {
+            console.log("All notifications marked as read in Navigations");
+            // Reset counter when all notifications are marked as read
+            setUnreadNotificationCount(0);
+        });
+
+        // Polling for notification count
+        const intervalId = setInterval(fetchUnreadNotifications, 60000);
+
+        return () => {
+            unsubscribeUnreadCount();
+            unsubscribeNewNotification();
+            unsubscribeNotificationRead();
+            unsubscribeAllRead();
+            clearInterval(intervalId);
+        };
+    }, [location.pathname, fetchUnreadNotifications]);
 
     const sidebarItems = [
         { icon: Home, text: 'Home', path: '/' },
@@ -61,13 +148,18 @@ export default function Navigations() {
                         <Link
                             key={item.text}
                             to={item.path}
-                            className="flex items-center gap-4 text-lg font-medium hover:bg-gray-900 px-4 py-3 rounded-full transition-colors relative"
+                            className={`flex items-center gap-4 text-lg font-medium hover:bg-gray-900 px-4 py-3 rounded-full transition-colors relative ${location.pathname === item.path ? 'font-bold' : ''}`}
                         >
                             <div className="relative">
-                                <item.icon className="h-6 w-6" />
+                                <item.icon className={`h-6 w-6 ${location.pathname === item.path ? 'text-blue-500' : ''}`} />
                                 {item.text === 'Messages' && unreadMessageCount > 0 && (
                                     <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                                         {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
+                                    </div>
+                                )}
+                                {item.text === 'Notifications' && unreadNotificationCount > 0 && (
+                                    <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                                        {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
                                     </div>
                                 )}
                             </div>

@@ -10,16 +10,13 @@ from .utils import create_notification
 
 User = get_user_model()
 
-
-@receiver(post_save, sender="accounts.Follow")
+@receiver(post_save, sender='profiles.Follow')
 def create_follow_notification(sender, instance, created, **kwargs):
     # Skip migrations and other non-Follow objects
-    if not hasattr(instance, "follower") or not hasattr(instance, "following"):
+    if not hasattr(instance, 'follower') or not hasattr(instance, 'following'):
         return
-
-    if (
-        created and instance.follower.id != instance.following.id
-    ):  # Don't notify yourself
+        
+    if created and instance.follower.id != instance.following.id:  # Don't notify yourself
         create_notification(
             sender=instance.follower,
             recipient=instance.following,
@@ -27,49 +24,47 @@ def create_follow_notification(sender, instance, created, **kwargs):
             related_object=instance,
         )
 
-
-@receiver(post_save, sender="tweets.Likes")
+@receiver(post_save, sender='tweets.Likes')
 def create_like_notification(sender, instance, created, **kwargs):
     # Skip migrations and other non-Likes objects
-    if not hasattr(instance, "user") or not hasattr(instance, "tweet"):
+    if not hasattr(instance, 'user') or not hasattr(instance, 'tweet'):
         return
-
+        
     if created and instance.user.id != instance.tweet.user.id:  # Don't notify yourself
         create_notification(
             sender=instance.user,
             recipient=instance.tweet.user,
-            notification_type="like",
-            related_object=instance.tweet,
+            notification_type='like',
+            related_object=instance.tweet
         )
 
-
-@receiver(post_save, sender="tweets.Tweet")
+@receiver(post_save, sender='tweets.Tweet')
 def create_comment_notification(sender, instance, created, **kwargs):
     # Skip if this is not a comment (reply) or if there's no parent tweet
     if not created or not instance.parent:
         return
-
+        
     # Don't notify yourself
     if instance.user.id != instance.parent.user.id:
         create_notification(
             sender=instance.user,
             recipient=instance.parent.user,
-            notification_type="comment",
+            notification_type='comment',
             related_object=instance.parent,
-            text=instance.content[:50],
+            text=instance.content[:50]
         )
 
-
-@receiver(post_save, sender="tweets.Retweets")
+@receiver(post_save, sender='tweets.Retweet')
 def create_retweet_notification(sender, instance, created, **kwargs):
     # Skip migrations and other non-Retweets objects
-    if not hasattr(instance, "user") or not hasattr(instance, "tweet"):
+    if not hasattr(instance, 'user') or not hasattr(instance, 'tweet'):
         return
-
+        
     if created and instance.user.id != instance.tweet.user.id:  # Don't notify yourself
         create_notification(
             sender=instance.user,
             recipient=instance.tweet.user,
-            notification_type="retweet",
-            related_object=instance.tweet,
+            notification_type='retweet',
+            related_object=instance.tweet
         )
+
