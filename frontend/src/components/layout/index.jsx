@@ -17,7 +17,11 @@ export default function Layout({ children }) {
         <div className="min-h-screen bg-black text-white flex justify-center relative">
             <div className="flex w-full max-w-[1280px]">
                 {/* Left Sidebar */}
-                <Navigations />
+                <div className="hidden lg:block">
+    <div className="sticky top-0 h-screen flex flex-col justify-between">
+        <Navigations />
+    </div>
+</div>
 
                 {/* Main Content */}
                 <main className={`flex-1 min-w-0 ${!isMessagesPage ? 'border-r border-gray-800' : ''} flex justify-center`}>
