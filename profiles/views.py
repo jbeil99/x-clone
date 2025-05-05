@@ -5,7 +5,7 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from accounts.models import User, Follow
 from tweets.models import Tweet, Media, Retweets
-from tweets.serializers import TweetSerializer, MediaSerializer
+from tweets.serializers import TweetSerializer, MediaSerializer, RetweetSerializer
 from .serializers import ProfileSerializer
 import random
 from django.shortcuts import get_object_or_404
@@ -76,11 +76,21 @@ class ProfileTweetViewSet(viewsets.ViewSet):
         original_tweets = Tweet.objects.filter(user=user, parent=None)
         retweets = Retweets.objects.filter(user=user)
         retweeted_tweets = [retweet.tweet for retweet in retweets]
-        all_tweets = list(original_tweets) + retweeted_tweets
-        serializer = TweetSerializer(
-            all_tweets, many=True, context={"request": request}
+        original_serializer = TweetSerializer(
+            original_tweets, many=True, context={"request": request}
         )
-        return Response(serializer.data)
+        retweeted_serializer = RetweetSerializer(
+            retweeted_tweets, many=True, context={"request": request}
+        )
+        original_data = original_serializer.data
+        for tweet_data in original_data:
+            tweet_data["is_retweet"] = False
+
+
+        combined_data = retweeted_serializer.data + original_data 
+        sorted_combined_data = sorted(combined_data, key=lambda x: x['created_at'], reverse=True)
+
+        return Response(sorted_combined_data)
 
     @action(detail=False, methods=["get"], url_path="likes/(?P<user_id>[^/.]+)")
     def likes(self, request, user_id=None):
