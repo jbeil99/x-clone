@@ -56,7 +56,7 @@ class TweetSerializer(serializers.ModelSerializer):
     author = UserSerializer(source="user", read_only=True)
     replies_count = serializers.SerializerMethodField()
     is_retweet = serializers.SerializerMethodField()
-    retweeted_by = serializers.SerializerMethodField()  # New field
+    retweeted_by = serializers.SerializerMethodField()
     hashtags = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="name"
     )
@@ -88,10 +88,10 @@ class TweetSerializer(serializers.ModelSerializer):
             "replies_count",
             "parent",
             "is_retweet",
-            "retweeted_by",  # Include the new field
+            "retweeted_by",
             "hashtags",
             "mentions",
-            "media",  # Write-only field for file upload
+            "media",
         ]
         extra_kwargs = {"user": {"write_only": True}}
 
@@ -106,20 +106,14 @@ class TweetSerializer(serializers.ModelSerializer):
 
     def get_iliked(self, obj):
         request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return False
         return obj.is_user_liked(request.user)
 
     def get_ibookmarked(self, obj):
         request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return False
         return obj.is_user_bookmarked(request.user)
 
     def get_iretweeted(self, obj):
         request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return False
         return obj.is_user_retweeted(request.user)
 
     def get_time(self, obj):

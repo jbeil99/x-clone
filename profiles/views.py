@@ -100,7 +100,7 @@ class ProfileTweetViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"], url_path="retweets/(?P<user_id>[^/.]+)")
     def retweets(self, request, user_id=None):
         tweet = get_object_or_404(Tweet, pk=user_id)
-        retweets = Retweets.objects.filter(tweet=tweet)  # Filter by the Retweets model
+        retweets = Retweets.objects.filter(tweet=tweet)
         serializer = TweetSerializer(
             [retweet.tweet for retweet in retweets],
             many=True,

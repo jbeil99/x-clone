@@ -59,7 +59,7 @@ export const activateAccount = async (uid, token) => {
 
 export const updateProfile = async (data) => {
     const formData = new FormData();
-    formData.append("name", data.name);
+    formData.append("display_name", data.display_name);
     formData.append("bio", data.bio);
     if (data.avatar) formData.append("avatar", data.avatar);
     if (data.cover_image) formData.append("cover_image", data.cover_image);

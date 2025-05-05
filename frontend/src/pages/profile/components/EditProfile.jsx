@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 
 
 const editProfileSchema = z.object({
-  name: z.string().min(3, { message: "Name must be at least 3 characters" }),
+  display_name: z.string().min(3, { message: "Name must be at least 3 characters" }),
   bio: z.string().max(255, { message: "Bio must not exceed 255 characters" }),
   location: z.string().optional(),
   date_of_birth: z.string().optional(), // Made optional without age restriction
@@ -57,16 +57,15 @@ const EditProfile = ({ open, onClose, setUserData }) => {
   } = useForm({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
-      name: user?.display_name || "",
+      display_name: user?.display_name || "",
       bio: user?.bio || "",
       location: user?.location || "",
-      date_of_birth: user?.date_of_birth || "", // Initialize from user data if exists
+      date_of_birth: user?.date_of_birth || "",
       avatar: null,
       cover_image: null,
     },
   });
 
-  // Set initial previews from user data on component mount
   useEffect(() => {
     if (user?.avatar_url) {
       setAvatarPreview(user.avatar_url);
@@ -98,6 +97,7 @@ const EditProfile = ({ open, onClose, setUserData }) => {
   };
 
   const onSubmit = async (data) => {
+    console.log(data)
     try {
       const user = await updateProfile(data);
       setUserData(user)
@@ -199,14 +199,14 @@ const EditProfile = ({ open, onClose, setUserData }) => {
           <div className="p-6 mt-6 space-y-6">
             {/* Name Field */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-400 text-sm">Name</Label>
+              <Label htmlFor="display_name" className="text-gray-400 text-sm">Name</Label>
               <Input
-                id="name"
-                {...register("name")}
+                id="display_name"
+                {...register("display_name")}
                 className="bg-transparent border-0 border-b border-gray-800 rounded-none px-0 focus-visible:ring-0 focus-visible:border-gray-600"
               />
-              {errors.name && (
-                <p className="text-red-500 text-sm">{errors.name.message}</p>
+              {errors.display_name && (
+                <p className="text-red-500 text-sm">{errors.display_name.message}</p>
               )}
             </div>
 

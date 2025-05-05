@@ -203,7 +203,6 @@ export default function UserProfile() {
                   if (isProfile) {
                     return <Tweet tweet={tweet} />
                   }
-                  console.log(userData)
                   return <Tweet tweet={tweet} user={userData} />
                 })
               ) : (

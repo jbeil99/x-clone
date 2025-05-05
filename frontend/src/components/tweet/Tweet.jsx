@@ -83,7 +83,6 @@ export default function Tweet({ tweet, setPost }) {
                                 <span className="text-gray-500 truncate max-w-full">@{tweet?.author?.username} · {tweet?.time}</span>
                             </div>
 
-                            {/* Display tweet content if it exists */}
                             {tweet?.content && (
                                 <div
                                     className="my-2 whitespace-pre-wrap break-words cursor-text"

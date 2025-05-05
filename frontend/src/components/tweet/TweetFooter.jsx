@@ -5,22 +5,22 @@ import { useState } from 'react';
 import ShareButton from './ShareButton';
 
 export default function TweetFooter({ tweet, setPost }) {
-    const [liked, setLiked] = useState(false);
-    const [retweeted, setRetweeted] = useState(false);
-    const [bookmarked, setBookmarked] = useState(false);
-    const repliesCount = tweet?.replies_count || 0;
-    const retweetsCount = tweet?.retweets_count || 0;
-    const likesCount = tweet?.likes_count || 0;
-    const viewsCount = tweet?.views_count || 0;
+    const [liked, setLiked] = useState(tweet.iliked);
+    const [likesCount, setLikesCount] = useState(tweet?.likes_count || 0);
+    const [retweetsCount, setRetweetsCount] = useState(tweet?.retweets_count || 0);
+    const [repliesCount, setRepliesCount] = useState(tweet?.replies_count || 0);
+    const [viewsCount, setViewsCount] = useState(tweet?.replies_count || 0);
+    const [retweeted, setRetweeted] = useState(tweet.iretweeted);
+    const [bookmarked, setBookmarked] = useState(tweet.ibookmarked);
     const dispatch = useDispatch()
-    const heartColor = tweet.iliked ? 'text-red-500' : 'text-gray-500 hover:text-red-500';
+    const heartColor = liked ? 'text-red-500' : 'text-gray-500 hover:text-red-500';
 
     const handleLikeClick = async (e) => {
         e.stopPropagation();
         try {
             const action = await dispatch(postLikes(tweet.id))
-            console.log(action)
-            setLiked(!liked);
+            setLiked(action.payload.iliked);
+            setLikesCount(action.payload.iliked ? likesCount + 1 : likesCount - 1)
             if (setPost) (
                 setPost(action.payload)
             )
@@ -42,7 +42,8 @@ export default function TweetFooter({ tweet, setPost }) {
         try {
             const action = await dispatch(postRetweets(tweet.id))
             console.log(action)
-            setRetweeted(!retweeted);
+            setRetweeted(action.payload.iretweeted);
+            setRetweetsCount(action.payload.iretweeted ? retweetsCount + 1 : retweetsCount - 1)
             if (setPost) (
                 setPost(action.payload)
             )
@@ -54,8 +55,7 @@ export default function TweetFooter({ tweet, setPost }) {
         e.stopPropagation();
         try {
             const action = await dispatch(postBookmark(tweet.id))
-            console.log(action)
-            setBookmarked(!bookmarked);
+            setBookmarked(action.payload.ibookmarked);
             if (setPost) (
                 setPost(action.payload)
             )
@@ -71,7 +71,7 @@ export default function TweetFooter({ tweet, setPost }) {
             </div>
 
             <div
-                className={`flex items-center group cursor-pointer transition-colors duration-200 ${tweet.iretweeted ? 'text-green-500' : 'hover:text-green-500'}`}
+                className={`flex items-center group cursor-pointer transition-colors duration-200 ${retweeted ? 'text-green-500' : 'hover:text-green-500'}`}
                 onClick={handleRetweetClick}
             >
                 <Repeat className="w-4 h-4" />
@@ -86,10 +86,10 @@ export default function TweetFooter({ tweet, setPost }) {
                 <span className="text-sm ml-1">{formatCount(likesCount)}</span>
             </div>
             <div
-                className={`flex items-center group cursor-pointer transition-colors duration-200 ${tweet.ibookmarked ? 'text-yellow-500' : 'hover:text-yellow-500'}`}
+                className={`flex items-center group cursor-pointer transition-colors duration-200 ${bookmarked ? 'text-yellow-500' : 'hover:text-yellow-500'}`}
                 onClick={handleBookmarkClick}
             >
-                <BookmarkPlus className={`w-4 h-4 ${tweet.ibookmarked ? 'fill-current' : ''}`} />
+                <BookmarkPlus className={`w-4 h-4 ${bookmarked ? 'fill-current' : ''}`} />
             </div>
             <div className="flex items-center group cursor-pointer hover:text-blue-400 transition-colors duration-200">
                 <ShareButton />

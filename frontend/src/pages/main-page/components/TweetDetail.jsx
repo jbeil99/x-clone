@@ -34,7 +34,7 @@ export default function TweetDetail() {
         }
         getPosts()
         getReplies()
-    }, [])
+    }, [id])
 
     return (
         <div className="bg-black text-white font-sans w-full mx-auto">

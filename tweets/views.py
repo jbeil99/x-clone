@@ -2,7 +2,16 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Tweet, Likes, Retweets, Hashtag, Mention, TweetShare, HashtagLog
+from .models import (
+    Tweet,
+    Likes,
+    Retweets,
+    Hashtag,
+    Mention,
+    TweetShare,
+    HashtagLog,
+    Bookmark,
+)
 from .serializers import (
     TweetSerializer,
     HashtagSerializer,
@@ -194,12 +203,13 @@ class BookmarkTweetView(APIView):
 
     def post(self, request, pk):
         tweet = get_object_or_404(Tweet, pk=pk)
-        user = request.user
-        if tweet.bookmarks.filter(id=user.id).exists():
-            tweet.bookmarks.remove(user)
-        tweet.bookmarks.add(user)
+        if Bookmark.objects.filter(user=request.user, tweet=tweet).exists():
+            bookmark = Bookmark.objects.get(user=request.user, tweet=tweet)
+            bookmark.delete()
+        else:
+            Bookmark.objects.create(user=request.user, tweet=tweet)
         serializer = TweetSerializer(tweet, context={"request": request})
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BookmarksList(APIView):

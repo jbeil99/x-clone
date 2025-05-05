@@ -36,7 +36,7 @@ const tweetSchema = z.object({
 
 export default function TweetForm({ parent, isReply = false, author, setReplies, replies }) {
     const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
-    const { setActive } = useContext(Tab.Context)
+    const context = useContext(Tab.Context)
     const fileInputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [mediaType, setMediaType] = useState(null);
@@ -76,7 +76,9 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
             })
             setPreviewUrl(null);
             setMediaType(null);
-            setActive("following")
+            if (context) {
+                context.setActive("following")
+            }
         } catch (error) {
             console.error("Error posting tweet:", error);
         } finally {

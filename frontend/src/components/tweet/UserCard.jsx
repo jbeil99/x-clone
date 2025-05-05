@@ -11,14 +11,12 @@ import UserInfo from './UserInfo';
 
 export default function UserCard({ username, match }) {
     const [user, setUser] = useState()
-    const [isFollowing, setIsFollowing] = useState(user?.ifollow);
 
     useEffect(() => {
         const getUserData = async () => {
             try {
                 const res = await getUserByUsername(username)
                 setUser(res)
-                setIsFollowing(res.ifollow)
             } catch (e) {
                 console.log(e)
             }
@@ -37,7 +35,7 @@ export default function UserCard({ username, match }) {
                 </Link>
             </HoverCardTrigger>
             <HoverCardContent className="w-72 p-0 bg-black text-white border border-gray-700">
-                <UserInfo user={user} isFollowing={isFollowing} setIsFollowing={setIsFollowing} />
+                <UserInfo user={user} />
             </HoverCardContent>
         </HoverCard>
     )

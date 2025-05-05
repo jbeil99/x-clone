@@ -61,9 +61,6 @@ class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tweets")
     content = models.CharField(max_length=280, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    bookmarks = models.ManyToManyField(
-        User, related_name="bookmarked_tweets", blank=True
-    )
     shared_by_users = models.ManyToManyField(
         User, related_name="tweets_shared_directly", blank=True
     )
@@ -86,7 +83,7 @@ class Tweet(models.Model):
         return self.likes.filter(user=user).exists()
 
     def is_user_bookmarked(self, user):
-        return self.bookmarks.filter(pk=user.pk).exists()
+        return self.bookmarked_by.filter(user=user).exists()
 
     def is_user_retweeted(self, user):
         return self.retweets.filter(user=user).exists()
@@ -97,7 +94,7 @@ class Tweet(models.Model):
 
     @classmethod
     def get_bookmarked_tweets(cls, user):
-        return cls.objects.filter(bookmarks=user)
+        return cls.objects.filter(bookmarked_by__user=user)
 
     @classmethod
     def get_top_tweets_by_hashtag(cls, hashtag):
