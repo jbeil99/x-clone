@@ -136,7 +136,7 @@ export default function Navigations() {
     ];
 
     return (
-        <div className="flex flex-col w-16 sm:w-[275px] px-2 sm:px-4 py-4 border-r border-gray-800 items-center sm:items-stretch">
+        <div className="flex flex-col w-16 sm:w-[275px] px-2 sm:px-4 py-4 border-r border-gray-800 items-center sm:items-stretch sticky top-0 h-screen">
             <div>
                 <div className="text-xl font-bold mb-8 ml-3">
                     <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor">

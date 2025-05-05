@@ -29,7 +29,9 @@ export default function Layout({ children }) {
                 {/* Right Sidebar - Hidden on small screens and Messages page */}
                 {!isMessagesPage && (
                     <div className="hidden lg:block">
-                        <Recomendations />
+                        <div className="sticky top-0 h-screen overflow-y-auto">
+                            <Recomendations />
+                        </div>
                     </div>
                 )}
             </div>
