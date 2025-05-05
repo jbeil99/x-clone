@@ -6,11 +6,12 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from 'react';
 import { authAxios } from '../../api/useAxios';
 import messageEvents from '../../utils/messageEvents';
+import { UserAction } from './UserAction';
 
 export default function Navigations() {
     const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-    
+
     useEffect(() => {
         const fetchUnreadMessages = async () => {
             try {
@@ -22,7 +23,7 @@ export default function Navigations() {
         };
 
         fetchUnreadMessages();
-        
+
         const unsubscribe = messageEvents.on('unreadMessagesUpdated', (count) => {
             setUnreadMessageCount(count);
         });
@@ -84,7 +85,7 @@ export default function Navigations() {
                         <div className="font-bold truncate">{user?.name}</div>
                         <div className="text-gray-500 text-sm truncate">@{user?.username}</div>
                     </div>
-                    <MoreHorizontal className="text-gray-500" />
+                    <UserAction className="text-gray-500" />
                 </div>
             </div>
         </div>

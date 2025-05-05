@@ -7,8 +7,15 @@ import {
 import Login from "./Login"
 import { FaXTwitter } from "react-icons/fa6";
 import { GoogleLogin } from '@react-oauth/google';
+import { googleSignIn, } from '../../store/slices/auth';
+import { useDispatch, } from 'react-redux';
 
 export default function LoginDialog({ open, onOpenChange, setDialogType }) {
+  const dispatch = useDispatch();
+
+  const handleGoogleLogin = async (credentialResponse) => {
+    dispatch(googleSignIn(credentialResponse));
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] bg-black text-white" aria-describedby={undefined}
@@ -27,7 +34,7 @@ export default function LoginDialog({ open, onOpenChange, setDialogType }) {
           <div className="flex-grow h-px bg-gray-700"></div>
         </div>
         <GoogleLogin
-          onSuccess={(credentialResponse) => console.log(credentialResponse)}
+          onSuccess={handleGoogleLogin}
           onError={() => console.log('Login Failed')}
           shape="pill"
         />
