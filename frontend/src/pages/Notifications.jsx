@@ -152,21 +152,15 @@ export default function Notifications() {
     };
 
     // Follow back a user
-    const handleFollowBack = async (userId, event) => {
+    const handleFollowBack = async (userId, username, event) => {
         event.stopPropagation(); // Prevent notification click event
         
         try {
-            await authAxios.post(`/users/${userId}/follow/`);
+            await authAxios.post(`/user/${username}/follow/`);
             console.log('Successfully followed user');
             
-            // Update the notification to show "Following" instead of "Follow back"
-            setNotifications(prev => 
-                prev.map(notification => 
-                    notification.sender?.id === userId && notification.notification_type === 'follow'
-                        ? { ...notification, followed_back: true }
-                        : notification
-                )
-            );
+            // Optionally, re-fetch notifications to get updated followed_back from backend
+            fetchNotifications();
         } catch (error) {
             console.error('Failed to follow user:', error);
         }
@@ -342,15 +336,15 @@ export default function Notifications() {
                             </div>
                         </div>
                         <div className="ml-auto flex-shrink-0">
-                            {!followed_back && (
+                            {!notification.followed_back && (
                                 <button 
                                     className="bg-white text-black rounded-full px-4 py-1 text-sm font-bold hover:bg-gray-200 transition-colors"
-                                    onClick={(e) => handleFollowBack(sender?.id, e)}
+                                    onClick={(e) => handleFollowBack(sender?.id, sender?.username, e)}
                                 >
                                     Follow back
                                 </button>
                             )}
-                            {followed_back && (
+                            {notification.followed_back && (
                                 <div className="text-gray-500 flex items-center">
                                     <Check className="h-4 w-4 mr-1" />
                                     <span className="text-sm">Following</span>
