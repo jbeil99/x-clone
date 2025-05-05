@@ -95,19 +95,19 @@ const Feed = () => {
 
   return (
     <main className="max-w-2xl mx-auto w-full border-r border-gray-800 min-h-screen p-4 bg-black">
-      {/* Stats */}
+     
       <section className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         {stats.map((stat, index) => (
           <StatCard key={index} {...stat} />
         ))}
       </section>
 
-      {/* Chart Placeholder */}
+      
       <div className="bg-gray-900 p-6 rounded-lg shadow-md h-64 flex items-center justify-center mb-6">
         <p className="text-gray-500">📈 Chart coming soon</p>
       </div>
 
-      {/* Trends */}
+     
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Trending Topics</h2>
         <div className="space-y-1 bg-gray-900 rounded-xl overflow-hidden">
@@ -117,10 +117,10 @@ const Feed = () => {
         </div>
       </section>
 
-      {/* Recent Activity */}
+      
       <RecentActivity activities={activity} />
 
-      {/* News */}
+      
       <section>
         <h2 className="text-xl font-semibold mb-4">Latest News</h2>
         <div className="space-y-4">
@@ -130,7 +130,7 @@ const Feed = () => {
         </div>
       </section>
 
-      {/* Error Message */}
+     
       {error && <p className="text-red-500 text-center mt-4">{error}</p>}
     </main>
   );
