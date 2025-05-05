@@ -115,17 +115,17 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
     };
 
     return (
-        <div className="border-b border-gray-800">
-            <form onSubmit={handleSubmit(onSubmit)} className="pt-3 pb-0 px-4">
-                <div className="flex gap-3">
-                    <img src={user?.avatar_url} alt={user?.username} className="w-11 h-11 rounded-full object-cover mt-1" />
+        <div className="border-b border-gray-800 w-full">
+            <form onSubmit={handleSubmit(onSubmit)} className="pt-3 pb-0 px-2 sm:px-4">
+                <div className="flex gap-2 sm:gap-3">
+                    <img src={user?.avatar_url} alt={user?.username} className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover mt-1" />
                     <div className="flex-1 min-w-0">
                         {isReply ? <div className="text-xs text-gray-400 mb-2">
                             Replying to <span className="text-blue-400">@{author?.username}</span>
                         </div> : ""}
 
                         <textarea
-                            className="w-full bg-transparent outline-none resize-none text-xl mb-1 placeholder:text-gray-400 dark:text-white"
+                            className="w-full bg-transparent outline-none resize-none text-base sm:text-xl mb-1 placeholder:text-gray-400 dark:text-white"
                             placeholder={textAreaText}
                             rows="2"
                             {...register("content")}
@@ -181,16 +181,16 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between py-2">
-                            <div className="flex gap-2 text-blue-500">
+                        <div className="flex items-center justify-between py-2 flex-wrap gap-y-2">
+                            <div className="flex gap-1 sm:gap-2 text-blue-500 flex-wrap">
                                 <button
                                     className="p-1.5 hover:bg-blue-900/30 rounded-full relative"
                                     onClick={() => fileInputRef.current.click()}
                                     title="Add image or video"
                                     type="button"
                                 >
-                                    <Image className="w-5 h-5" />
-                                    <Video className="w-5 h-5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60" />
+                                    <Image className="w-5 h-5 sm:w-6 sm:h-6" />
+                                    <Video className="w-4 h-4 sm:w-5 sm:h-5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60" />
                                     <input
                                         type="file"
                                         ref={fileInputRef}
@@ -200,19 +200,19 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                                     />
                                 </button>
                                 <button className="p-1.5 hover:bg-blue-900/30 rounded-full" title="Add GIF" type="button">
-                                    <Film className="w-5 h-5" />
+                                    <Film className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                                 <button className="p-1.5 hover:bg-blue-900/30 rounded-full" title="Add poll" type="button">
-                                    <BarChart2 className="w-5 h-5" />
+                                    <BarChart2 className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                                 <button className="p-1.5 hover:bg-blue-900/30 rounded-full" title="Add emoji" type="button">
-                                    <Smile className="w-5 h-5" />
+                                    <Smile className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                                 <button className="p-1.5 hover:bg-blue-900/30 rounded-full" title="Schedule" type="button">
-                                    <Calendar className="w-5 h-5" />
+                                    <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                                 <button className="p-1.5 hover:bg-blue-900/30 rounded-full" title="Add location" type="button">
-                                    <MapPin className="w-5 h-5" />
+                                    <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                             </div>
                             <button

@@ -21,14 +21,16 @@ export default function Layout({ children }) {
 
                 {/* Main Content */}
                 <main className={`flex-1 min-w-0 ${!isMessagesPage ? 'border-r border-gray-800' : ''} flex justify-center`}>
-                    <div className={`w-full ${!isMessagesPage ? 'max-w-[600px]' : ''}`}>
+                    <div className={`w-full ${!isMessagesPage ? 'lg:max-w-[600px]' : ''}`}>
                         {children}
                     </div>
                 </main>
 
-                {/* Right Sidebar - Hidden on Messages page */}
+                {/* Right Sidebar - Hidden on small screens and Messages page */}
                 {!isMessagesPage && (
-                    <Recomendations />
+                    <div className="hidden lg:block">
+                        <Recomendations />
+                    </div>
                 )}
             </div>
 
