@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { addTweet, bookmark, getTweets, likeTweet, retweet, getForYouTweets } from '../../api/tweets';
+import { addTweet, bookmark, getTweets, likeTweet, retweet, getForYouTweets, deleteTweet } from '../../api/tweets';
 
 export const fetchTweets = createAsyncThunk(
     'tweets/fetchTweets',
@@ -62,6 +62,18 @@ export const postBookmark = createAsyncThunk(
         try {
             const res = await bookmark(id);
             return res;
+        } catch (error) {
+            return rejectWithValue(error.response ? error.response.data : error.message);
+        }
+    }
+);
+
+export const deleteTweetAction = createAsyncThunk(
+    'tweets/deleteTweetAction',
+    async (id, { rejectWithValue }) => {
+        try {
+            const res = await deleteTweet(id);
+            return id;
         } catch (error) {
             return rejectWithValue(error.response ? error.response.data : error.message);
         }
@@ -150,6 +162,17 @@ const tweetsSlice = createSlice({
                     ? action.payload
                     : tweet
             );
+        });
+        builder.addCase(deleteTweetAction.fulfilled, (state, action) => {
+            state.loading = false;
+            console.log(action.payload, "wtf")
+            state.tweets = state.tweets.filter(tweet =>
+                tweet.id !== action.payload
+            );
+            state.followingTweets = state.followingTweets.filter(tweet =>
+                tweet.id !== action.payload
+            );
+            state.successMessage = 'Tweet deleted successfully';
         });
 
     },

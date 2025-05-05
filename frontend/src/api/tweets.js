@@ -51,6 +51,11 @@ export const likeTweet = async (id) => {
     return res.data
 }
 
+export const deleteTweet = async (id) => {
+    const res = await authAxios.delete(`tweets/${id}/`)
+    return res.data
+}
+
 export const retweet = async (id) => {
     const res = await authAxios.post(`tweets/${id}/retweet/`)
     return res.data

@@ -113,7 +113,7 @@ export default function Tweet({ tweet, setPost }) {
                                 </div>
                             )}
                         </div>
-                        <TweetActions />
+                        <TweetActions tweet={tweet} />
                     </div>
 
                     <TweetFooter tweet={tweet} setPost={setPost} />

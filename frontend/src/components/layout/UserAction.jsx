@@ -19,7 +19,6 @@ export function UserAction() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const handleLoagout = () => {
-        console.log('clikced')
         dispatch(logout())
         navigate("/auth")
     }
