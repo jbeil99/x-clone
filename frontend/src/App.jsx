@@ -14,8 +14,8 @@ import Bookmark from "./pages/main-page/Bookmark";
 import Users from "./pages/profile/components/Users";
 import GrokPage from "./pages/grok/GrokPage";
 import Notifications from "./pages/Notifications";
-
-
+// import Profile from './pages/Profile';
+import Dashboard from './pages/dashboard/Dashboard';
 function App() {
   return (
     <BrowserRouter>
@@ -37,6 +37,7 @@ function App() {
           <Route path="/profile/:username/followers" element={<Layout><Users /></Layout>} />
 
           <Route path="/grok" element={<Layout><GrokPage /></Layout>} />
+          <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
         </Route>
         <Route path='*' element={<Layout><div > Not found</div></Layout>} />
 
