@@ -13,10 +13,20 @@ class UserSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
     related_object_info = serializers.SerializerMethodField()
+    followed_back = serializers.SerializerMethodField()
     
     class Meta:
         model = Notification
-        fields = ['id', 'sender', 'notification_type', 'text', 'created_at', 'is_read', 'related_object_info']
+        fields = ['id', 'sender', 'notification_type', 'text', 'created_at', 'is_read', 'related_object_info', 'followed_back']
+    
+    def get_followed_back(self, obj):
+        # Only relevant for follow notifications
+        request = self.context.get('request', None)
+        if obj.notification_type == 'follow' and obj.sender and request:
+            from accounts.models import Follow
+            user = request.user
+            return Follow.objects.filter(follower=user, following=obj.sender).exists()
+        return False
     
     def get_related_object_info(self, obj):
         """Get information about the related object based on its type"""

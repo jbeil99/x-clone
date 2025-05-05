@@ -6,11 +6,12 @@ import re
 
 from profiles.models import Profile
 from tweets.models import Tweet, Likes, Retweets, TweetShare
+from accounts.models import Follow
 from .utils import create_notification
 
 User = get_user_model()
 
-@receiver(post_save, sender='profiles.Follow')
+@receiver(post_save, sender=Follow)
 def create_follow_notification(sender, instance, created, **kwargs):
     # Skip migrations and other non-Follow objects
     if not hasattr(instance, 'follower') or not hasattr(instance, 'following'):
@@ -24,7 +25,7 @@ def create_follow_notification(sender, instance, created, **kwargs):
             related_object=instance,
         )
 
-@receiver(post_save, sender='tweets.Likes')
+@receiver(post_save, sender=Likes)
 def create_like_notification(sender, instance, created, **kwargs):
     # Skip migrations and other non-Likes objects
     if not hasattr(instance, 'user') or not hasattr(instance, 'tweet'):
@@ -38,7 +39,7 @@ def create_like_notification(sender, instance, created, **kwargs):
             related_object=instance.tweet
         )
 
-@receiver(post_save, sender='tweets.Tweet')
+@receiver(post_save, sender=Tweet)
 def create_comment_notification(sender, instance, created, **kwargs):
     # Skip if this is not a comment (reply) or if there's no parent tweet
     if not created or not instance.parent:
@@ -54,7 +55,7 @@ def create_comment_notification(sender, instance, created, **kwargs):
             text=instance.content[:50]
         )
 
-@receiver(post_save, sender='tweets.Retweet')
+@receiver(post_save, sender=Retweets)
 def create_retweet_notification(sender, instance, created, **kwargs):
     # Skip migrations and other non-Retweets objects
     if not hasattr(instance, 'user') or not hasattr(instance, 'tweet'):
@@ -67,4 +68,3 @@ def create_retweet_notification(sender, instance, created, **kwargs):
             notification_type='retweet',
             related_object=instance.tweet
         )
-
