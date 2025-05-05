@@ -33,9 +33,9 @@ export default function Layout({ children }) {
             </div>
 
             {/* Messages Tab at bottom */}
-            {/* {!isMessagesPage && (
+            {!isMessagesPage && (
                 <MessagesBox isMessagesPage={isMessagesPage} />
-            )} */}
+            )} 
         </div>
     );
 }
