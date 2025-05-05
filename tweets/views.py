@@ -250,7 +250,7 @@ class RandomPostsView(APIView):
 
     def get(self, request):
         user = request.user
-        following_users = user.followed.all()
+        following_users = user.user_following
 
         limit = request.query_params.get("limit", 10)
         try:
