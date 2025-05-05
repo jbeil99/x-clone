@@ -70,7 +70,7 @@ class TweetList(generics.ListCreateAPIView):
 
         if tweet_type == "all":
             return (
-                Tweet.objects.all()
+                Tweet.get_tweets()
                 .select_related("user")
                 .prefetch_related("likes", "retweets", "replies", "media")
             )
@@ -78,7 +78,7 @@ class TweetList(generics.ListCreateAPIView):
         elif tweet_type == "following":
             following_users_ids.append(user.id)
 
-            original_tweets = Tweet.objects.filter(user__id__in=following_users_ids)
+            original_tweets = Tweet.objects.filter(user__id__in=following_users_ids, parent=None)
             retweets = Tweet.objects.filter(retweets__user__id__in=following_users_ids)
 
             return (
