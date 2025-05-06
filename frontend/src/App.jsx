@@ -16,6 +16,7 @@ import GrokPage from "./pages/grok/GrokPage";
 import Notifications from "./pages/Notifications";
 // import Profile from './pages/Profile';
 import Dashboard from './pages/dashboard/Dashboard';
+import ChatApp from "./pages/grok/ChatApp";
 function App() {
   return (
     <BrowserRouter>
@@ -36,7 +37,9 @@ function App() {
           <Route path="/bookmarks" element={<Layout><Bookmark /></Layout>} />
           <Route path="/profile/:username/followers" element={<Layout><Users /></Layout>} />
 
-          <Route path="/grok" element={<Layout><GrokPage /></Layout>} />
+          {/* <Route path="/grok" element={<Layout><GrokPage /></Layout>} /> */}
+          <Route path="/grok" element={<Layout><ChatApp /></Layout>} />
+
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
         </Route>
         <Route path='*' element={<Layout><div > Not found</div></Layout>} />
