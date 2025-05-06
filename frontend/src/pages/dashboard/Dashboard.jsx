@@ -72,6 +72,16 @@ const Dashboard = () => {
             value={stats.total_followers}
             change={8.2}
           />
+            <StatCard
+            title="Users"
+            value={stats.total_followers}
+            change={8.2}
+          />
+            <StatCard
+            title="Reported Tweets"
+            value={stats.total_followers}
+            change={8.2}
+          />
         </div>
 
         {/* Chart Placeholder */}

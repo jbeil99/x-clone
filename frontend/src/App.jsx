@@ -16,6 +16,9 @@ import GrokPage from "./pages/grok/GrokPage";
 import Notifications from "./pages/Notifications";
 // import Profile from './pages/Profile';
 import Dashboard from './pages/dashboard/Dashboard';
+import SettingsPage from './pages/SettingsPage'
+import AccountSettings from './pages/AccountSettings'
+
 function App() {
   return (
     <BrowserRouter>
@@ -38,6 +41,9 @@ function App() {
 
           <Route path="/grok" element={<Layout><GrokPage /></Layout>} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/SettingsPage" element={<Layout><SettingsPage /></Layout>} />
+          <Route path="/settings/your-account" element={<Layout><AccountSettings /></Layout>} />
+
         </Route>
         <Route path='*' element={<Layout><div > Not found</div></Layout>} />
 

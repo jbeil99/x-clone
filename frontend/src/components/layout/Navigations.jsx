@@ -1,5 +1,5 @@
 import {
-    Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Link as LinkIcon, Sparkles
+    Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, Briefcase, Users, Zap, CheckCircle2, MessageCircle, Image, MapPin, Calendar, Settings ,Link as LinkIcon, Sparkles
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from "react-redux";
@@ -133,6 +133,7 @@ export default function Navigations() {
         { icon: CheckCircle2, text: 'Verified Orgs', path: '/verified-orgs' },
         { icon: User, text: 'Profile', path: `/profile/${user?.username}` },
         { icon: MoreHorizontal, text: 'More', path: '/more' },
+        { icon: Settings, text: 'settings', path: '/SettingsPage' },
     ];
 
     return (
