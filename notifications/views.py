@@ -41,7 +41,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def test_notification(self, request):
         recipient_id = request.data.get('recipient_id')
         notification_type = request.data.get('notification_type', 'follow')
-        text = request.data.get('text', 'هذا إشعار تجريبي')
+        text = request.data.get('text', 'This is a test notification')
         
         from django.contrib.auth import get_user_model
         User = get_user_model()
@@ -50,7 +50,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
             recipient = User.objects.get(id=recipient_id)
         except User.DoesNotExist:
             return Response(
-                {'error': 'المستخدم المستقبل غير موجود'}, 
+                {'error': 'Recipient user not found'}, 
                 status=status.HTTP_404_NOT_FOUND
             )
         
@@ -63,11 +63,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
         
         if notification:
             return Response(
-                {'success': 'تم إنشاء الإشعار بنجاح', 'notification_id': notification.id}, 
+                {'success': 'Notification created successfully', 'notification_id': notification.id}, 
                 status=status.HTTP_201_CREATED
             )
         else:
             return Response(
-                {'error': 'فشل إنشاء الإشعار'}, 
+                {'error': 'Failed to create notification'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )

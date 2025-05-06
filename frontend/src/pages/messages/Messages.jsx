@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Search, Settings, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut, AlertTriangle } from 'lucide-react';
 import { currentUser } from "../../api/users";
 import { authAxios } from "../../api/useAxios";
 import EmojiPicker from 'emoji-picker-react';
@@ -599,14 +599,8 @@ export default function Messages() {
                 <div className={`max-w-[70%] rounded-2xl px-3 py-2 ${
                   isSentByMe 
                     ? 'bg-blue-500 text-white rounded-br-none' 
-                    : msg.is_spam ? 'bg-amber-800 text-white rounded-bl-none' : 'bg-gray-800 text-white rounded-bl-none'
+                    : 'bg-gray-800 text-white rounded-bl-none'
                 }`}>
-                  {!isSentByMe && msg.is_spam && (
-                    <div className="flex items-center mb-1 text-yellow-300">
-                      <AlertTriangle size={14} className="mr-1" />
-                      <span className="text-xs font-bold">Spam</span>
-                    </div>
-                  )}
                   {renderMessageContent(msg)}
                   <div className="text-xs opacity-70 text-right mt-1">
                     {formatTime(msg.timestamp)}
@@ -700,6 +694,25 @@ export default function Messages() {
               >
                 <Paperclip size={18} />
               </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  fileInputRef.current.accept = "image/*";
+                  fileInputRef.current.click();
+                }}
+                className="p-2 rounded-full hover:bg-gray-800 cursor-pointer"
+              >
+                <Image size={18} />
+              </button>
+              <button 
+                type="button" 
+                className="p-2 rounded-full hover:bg-gray-800 cursor-pointer relative"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                ref={emojiButtonRef}
+                style={{ position: 'relative' }}
+              >
+                <Smile size={18} />
+              </button>
             </div>
             <input
               className="flex-1 rounded-full px-4 py-2 bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 text-sm"
@@ -729,11 +742,8 @@ export default function Messages() {
           <div className="flex items-center justify-between px-4 py-2">
             <h2 className="text-xl font-bold">Messages</h2>
             <div className="flex gap-2">
-              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
-                <Settings size={18} />
-              </button>
-              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
-                <MessageSquarePlus size={18} />
+              <button className="text-red-500 hover:text-red-400 p-1 rounded-full hover:bg-gray-800 cursor-pointer" title="Report Spam">
+                <AlertTriangle size={18} />
               </button>
             </div>
           </div>

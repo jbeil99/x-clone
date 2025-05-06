@@ -18,9 +18,9 @@ export default function ProfileInfo({ userData, isProfile, setIsOpen, username }
     
     const handleOpen = () => setIsOpen(true);
     
-    // فتح الشات مع المستخدم
+    // Open chat with the user
     const openChat = () => {
-        // تخزين معلومات المستخدم المحدد في localStorage للوصول إليها في صفحة الرسائل
+        // Store selected user information in localStorage to access it in messages page
         localStorage.setItem('selectedChatUser', JSON.stringify({
             id: userData.id,
             username: userData.username,
@@ -28,7 +28,7 @@ export default function ProfileInfo({ userData, isProfile, setIsOpen, username }
             display_name: userData.display_name
         }));
         
-        // الانتقال إلى صفحة الرسائل
+        // Navigate to messages page
         navigate('/messages');
     };
 
@@ -73,7 +73,7 @@ export default function ProfileInfo({ userData, isProfile, setIsOpen, username }
                                 {isFollowing ? "Following" : "Follow"}
                             </button>
                             
-                            {/* زر الرسائل */}
+                            {/* Message button */}
                             <button
                                 className="p-2 rounded-full bg-transparent border border-gray-600 hover:border-gray-400 text-sm flex items-center justify-center"
                                 onClick={openChat}
