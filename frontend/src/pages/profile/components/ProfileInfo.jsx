@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { follow } from "../../../api/users";
+import { MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfileInfo({ userData, isProfile, setIsOpen, username }) {
     const [isFollowing, setIsFollowing] = useState(userData?.ifollow);
+    const navigate = useNavigate();
+    
     const handleFollowToggle = async () => {
         try {
             const res = await follow(userData.username);
@@ -11,7 +15,22 @@ export default function ProfileInfo({ userData, isProfile, setIsOpen, username }
             console.log(e)
         }
     };
+    
     const handleOpen = () => setIsOpen(true);
+    
+    // فتح الشات مع المستخدم
+    const openChat = () => {
+        // تخزين معلومات المستخدم المحدد في localStorage للوصول إليها في صفحة الرسائل
+        localStorage.setItem('selectedChatUser', JSON.stringify({
+            id: userData.id,
+            username: userData.username,
+            avatar_url: userData.avatar_url || "/media/default_profile_400x400.png",
+            display_name: userData.display_name
+        }));
+        
+        // الانتقال إلى صفحة الرسائل
+        navigate('/messages');
+    };
 
     return (
         <div className="relative">
@@ -43,15 +62,26 @@ export default function ProfileInfo({ userData, isProfile, setIsOpen, username }
                             Edit profile
                         </button>
                     ) : (
-                        <button
-                            className={`px-4 py-1.5 rounded-full font-bold text-sm ${isFollowing
-                                ? "bg-transparent border border-gray-600 hover:border-gray-400 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
-                                : "bg-white text-black border border-white hover:bg-gray-200"
-                                }`}
-                            onClick={handleFollowToggle}
-                        >
-                            {isFollowing ? "Following" : "Follow"}
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                className={`px-4 py-1.5 rounded-full font-bold text-sm ${isFollowing
+                                    ? "bg-transparent border border-gray-600 hover:border-gray-400 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                                    : "bg-white text-black border border-white hover:bg-gray-200"
+                                    }`}
+                                onClick={handleFollowToggle}
+                            >
+                                {isFollowing ? "Following" : "Follow"}
+                            </button>
+                            
+                            {/* زر الرسائل */}
+                            <button
+                                className="p-2 rounded-full bg-transparent border border-gray-600 hover:border-gray-400 text-sm flex items-center justify-center"
+                                onClick={openChat}
+                                title="Message"
+                            >
+                                <MessageCircle size={18} />
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

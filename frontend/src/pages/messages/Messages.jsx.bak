@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut } from 'lucide-react';
+import { ArrowLeft, Search, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut, AlertTriangle } from 'lucide-react';
 import { currentUser } from "../../api/users";
 import { authAxios } from "../../api/useAxios";
 import EmojiPicker from 'emoji-picker-react';
@@ -21,6 +21,8 @@ export default function Messages() {
   const [showConversationInfo, setShowConversationInfo] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState({});
   const [totalUnread, setTotalUnread] = useState(0);
+  const [showSpamMessages, setShowSpamMessages] = useState(false);
+  const [spamMessages, setSpamMessages] = useState([]);
   const conversationInfoRef = useRef(null);
 
   useEffect(() => {
@@ -48,6 +50,16 @@ export default function Messages() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showConversationInfo]);
+
+  // جلب رسائل الـ Spam
+  const fetchSpamMessages = async () => {
+    try {
+      const response = await authAxios.get('/chat/spam-messages/');
+      setSpamMessages(response.data);
+    } catch (error) {
+      console.error('Error fetching spam messages:', error);
+    }
+  };
 
   useEffect(() => {
     // التحقق من وجود مستخدم محدد من صفحة البروفايل
@@ -742,11 +754,17 @@ export default function Messages() {
           <div className="flex items-center justify-between px-4 py-2">
             <h2 className="text-xl font-bold">Messages</h2>
             <div className="flex gap-2">
-              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
-                <Settings size={18} />
-              </button>
-              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
-                <MessageSquarePlus size={18} />
+              <button 
+                className={`text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer ${showSpamMessages ? 'bg-yellow-800 text-white' : ''}`}
+                onClick={() => {
+                  setShowSpamMessages(!showSpamMessages);
+                  if (!showSpamMessages) {
+                    fetchSpamMessages();
+                  }
+                }}
+                title="رسائل من أشخاص لا تتابعهم"
+              >
+                <AlertTriangle size={18} />
               </button>
             </div>
           </div>
@@ -754,54 +772,10 @@ export default function Messages() {
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                 <Search size={16} />
-              </div>
-              <input
-                className="w-full rounded-full pl-10 pr-4 py-2 bg-gray-800 border-none focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm placeholder-gray-500"
-                placeholder="Search Direct Messages"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-              {search && (
-                <button 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white cursor-pointer"
-                  onClick={() => setSearch("")}
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto" style={{ height: "calc(100vh - 100px)" }}>
-          {loading && (
-            <div className="text-gray-500 text-center py-8">Loading users...</div>
           )}
-          
-          {error && (
-            <div className="text-red-500 text-center py-8">{error}</div>
-          )}
-          
-          {!loading && !error && filteredUsers.length === 0 && (
-            <div className="text-gray-500 text-center py-8">No users to chat with.</div>
-          )}
-          
-          {filteredUsers.map(user => {
-            const lastMsg = lastMessages[user.id];
-            const hasUnread = unreadMessages[user.id] > 0;
-            return (
-              <div
-                key={user.id}
-                className={`flex items-center gap-3 px-4 py-2 cursor-pointer transition border-b border-gray-800
-                  hover:bg-gray-900 ${selectedUser && selectedUser.id === user.id ? 'bg-gray-900' : ''}`}
-                onClick={() => {
-                  setSelectedUser(user);
-                  if (isMobile) setShowList(false);
-                }}
-              >
-                <div className="relative">
-                  <img 
-                    src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`} 
+          {fileType === 'video' && (
+            <div className="h-10 w-10 bg-gray-700 flex items-center justify-center rounded mr-2">
+              <video src={filePreview} className="h-8 w-8" />
                     alt={user.username} 
                     className="w-10 h-10 rounded-full object-cover" 
                   />
