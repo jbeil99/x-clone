@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut } from 'lucide-react';
+import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut, AlertTriangle } from 'lucide-react';
 import { currentUser } from "../../api/users";
 import { authAxios } from "../../api/useAxios";
 import EmojiPicker from 'emoji-picker-react';
@@ -601,6 +601,12 @@ export default function Messages() {
                     ? 'bg-blue-500 text-white rounded-br-none' 
                     : 'bg-gray-800 text-white rounded-bl-none'
                 }`}>
+                  {!isSentByMe && msg.is_spam && (
+                    <div className="flex items-center mb-1 text-yellow-500">
+                      <AlertTriangle size={14} className="mr-1" />
+                      <span className="text-xs">Spam</span>
+                    </div>
+                  )}
                   {renderMessageContent(msg)}
                   <div className="text-xs opacity-70 text-right mt-1">
                     {formatTime(msg.timestamp)}
