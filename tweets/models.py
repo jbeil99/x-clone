@@ -81,13 +81,13 @@ class Tweet(models.Model):
         return f"Tweet {self.id} by {self.user.username}"
 
     def is_user_liked(self, user):
-        return self.likes.filter(id=user.id).exists()
+        return self.likes.filter(user=user).exists()
 
     def is_user_bookmarked(self, user):
-        return self.bookmarked_by.filter(id=user.id).exists()
+        return self.bookmarked_by.filter(user=user).exists()
 
     def is_user_retweeted(self, user):
-        return self.retweets.filter(id=user.id).exists()
+        return self.retweets.filter(user=user).exists()
 
     @classmethod
     def get_tweets(cls):

@@ -13,6 +13,7 @@ urlpatterns = [
     path("api/", include("profiles.urls")),
     path("grok/", include("grok.urls")),
     path("api/notifications/", include("notifications.urls")),
+    path("api/", include("search.urls")),
 ]
 
 
