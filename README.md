@@ -9,7 +9,7 @@
 
 ## Features ✨
 
-- Authentication with Authentication using 
+- Authentication using Djoser & JWT 
 - Users can add tweets, like, retweet, and reply
 - Users can delete tweets, add a tweet to bookmarks, and pin their tweet
 - Users can add images and GIFs to tweet
@@ -70,3 +70,6 @@ Here are the steps to run the project locally.
    ``` 
 
 > **_Note_**: Ensure Python and Node.js are installed on your system <br>Install dependencies inside a virtual environment
+
+
+<img align="left" src = "https://profile-counter.glitch.me/flutter_twitter_clone/count.svg" alt ="Loading">
