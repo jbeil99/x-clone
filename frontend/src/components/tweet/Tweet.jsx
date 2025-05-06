@@ -46,7 +46,6 @@ export default function Tweet({ tweet, setPost }) {
         return null;
     };
 
-    // Get media from tweet (if any)
     const media = tweet?.media && tweet.media.length > 0 ? tweet.media[0] : null;
     const mediaUrl = media?.file_url || null;
     const mediaType = mediaUrl ? getMediaType(mediaUrl) : null;

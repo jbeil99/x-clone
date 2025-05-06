@@ -36,6 +36,7 @@ function App() {
           <Route path="/profile/:username" element={<Layout><UserProfile /></Layout>} />
           <Route path="/bookmarks" element={<Layout><Bookmark /></Layout>} />
           <Route path="/profile/:username/followers" element={<Layout><Users /></Layout>} />
+          <Route path="/profile/:username/following" element={<Layout><Users /></Layout>} />
 
           {/* <Route path="/grok" element={<Layout><GrokPage /></Layout>} /> */}
           <Route path="/grok" element={<Layout><ChatApp /></Layout>} />
