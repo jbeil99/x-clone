@@ -599,12 +599,12 @@ export default function Messages() {
                 <div className={`max-w-[70%] rounded-2xl px-3 py-2 ${
                   isSentByMe 
                     ? 'bg-blue-500 text-white rounded-br-none' 
-                    : 'bg-gray-800 text-white rounded-bl-none'
+                    : msg.is_spam ? 'bg-amber-800 text-white rounded-bl-none' : 'bg-gray-800 text-white rounded-bl-none'
                 }`}>
                   {!isSentByMe && msg.is_spam && (
-                    <div className="flex items-center mb-1 text-yellow-500">
+                    <div className="flex items-center mb-1 text-yellow-300">
                       <AlertTriangle size={14} className="mr-1" />
-                      <span className="text-xs">Spam</span>
+                      <span className="text-xs font-bold">Spam</span>
                     </div>
                   )}
                   {renderMessageContent(msg)}
@@ -699,25 +699,6 @@ export default function Messages() {
                 className="p-2 rounded-full hover:bg-gray-800 cursor-pointer"
               >
                 <Paperclip size={18} />
-              </button>
-              <button 
-                type="button" 
-                onClick={() => {
-                  fileInputRef.current.accept = "image/*";
-                  fileInputRef.current.click();
-                }}
-                className="p-2 rounded-full hover:bg-gray-800 cursor-pointer"
-              >
-                <Image size={18} />
-              </button>
-              <button 
-                type="button" 
-                className="p-2 rounded-full hover:bg-gray-800 cursor-pointer relative"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                ref={emojiButtonRef}
-                style={{ position: 'relative' }}
-              >
-                <Smile size={18} />
               </button>
             </div>
             <input
