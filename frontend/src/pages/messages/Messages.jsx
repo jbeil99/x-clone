@@ -321,8 +321,13 @@ export default function Messages() {
         
         if (data.action === "message" || data.action === "message_sent") {
           const messageData = data.action === "message_sent" ? data.message : data;
-          const senderId = messageData.sender;
-          const receiverId = messageData.receiver;
+          // Handle both object and primitive sender/receiver types
+          const sender = messageData.sender;
+          const receiver = messageData.receiver;
+          
+          // Extract IDs for comparison
+          const senderId = typeof sender === 'object' ? sender.id : sender;
+          const receiverId = typeof receiver === 'object' ? receiver.id : receiver;
           
           if ((senderId === me.id && receiverId === other.id) || 
               (senderId === other.id && receiverId === me.id)) {
@@ -331,15 +336,15 @@ export default function Messages() {
               // التحقق من عدم وجود رسائل مكررة
               const isDuplicate = prev.some(msg => 
                 msg.content === messageData.content && 
-                msg.sender === senderId && 
+                (typeof msg.sender === 'object' ? msg.sender.id === senderId : msg.sender === senderId) && 
                 msg.timestamp === messageData.timestamp
               );
               
               if (!isDuplicate) {
                 return [...prev, {
                   id: Date.now(),
-                  sender: senderId,
-                  receiver: receiverId,
+                  sender: sender, // Use the full sender object
+                  receiver: receiver, // Use the full receiver object
                   content: messageData.content,
                   timestamp: messageData.timestamp
                 }];
@@ -582,8 +587,14 @@ export default function Messages() {
           style={{ height: "calc(100vh - 130px)" }}
         >
           {messages.map((msg, i) => {
-            const senderId = String(msg.sender.id);
+            // Handle both object and primitive sender types
+            const sender = msg.sender;
+            const senderId = typeof sender === 'object' ? String(sender.id) : String(sender);
             const myId = String(me?.id);
+            
+            // Get sender username and avatar safely
+            const senderUsername = typeof sender === 'object' ? sender.username : '';
+            const senderAvatar = typeof sender === 'object' ? sender.avatar : null;
             
             const isSentByMe = senderId === myId;
             
@@ -591,8 +602,8 @@ export default function Messages() {
               <div key={i} className={`flex ${isSentByMe ? 'justify-end' : 'justify-start'} mb-1`}>
                 {!isSentByMe && (
                   <img 
-                    src={msg.sender.avatar || `https://ui-avatars.com/api/?name=${msg.sender.username}&background=random`} 
-                    alt={msg.sender.username} 
+                    src={senderAvatar || `https://ui-avatars.com/api/?name=${senderUsername}&background=random`} 
+                    alt={senderUsername} 
                     className="h-8 w-8 rounded-full mr-2 self-end mb-1 hidden sm:block" 
                   />
                 )}

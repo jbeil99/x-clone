@@ -3,6 +3,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from .models import Message
+from accounts.serializers import UserSerializer
+from rest_framework.renderers import JSONRenderer
 
 User = get_user_model()
 
@@ -44,7 +46,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             content = message_data.get('content')
             
             if sender_id and receiver_id and content:
-              
+                # Get full user objects
+                sender_data = await self.get_user_data(sender_id)
+                receiver_data = await self.get_user_data(receiver_id)
                 
                 receiver_room = f'chat_user_{receiver_id}'
                 await self.channel_layer.group_send(
@@ -52,8 +56,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     {
                         'type': 'chat_message',
                         'action': 'message',
-                        'sender': sender_id,
-                        'receiver': receiver_id,
+                        'sender': sender_data,
+                        'receiver': receiver_data,
                         'content': content,
                         'timestamp': message_data.get('timestamp')
                     }
@@ -62,8 +66,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.send(text_data=json.dumps({
                     'action': 'message_sent',
                     'message': {
-                        'sender': sender_id,
-                        'receiver': receiver_id,
+                        'sender': sender_data,
+                        'receiver': receiver_data,
                         'content': content,
                         'timestamp': message_data.get('timestamp')
                     }
@@ -96,6 +100,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'content': event.get('content'),
             'timestamp': event.get('timestamp')
         }))
+    
+    @database_sync_to_async
+    def get_user_data(self, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            serializer = UserSerializer(user)
+            return serializer.data
+        except User.DoesNotExist:
+            return {'id': user_id}
     
     @database_sync_to_async
     def save_message(self, sender_id, receiver_id, content):
