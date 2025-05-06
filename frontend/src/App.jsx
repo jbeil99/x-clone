@@ -37,7 +37,7 @@ function App() {
           <Route path="/profile/:username/followers" element={<Layout><Users /></Layout>} />
 
           <Route path="/grok" element={<Layout><GrokPage /></Layout>} />
-          <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Route>
         <Route path='*' element={<Layout><div > Not found</div></Layout>} />
 

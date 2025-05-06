@@ -1,0 +1,87 @@
+{% extends "admin/base_site.html" %}
+{% block extrastyle %}
+  <style>
+    body {
+      background-color: #121212;
+      color: #fff;
+    }
+    .dashboard-card {
+      background-color: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.05);
+    }
+    .card-title {
+      font-size: 14px;
+      color: #888;
+    }
+    .card-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .chart-placeholder {
+      height: 300px;
+      background-color: #1a1a1a;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #666;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mt-4">
+    <!-- Stats Cards -->
+    <div class="col-md-4 mb-4">
+      <div class="dashboard-card">
+        <h5 class="card-title">Followers</h5>
+        <p class="card-value">12.4K</p>
+        <small class="text-success">↑ 8.5% from last week</small>
+      </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <div class="dashboard-card">
+        <h5 class="card-title">Tweets</h5>
+        <p class="card-value">42</p>
+        <small class="text-success">↑ 12% from last week</small>
+      </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <div class="dashboard-card">
+        <h5 class="card-title">Profile Views</h5>
+        <p class="card-value">34.2K</p>
+        <small class="text-danger">↓ 2.3% from last week</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Placeholder -->
+  <div class="row">
+    <div class="col-md-12 mb-4">
+      <div class="chart-placeholder">
+        📈 Chart Coming Soon
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="dashboard-card">
+        <h4>Recent Activity</h4>
+        <ul>
+          <li>Alice posted a new tweet</li>
+          <li>Bob retweeted your post</li>
+          <li>Charlie followed you</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

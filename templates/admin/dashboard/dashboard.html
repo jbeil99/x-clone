@@ -1,0 +1,65 @@
+{% comment %} {% extends "admin/base_site.html" %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row mt-4">
+    <!-- Stats Cards -->
+    <div class="col-md-4 mb-4">
+      <div class="card bg-dark text-white">
+        <div class="card-body">
+          <h5 class="card-title">Followers</h5>
+          <p class="card-text display-4">12.4K</p>
+          <small class="text-success">↑ 8.5% from last week</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <div class="card bg-dark text-white">
+        <div class="card-body">
+          <h5 class="card-title">Tweets</h5>
+          <p class="card-text display-4">42</p>
+          <small class="text-success">↑ 12% from last week</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+      <div class="card bg-dark text-white">
+        <div class="card-body">
+          <h5 class="card-title">Profile Views</h5>
+          <p class="card-text display-4">34.2K</p>
+          <small class="text-danger">↓ 2.3% from last week</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Placeholder -->
+  <div class="row">
+    <div class="col-md-12 mb-4">
+      <div class="card bg-dark text-white">
+        <div class="card-body">
+          <h4 class="card-title">📈 Chart Coming Soon</h4>
+          <p class="card-text">Will show user growth and tweet trends.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card bg-dark text-white">
+        <div class="card-body">
+          <h4 class="card-title">Recent Activity</h4>
+          <ul class="list-group list-group-flush bg-dark text-white mt-3">
+            <li class="list-group-item bg-gray-900 border-gray-700">Alice posted a new tweet</li>
+            <li class="list-group-item bg-gray-900 border-gray-700">Bob retweeted your post</li>
+            <li class="list-group-item bg-gray-900 border-gray-700">Charlie followed you</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% endcomment %}

@@ -5,9 +5,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from tweets.views import ExploreNewsView
+from dashboard.views import custom_admin_index  
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path('admin/', custom_admin_index, name='custom_admin'),
+    path('admin/', admin.site.urls),
     path("api/", include("accounts.urls")),
     path("api/", include("tweets.urls")),
     path("api/chat/", include("chat.urls")),
@@ -15,6 +17,7 @@ urlpatterns = [
     path("api/", include("profiles.urls")),
     path("grok/", include("grok.urls")),
     path("api/notifications/", include("notifications.urls")),
+    path('admin/dashboard/', include('dashboard.urls')),
 ]
 
 

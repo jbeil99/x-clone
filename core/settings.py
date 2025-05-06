@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "chat",
     'grok',
     "notifications",
+    'dashboard',
 ]
 
 MIDDLEWARE = [
@@ -239,3 +240,5 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
+
+# LOGIN_REDIRECT_URL = '/admin/dashboard/'  # تأكد من أن هذا المسار صحيح
