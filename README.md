@@ -72,4 +72,3 @@ Here are the steps to run the project locally.
 > **_Note_**: Ensure Python and Node.js are installed on your system <br>Install dependencies inside a virtual environment
 
 
-<img align="left" src = "https://profile-counter.glitch.me/flutter_twitter_clone/count.svg" alt ="Loading">
