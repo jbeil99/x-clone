@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import all_users, get_messages, send_message, send_message_with_file, get_unread_count, mark_as_read, mark_all_as_read, get_unread_by_user
+from .views import all_users, get_messages, send_message, send_message_with_file, get_unread_count, mark_as_read, mark_all_as_read, get_unread_by_user, get_spam_messages
 
 urlpatterns = [
     path("all-users/", all_users, name="all-users"),
@@ -10,4 +10,5 @@ urlpatterns = [
     path("mark-as-read/", mark_as_read, name="mark-as-read"),
     path("mark-all-as-read/", mark_all_as_read, name="mark-all-as-read"),
     path("unread-by-user/", get_unread_by_user, name="unread-by-user"),
+    path("spam-messages/", get_spam_messages, name="spam-messages"),
 ]
