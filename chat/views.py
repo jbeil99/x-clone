@@ -17,7 +17,21 @@ User = get_user_model()
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def all_users(request):
-    users = User.objects.filter(is_active=True).exclude(id=request.user.id)
+    # جلب المستخدمين الذين يتابعهم المستخدم الحالي
+    from accounts.models import Follow
+    
+    # المستخدمين الذين يتابعهم المستخدم الحالي
+    following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
+    
+    # المستخدمين الذين يتابعون المستخدم الحالي
+    followers_ids = Follow.objects.filter(following=request.user).values_list('follower_id', flat=True)
+    
+    # الحصول على المستخدمين المشتركين (متابعة متبادلة)
+    mutual_ids = set(following_ids).intersection(set(followers_ids))
+    
+    # جلب المستخدمين النشطين فقط من قائمة المتابعة المتبادلة
+    users = User.objects.filter(id__in=mutual_ids, is_active=True)
+    
     serializer = UserSerializer(users, many=True, context={'request': request})
     return Response(serializer.data)
 

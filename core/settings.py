@@ -233,6 +233,10 @@ PASSWORD_RESET_TIMEOUT = 86400
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # Channels configuration
 CHANNEL_LAYERS = {
     "default": {

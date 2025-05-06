@@ -50,7 +50,7 @@ def get_chat_response(message):
 
     try:
         client = InferenceClient(
-            model="HuggingFaceH4/zephyr-7b-beta",
+            model="microsoft/DialoGPT-medium",
             token=hf_api_key
         )
 
