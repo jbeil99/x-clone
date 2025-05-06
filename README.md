@@ -17,11 +17,8 @@
 - Users can see their and other followers and the following list
 - Users can see all users and the trending list
 - Realtime update likes, retweets, and user profile
-- Realtime trending data from Twitter API
 - User can edit their profile
 - Responsive design for mobile, tablet, and desktop
-- Users can customize the site color scheme and color background
-- All images uploads are stored on Firebase Cloud Storage
 
 ## Tech 🛠
 
