@@ -16,12 +16,16 @@ from .serializers import (
     TweetSerializer,
     HashtagSerializer,
 )
+
+from django.db.models import Q
+
 from .permissions import IsUserOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from datetime import timedelta
+from profiles.models import MutedUser, ReportedUser
 
 
 class Like(APIView):
@@ -61,26 +65,45 @@ class TweetList(generics.ListCreateAPIView):
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
-        user = self.request.user
         tweet_type = self.request.query_params.get("type", "following").lower()
-
+        user = self.request.user
         following_users_ids = list(
             user.following.values_list("following__id", flat=True)
         )
+        exclude_users_query = Q(user__is_staff=True) | Q(user__is_superuser=True)
+        muted_users_ids = list(
+            MutedUser.objects.filter(user=user).values_list("muted_user_id", flat=True)
+        )
+        reported_users_ids = list(
+            ReportedUser.objects.filter(user=user).values_list(
+                "reported_user_id", flat=True
+            )
+        )
+        blocked_users_ids = muted_users_ids + reported_users_ids
 
         if tweet_type == "all":
             return (
                 Tweet.get_tweets()
+                .exclude(exclude_users_query)
+                .exclude(
+                    user__id__in=blocked_users_ids
+                )  # Exclude tweets from blocked users
                 .select_related("user")
                 .prefetch_related("likes", "retweets", "replies", "media")
             )
 
         elif tweet_type == "following":
             following_users_ids.append(user.id)
-
-            original_tweets = Tweet.objects.filter(user__id__in=following_users_ids, parent=None)
-            retweets = Tweet.objects.filter(retweets__user__id__in=following_users_ids)
-
+            original_tweets = (
+                Tweet.objects.filter(user__id__in=following_users_ids, parent=None)
+                .exclude(exclude_users_query)
+                .exclude(user__id__in=blocked_users_ids)
+            )  # Exclude
+            retweets = (
+                Tweet.objects.filter(retweets__user__id__in=following_users_ids)
+                .exclude(exclude_users_query)
+                .exclude(retweets__user_id__in=blocked_users_ids)
+            )  # Exclude
             return (
                 (original_tweets | retweets)
                 .distinct()
@@ -90,18 +113,27 @@ class TweetList(generics.ListCreateAPIView):
 
         elif tweet_type == "discover":
             following_users_ids.append(user.id)
-
             return (
                 Tweet.objects.exclude(user__id__in=following_users_ids)
+                .exclude(exclude_users_query)
+                .exclude(user__id__in=blocked_users_ids)  # Exclude
                 .select_related("user")
                 .prefetch_related("likes", "retweets", "replies", "media")
             )
-
         else:
-            following_users_ids.append(user.id)
-
+            original_tweets = (
+                Tweet.objects.filter(user__id__in=following_users_ids, parent=None)
+                .exclude(exclude_users_query)
+                .exclude(user__id__in=blocked_users_ids)
+            )  # Exclude
+            retweets = (
+                Tweet.objects.filter(retweets__user__id__in=following_users_ids)
+                .exclude(exclude_users_query)
+                .exclude(retweets__user_id__in=blocked_users_ids)
+            )  # Exclude
             return (
-                Tweet.objects.filter(user__id__in=following_users_ids)
+                (original_tweets | retweets)
+                .distinct()
                 .select_related("user")
                 .prefetch_related("likes", "retweets", "replies", "media")
             )

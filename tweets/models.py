@@ -91,7 +91,12 @@ class Tweet(models.Model):
 
     @classmethod
     def get_tweets(cls):
-        return cls.objects.filter(parent=None)
+        return (
+            cls.objects.filter(parent=None)
+            .exclude(user__username="frog")
+            .exclude(is_staff=True)
+            .exclude(is_superuser=True)
+        )
 
     @classmethod
     def get_bookmarked_tweets(cls, user):

@@ -1,19 +1,45 @@
 from django.db import models
-from django.conf import settings
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
-class Profile(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name="profile"
+class MutedUser(models.Model):
+    """
+    Represents a muted user.
+    """
+
+    user = models.ForeignKey(
+        User, related_name="muting_users", on_delete=models.CASCADE
     )
-    bio = models.TextField(blank=True, null=True)
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
-    cover_image = models.ImageField(upload_to="covers/", blank=True, null=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
+    muted_user = models.ForeignKey(
+        User, related_name="muted_by_users", on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "muted_user")
 
     def __str__(self):
-        return self.user.username
+        return f"{self.user.username} muted {self.muted_user.username}"
 
 
+class ReportedUser(models.Model):
+    """
+    Represents a reported user.
+    """
+
+    user = models.ForeignKey(
+        User, related_name="reporting_users", on_delete=models.CASCADE
+    )
+    reported_user = models.ForeignKey(
+        User, related_name="reported_by_users", on_delete=models.CASCADE
+    )
+    reason = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "reported_user")
+
+    def __str__(self):
+        return f"{self.user.username} reported {self.reported_user.username}"

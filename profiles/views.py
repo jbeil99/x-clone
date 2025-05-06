@@ -6,10 +6,12 @@ from rest_framework.decorators import action
 from accounts.models import User, Follow
 from tweets.models import Tweet, Media, Retweets
 from tweets.serializers import TweetSerializer, MediaSerializer, RetweetSerializer
-from .serializers import ProfileSerializer
+from .serializers import ProfileSerializer, MutedUserSerializer, ReportedUserSerializer
 import random
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
+from rest_framework import generics
+from .models import MutedUser, ReportedUser
 
 
 class ProfileView(APIView):
@@ -86,9 +88,10 @@ class ProfileTweetViewSet(viewsets.ViewSet):
         for tweet_data in original_data:
             tweet_data["is_retweet"] = False
 
-
-        combined_data = retweeted_serializer.data + original_data 
-        sorted_combined_data = sorted(combined_data, key=lambda x: x['created_at'], reverse=True)
+        combined_data = retweeted_serializer.data + original_data
+        sorted_combined_data = sorted(
+            combined_data, key=lambda x: x["created_at"], reverse=True
+        )
 
         return Response(sorted_combined_data)
 
@@ -199,3 +202,150 @@ class UserMediaView(APIView):
         paginated_media = paginator.paginate_queryset(media_items, request)
         serializer = MediaSerializer(paginated_media, many=True)
         return paginator.get_paginated_response(serializer.data)
+
+
+class MuteUnmuteUserView(generics.CreateAPIView, generics.DestroyAPIView):
+    """
+    API view to mute or unmute a user.
+    """
+
+    queryset = MutedUser.objects.all()
+    serializer_class = MutedUserSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = "user_id"
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        muted_user_id = self.kwargs.get(self.lookup_url_kwarg)
+
+        if not muted_user_id:
+            return Response(
+                {"error": f"{self.lookup_url_kwarg} is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            muted_user = User.objects.get(id=muted_user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if user == muted_user:
+            return Response(
+                {"error": "You cannot mute/unmute yourself"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if already muted
+        if MutedUser.objects.filter(user=user, muted_user=muted_user).exists():
+            return Response(
+                {"error": "User already muted"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        muted_user_obj = MutedUser.objects.create(user=user, muted_user=muted_user)
+        serializer = self.get_serializer(muted_user_obj)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        unmuted_user_id = self.kwargs.get(self.lookup_url_kwarg)
+
+        if not unmuted_user_id:
+            return Response(
+                {"error": f"{self.lookup_url_kwarg} is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            unmuted_user = User.objects.get(id=unmuted_user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            muted_relation = MutedUser.objects.get(user=user, muted_user=unmuted_user)
+        except MutedUser.DoesNotExist:
+            return Response(
+                {"error": "User is not muted"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        muted_relation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ReportUserView(generics.CreateAPIView):
+    """
+    API view to report a user.
+    """
+
+    queryset = ReportedUser.objects.all()
+    serializer_class = ReportedUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        reported_user_id = self.kwargs.get("user_id")  # Get user_id from url
+        reason = request.data.get("reason")
+
+        if not reported_user_id:
+            return Response(
+                {"error": "reported_user_id is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not reason:
+            return Response(
+                {"error": "reason is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            reported_user = User.objects.get(id=reported_user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User to report not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if user == reported_user:
+            return Response(
+                {"error": "You cannot report yourself"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if already reported
+        if ReportedUser.objects.filter(user=user, reported_user=reported_user).exists():
+            return Response(
+                {"error": "User already reported"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reported_user_obj = ReportedUser.objects.create(
+            user=user, reported_user=reported_user, reason=reason
+        )
+        serializer = self.get_serializer(reported_user_obj)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ListMutedUsersView(generics.ListAPIView):
+    """
+    API view to list muted users for the current user.
+    """
+
+    serializer_class = MutedUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return MutedUser.objects.filter(user=user)
+
+
+class ListReportedUsersView(generics.ListAPIView):
+    """
+    API view to list reported users for the current user.
+    """
+
+    serializer_class = ReportedUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return ReportedUser.objects.filter(user=user)

@@ -81,7 +81,8 @@ class Command(BaseCommand):
                 "display_name": "frog",
                 "mobile_phone": "01112345678",
                 "date_of_birth": datetime(2020, 1, 1),
-                "password": "botpassword",  # added default password
+                "password": "botpassword",
+                "is_staff": True,
             },
             image_path="/media/default/frog.jpg",  #  path to the frog image
         )

@@ -6,6 +6,10 @@ from .views import (
     UserFollowersView,
     UserFollowingView,
     UserMediaView,
+    MuteUnmuteUserView,
+    ReportUserView,
+    ListMutedUsersView,
+    ListReportedUsersView,
 )
 
 tweet_list = ProfileTweetViewSet.as_view({"get": "list"})
@@ -39,4 +43,8 @@ urlpatterns = [
         name="profile-by-username",
     ),
     path("who-to-follow/", WhoToFollowView.as_view(), name="who-to-follow"),
+    path("mute/<int:user_id>/", MuteUnmuteUserView.as_view(), name="mute-user"),
+    path("report/<int:user_id>/", ReportUserView.as_view(), name="report-user"),
+    path("muted/", ListMutedUsersView.as_view(), name="list-muted-users"),
+    path("reported/", ListReportedUsersView.as_view(), name="list-reported-users"),
 ]
