@@ -3,6 +3,10 @@ from accounts.models import User
 import re
 from django.core.exceptions import ValidationError
 import os
+from grok.gemini_integration import (
+    generate_response,
+)
+from core.utils.helpers import extract_hashtags, extract_mentions
 
 
 class Hashtag(models.Model):
@@ -76,17 +80,14 @@ class Tweet(models.Model):
     def __str__(self):
         return f"Tweet {self.id} by {self.user.username}"
 
-    def extract_mentions(self, content):
-        return re.findall(r"@(\w+)", content)
-
     def is_user_liked(self, user):
-        return self.likes.filter(user=user).exists()
+        return self.likes.filter(id=user.id).exists()  # Changed to ID
 
     def is_user_bookmarked(self, user):
-        return self.bookmarked_by.filter(user=user).exists()
+        return self.bookmarked_by.filter(id=user.id).exists()  # Changed to ID
 
     def is_user_retweeted(self, user):
-        return self.retweets.filter(user=user).exists()
+        return self.retweets.filter(id=user.id).exists()  # Changed to ID
 
     @classmethod
     def get_tweets(cls):
@@ -94,7 +95,7 @@ class Tweet(models.Model):
 
     @classmethod
     def get_bookmarked_tweets(cls, user):
-        return cls.objects.filter(bookmarked_by__user=user)
+        return cls.objects.filter(bookmarked_by__id=user.id)  # Changed to ID
 
     @classmethod
     def get_top_tweets_by_hashtag(cls, hashtag):
@@ -110,13 +111,13 @@ class Tweet(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        hashtags = self.extract_hashtags(self.content)
+        hashtags = extract_hashtags(self.content)
         for tag in hashtags:
             HashtagLog.objects.create(name=tag)
             hashtag, _ = Hashtag.objects.get_or_create(name=tag)
             self.hashtags.add(hashtag)
 
-        mentions_in_content = self.extract_mentions(self.content)
+        mentions_in_content = extract_mentions(self.content)
         for username in mentions_in_content:
             try:
                 mentioned_user = User.objects.get(username=username)
@@ -124,13 +125,31 @@ class Tweet(models.Model):
                     tweet=self, mentioned_user=mentioned_user
                 ).exists():
                     Mention.objects.create(tweet=self, mentioned_user=mentioned_user)
+
+                    print("lol here im frogg", username)
+                if username == "frog":  # Or whatever your bot's username is
+                    self.call_chat_bot()  # call the chat bot
             except User.DoesNotExist:
                 continue
 
-    @staticmethod
-    def extract_hashtags(content):
-        """Extract hashtags from tweet content."""
-        return [word[1:] for word in content.split() if word.startswith("#")]
+    def call_chat_bot(self):
+        try:
+            bot_user = User.objects.get(username="frog")
+        except User.DoesNotExist:
+            print("Bot user not found.  Please create a user with username 'bot'.")
+            return
+        prompt = self.content
+
+        if self.parent:
+            prompt += f" (Replying to: {self.parent.content})"
+
+        try:
+            ai_response_text = f"@{self.user.username} {generate_response(prompt)}"
+
+            Tweet.objects.create(user=bot_user, content=ai_response_text, parent=self)
+
+        except Exception as e:
+            print(f"Error generating response: {e}")
 
 
 class Mention(models.Model):

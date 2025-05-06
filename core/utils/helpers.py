@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.utils import timezone
 from accounts.models import User
 from django.utils.text import slugify
+import re
 
 
 def download_image(url, filename):
@@ -50,3 +51,11 @@ def make_username(given_name, user_id):
         username = f"{base_username}{counter}"
         counter += 1
     return username
+
+
+def extract_hashtags(content):
+    return [word[1:] for word in content.split() if word.startswith("#")]
+
+
+def extract_mentions(content):
+    return re.findall(r"@(\w+)", content)

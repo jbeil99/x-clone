@@ -235,6 +235,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+CHATBOT_API_URL = "http://127.0.0.1:8000/grok/conversations/3/messages/"
 
 # Channels configuration
 CHANNEL_LAYERS = {

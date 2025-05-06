@@ -21,7 +21,7 @@ class User(AbstractUser):
         blank=False,
     )
     avatar = models.ImageField(
-        upload_to="media/profile_pics", default="default_profile_400x400.png"
+        upload_to="media/profile_pics", default="media/defualt/user.png"
     )
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
