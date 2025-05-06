@@ -12,7 +12,9 @@
 - Authentication using Djoser & JWT 
 - Users can add tweets, like, retweet, and reply
 - Users can delete tweets, add a tweet to bookmarks, and pin their tweet
-- Users can add images and GIFs to tweet
+- Users can add images and Videos to tweet
+- Users can communicate with embedded AI chatbot
+- Users can communicate with eachother via messages
 - Users can follow and unfollow other users
 - Users can see their and other followers and the following list
 - Users can see all users and the trending list
