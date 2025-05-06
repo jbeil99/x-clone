@@ -44,7 +44,7 @@ def validate_media_type(value):
             f"Unsupported file extension. Allowed extensions are: {', '.join(allowed_extensions)}"
         )
 
-    if value.size > 50 * 1024 * 1024:  # 50MB limit
+    if value.size > 50 * 1024 * 1024:
         raise ValidationError("File size cannot exceed 50MB.")
 
     return value
@@ -81,13 +81,13 @@ class Tweet(models.Model):
         return f"Tweet {self.id} by {self.user.username}"
 
     def is_user_liked(self, user):
-        return self.likes.filter(id=user.id).exists()  # Changed to ID
+        return self.likes.filter(id=user.id).exists()
 
     def is_user_bookmarked(self, user):
-        return self.bookmarked_by.filter(id=user.id).exists()  # Changed to ID
+        return self.bookmarked_by.filter(id=user.id).exists()
 
     def is_user_retweeted(self, user):
-        return self.retweets.filter(id=user.id).exists()  # Changed to ID
+        return self.retweets.filter(id=user.id).exists()
 
     @classmethod
     def get_tweets(cls):
@@ -100,7 +100,7 @@ class Tweet(models.Model):
 
     @classmethod
     def get_bookmarked_tweets(cls, user):
-        return cls.objects.filter(bookmarked_by__id=user.id)  # Changed to ID
+        return cls.objects.filter(bookmarked_by__id=user.id)
 
     @classmethod
     def get_top_tweets_by_hashtag(cls, hashtag):
@@ -132,8 +132,8 @@ class Tweet(models.Model):
                     Mention.objects.create(tweet=self, mentioned_user=mentioned_user)
 
                     print("lol here im frogg", username)
-                if username == "frog":  # Or whatever your bot's username is
-                    self.call_chat_bot()  # call the chat bot
+                if username == "frog" and self.user.username != "frog":
+                    self.call_chat_bot()
             except User.DoesNotExist:
                 continue
 
