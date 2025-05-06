@@ -20,9 +20,7 @@ class User(AbstractUser):
         validators=[egyptian_phone_validator],
         blank=False,
     )
-    avatar = models.ImageField(
-        upload_to="media/profile_pics", default="media/defualt/user.png"
-    )
+    avatar = models.ImageField(upload_to="profile_pics", default="default/user.png")
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     date_of_birth = models.DateField(null=True, blank=True)

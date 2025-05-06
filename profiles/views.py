@@ -5,7 +5,7 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from accounts.models import User, Follow
 from tweets.models import Tweet, Media, Retweets
-from tweets.serializers import TweetSerializer, MediaSerializer, RetweetSerializer
+from tweets.serializers import TweetSerializer, MediaSerializer, RetweetTweetSerializer
 from .serializers import ProfileSerializer, MutedUserSerializer, ReportedUserSerializer
 import random
 from django.shortcuts import get_object_or_404
@@ -81,7 +81,7 @@ class ProfileTweetViewSet(viewsets.ViewSet):
         original_serializer = TweetSerializer(
             original_tweets, many=True, context={"request": request}
         )
-        retweeted_serializer = RetweetSerializer(
+        retweeted_serializer = RetweetTweetSerializer(
             retweeted_tweets, many=True, context={"request": request}
         )
         original_data = original_serializer.data
@@ -157,7 +157,14 @@ class WhoToFollowView(APIView):
             "following__id", flat=True
         )
         excluded_user_ids = list(following_user_ids) + [current_user.id]
-        available_users = User.objects.exclude(id__in=excluded_user_ids)
+        muted_user_ids = MutedUser.objects.filter(user=current_user).values_list(
+            "muted_user__id", flat=True
+        )
+        excluded_user_ids.extend(list(muted_user_ids))
+
+        available_users = User.objects.exclude(id__in=excluded_user_ids).filter(
+            is_staff=False
+        )
         random_users = random.sample(
             list(available_users), min(5, available_users.count())
         )

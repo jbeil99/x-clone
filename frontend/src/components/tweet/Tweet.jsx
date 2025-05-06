@@ -4,14 +4,19 @@ import { useNavigate } from 'react-router';
 import { TweetActions } from './TweetActions';
 import TweetFooter from './TweetFooter';
 import TweetContent from './TweetContnet';
-import { Repeat, } from 'lucide-react';
+import { Repeat } from 'lucide-react';
 import { useSelector } from 'react-redux';
 
 export default function Tweet({ tweet, setPost }) {
-    const { user } = useSelector(store => store.auth)
+    const { user } = useSelector(store => store.auth);
     const navigate = useNavigate();
+    const [showMutedTweet, setShowMutedTweet] = useState(false);
+    const isMuted = tweet?.author?.imuted;
+
     const handleClickTweet = () => {
-        window.location.href = `/status/${tweet.id}`;
+        if (!isMuted || showMutedTweet) {
+            window.location.href = `/status/${tweet.id}`;
+        }
     };
 
     const handleUsernameClick = (e) => {
@@ -21,6 +26,11 @@ export default function Tweet({ tweet, setPost }) {
 
     const handleContentClick = (e) => {
         e.stopPropagation();
+    };
+
+    const handleSeeAnyway = (e) => {
+        e.stopPropagation();
+        setShowMutedTweet(true);
     };
 
     const getMediaType = (url) => {
@@ -41,6 +51,17 @@ export default function Tweet({ tweet, setPost }) {
     const mediaUrl = media?.file_url || null;
     const mediaType = mediaUrl ? getMediaType(mediaUrl) : null;
 
+    if (isMuted && !showMutedTweet) {
+        return (
+            <div className="py-4 border-b border-gray-800 cursor-pointer transition-colors duration-200 hover:bg-gray-950">
+                <div className="ml-12 text-gray-500">You have muted this user.</div>
+                <button onClick={handleSeeAnyway} className="ml-12 mt-2 px-4 py-2 rounded-md bg-blue-500 text-white text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    See anyway
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div
             className="py-4 border-b border-gray-800 cursor-pointer transition-colors duration-200 hover:bg-gray-950"
@@ -55,7 +76,7 @@ export default function Tweet({ tweet, setPost }) {
             <div className="flex items-start gap-3">
                 <Avatar className="w-10 h-10 rounded-full">
                     <AvatarImage
-                        src={tweet?.author?.avatar || "/api/placeholder/40/40"}
+                        src={tweet?.author?.avatar_url || "/api/placeholder/40/40"}
                         alt={tweet?.author?.username}
                         onClick={handleUsernameClick}
                     />

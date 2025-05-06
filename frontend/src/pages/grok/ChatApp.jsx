@@ -186,9 +186,9 @@ const ChatApp = () => {
     };
 
     return (
-        <div className="flex h-screen w-[1200px] bg-[#000000] text-[#e2e8f0]">
+        <div className="flex flex-col md:flex-row h-screen bg-[#000000] text-[#e2e8f0]">
             {/* Sidebar for conversations */}
-            <div className="w-full md:w-80 border-r border-[#2d3748] bg-[#0a0d14] flex flex-col">
+            <aside className="w-full md:w-80 border-r border-[#2d3748] bg-[#0a0d14] flex flex-col transition-all duration-300 ease-in-out">
                 <div className="p-4 border-b border-[#2d3748]">
                     <Button
                         className="w-full bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
@@ -247,23 +247,23 @@ const ChatApp = () => {
                         )}
                     </AnimatePresence>
                 </div>
-            </div>
+            </aside>
 
             {/* Main chat area */}
-            <div className="flex-1 flex flex-col w-full">
+            <main className="flex-1 flex flex-col w-full">
                 <div className="flex items-center justify-between border-b border-[#2d3748] p-4 bg-[#0a0d14] shadow-md">
                     <div className='flex items-center gap-3'>
                         <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#1d9bf0] to-[#185a8c] flex items-center justify-center">
                             <MessageCircle className="h-5 w-5 text-white" />
                         </div>
-                        <h1 className="text-xl font-semibold text-white">
+                        <h1 className="text-xl font-semibold text-white truncate">
                             {activeConversation.title || "Chat with Gemini"}
                         </h1>
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-6 scrollbar-thin scrollbar-thumb-[#2d3748] scrollbar-track-transparent">
-                    <div className="w-full px-4 sm:px-6 md:px-8 max-w-6xl mx-auto">
+                    <div className="w-full px-4 sm:px-6 md:px-8 max-w-3xl mx-auto">
                         <AnimatePresence>
                             {(!activeConversationId || activeMessages.length === 0) && (
                                 <motion.div
@@ -353,7 +353,7 @@ const ChatApp = () => {
                 {activeConversationId && (
                     <>
                         <div className="px-4 pt-0 pb-2">
-                            <div className="w-full mx-auto">
+                            <div className="w-full max-w-3xl mx-auto">
                                 <Card className="bg-gradient-to-r from-[#0f172a] to-[#1a202c] border-[#3b4a63] border shadow-lg rounded-xl overflow-hidden">
                                     <CardHeader className="pb-2">
                                         <CardTitle className="text-[#e2e8f0] text-sm flex items-center gap-2">
@@ -381,7 +381,7 @@ const ChatApp = () => {
                         </div>
 
                         <div className="border-t border-[#2d3748] p-4 bg-[#0a0d14]">
-                            <div className="w-full mx-auto relative">
+                            <div className="w-full max-w-3xl mx-auto relative">
                                 <div className="relative flex items-end">
                                     <div className="relative flex-1">
                                         <Textarea
@@ -411,7 +411,7 @@ const ChatApp = () => {
                         </div>
                     </>
                 )}
-            </div>
+            </main>
         </div>
     );
 };

@@ -3,6 +3,7 @@ from .models import Tweet, Likes, Hashtag, Mention, Media, Retweets
 from django.contrib.auth import get_user_model
 from core.utils.helpers import build_absolute_url, time_ago
 from accounts.serializers import UserSerializer
+from profiles.serializers import ProfileSerializer
 
 User = get_user_model()
 
@@ -53,7 +54,7 @@ class TweetSerializer(serializers.ModelSerializer):
     iretweeted = serializers.SerializerMethodField(read_only=True)
     ibookmarked = serializers.SerializerMethodField(read_only=True)
     time = serializers.SerializerMethodField(read_only=True)
-    author = UserSerializer(source="user", read_only=True)
+    author = ProfileSerializer(source="user", read_only=True)
     replies_count = serializers.SerializerMethodField()
     is_retweet = serializers.SerializerMethodField()
     retweeted_by = serializers.SerializerMethodField()
@@ -164,14 +165,14 @@ class TweetSerializer(serializers.ModelSerializer):
         return representation
 
 
-class RetweetSerializer(serializers.ModelSerializer):
+class RetweetTweetSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField(read_only=True)
     retweets_count = serializers.SerializerMethodField(read_only=True)
     iliked = serializers.SerializerMethodField(read_only=True)
     iretweeted = serializers.SerializerMethodField(read_only=True)
     ibookmarked = serializers.SerializerMethodField(read_only=True)
     time = serializers.SerializerMethodField(read_only=True)
-    author = UserSerializer(source="user", read_only=True)
+    author = ProfileSerializer(source="user", read_only=True)
     replies_count = serializers.SerializerMethodField()
     is_retweet = serializers.SerializerMethodField()
     retweeted_by = serializers.SerializerMethodField()
@@ -277,9 +278,10 @@ class RetweetSerializer(serializers.ModelSerializer):
         if Retweets.objects.filter(tweet=instance).exists():
             retweet_instance = Retweets.objects.filter(tweet=instance).first()
             if retweet_instance:
-                representation['created_at'] = retweet_instance.created_at.isoformat()
+                representation["created_at"] = retweet_instance.created_at.isoformat()
 
         return representation
+
 
 class TweetLikeSerializer(serializers.ModelSerializer):
     class Meta:
