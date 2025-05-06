@@ -5,14 +5,14 @@ export default function UserRow({ user, onVerify, onBan }) {
   return (
     <div className="flex items-center justify-between p-3 border-b border-gray-800 hover:bg-gray-900">
       <div className="flex items-center">
-        <img 
-          src={user.profileImage || '/default-avatar.png'} 
-          alt={user.username} 
-          className="w-10 h-10 rounded-full mr-3" 
+        <img
+          src={user.avatar_url || '/default-avatar.png'}
+          alt={user.username}
+          className="w-10 h-10 rounded-full mr-3"
         />
         <div>
           <div className="font-semibold flex items-center">
-            {user.name}
+            {user.display_name}
             {user.verified && (
               <span className="ml-1 text-blue-500">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -25,15 +25,15 @@ export default function UserRow({ user, onVerify, onBan }) {
         </div>
       </div>
       <div className="flex">
-        <button 
-          onClick={() => onVerify(user.id)} 
+        <button
+          onClick={() => onVerify(user.id)}
           className="p-2 text-blue-500 hover:bg-blue-900 hover:bg-opacity-20 rounded-full"
           title="Verify User"
         >
           <UserCheck size={18} />
         </button>
-        <button 
-          onClick={() => onBan(user.id)} 
+        <button
+          onClick={() => onBan(user.id)}
           className="p-2 text-red-500 hover:bg-red-900 hover:bg-opacity-20 rounded-full"
           title="Ban User"
         >

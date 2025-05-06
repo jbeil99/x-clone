@@ -25,7 +25,7 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from datetime import timedelta
-from profiles.models import MutedUser, ReportedUser
+from profiles.models import MutedUser, ReportedTweet
 
 
 class Like(APIView):
@@ -74,12 +74,8 @@ class TweetList(generics.ListCreateAPIView):
         muted_users_ids = list(
             MutedUser.objects.filter(user=user).values_list("muted_user_id", flat=True)
         )
-        reported_users_ids = list(
-            ReportedUser.objects.filter(user=user).values_list(
-                "reported_user_id", flat=True
-            )
-        )
-        blocked_users_ids = muted_users_ids + reported_users_ids
+
+        blocked_users_ids = muted_users_ids
 
         if tweet_type == "all":
             return (

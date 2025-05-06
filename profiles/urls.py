@@ -7,7 +7,7 @@ from .views import (
     UserFollowingView,
     UserMediaView,
     MuteUnmuteUserView,
-    ReportUserView,
+    ReportTweetView,
     ListMutedUsersView,
     ListReportedUsersView,
 )
@@ -44,7 +44,7 @@ urlpatterns = [
     ),
     path("who-to-follow/", WhoToFollowView.as_view(), name="who-to-follow"),
     path("mute/<int:user_id>/", MuteUnmuteUserView.as_view(), name="mute-user"),
-    path("report/<int:user_id>/", ReportUserView.as_view(), name="report-user"),
+    path("report/<int:pk>/", ReportTweetView.as_view(), name="report-user"),
     path("muted/", ListMutedUsersView.as_view(), name="list-muted-users"),
     path("reported/", ListReportedUsersView.as_view(), name="list-reported-users"),
 ]

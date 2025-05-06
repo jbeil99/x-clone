@@ -76,7 +76,7 @@ export function TweetActions({ tweet }) {
         console.log("Report clicked");
         if (!tweet?.author?.id) return;
         try {
-            const response = await authAxios.post(`/report/${tweet.author.id}/`, {
+            const response = await authAxios.post(`/report/${tweet.id}/`, {
                 reason: "Reporting this post.", // Add a reason, you might want a better UI for this
             });
             if (response.status === 201) {

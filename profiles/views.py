@@ -6,12 +6,12 @@ from rest_framework.decorators import action
 from accounts.models import User, Follow
 from tweets.models import Tweet, Media, Retweets
 from tweets.serializers import TweetSerializer, MediaSerializer, RetweetTweetSerializer
-from .serializers import ProfileSerializer, MutedUserSerializer, ReportedUserSerializer
+from .serializers import ProfileSerializer, MutedUserSerializer, ReportedTweetSerializer
 import random
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import generics
-from .models import MutedUser, ReportedUser
+from .models import MutedUser, ReportedTweet
 
 
 class ProfileView(APIView):
@@ -282,56 +282,6 @@ class MuteUnmuteUserView(generics.CreateAPIView, generics.DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ReportUserView(generics.CreateAPIView):
-    """
-    API view to report a user.
-    """
-
-    queryset = ReportedUser.objects.all()
-    serializer_class = ReportedUserSerializer
-    permission_classes = [IsAuthenticated]
-
-    def create(self, request, *args, **kwargs):
-        user = request.user
-        reported_user_id = self.kwargs.get("user_id")  # Get user_id from url
-        reason = request.data.get("reason")
-
-        if not reported_user_id:
-            return Response(
-                {"error": "reported_user_id is required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if not reason:
-            return Response(
-                {"error": "reason is required"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            reported_user = User.objects.get(id=reported_user_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User to report not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        if user == reported_user:
-            return Response(
-                {"error": "You cannot report yourself"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Check if already reported
-        if ReportedUser.objects.filter(user=user, reported_user=reported_user).exists():
-            return Response(
-                {"error": "User already reported"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        reported_user_obj = ReportedUser.objects.create(
-            user=user, reported_user=reported_user, reason=reason
-        )
-        serializer = self.get_serializer(reported_user_obj)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 class ListMutedUsersView(generics.ListAPIView):
     """
     API view to list muted users for the current user.
@@ -350,9 +300,67 @@ class ListReportedUsersView(generics.ListAPIView):
     API view to list reported users for the current user.
     """
 
-    serializer_class = ReportedUserSerializer
+    serializer_class = ReportedTweetSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        return ReportedUser.objects.filter(user=user)
+        return ReportedTweet.objects.all()
+
+
+class ReportTweetView(APIView):
+    """
+    API view to report a tweet and delete reports.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = TweetSerializer
+
+    def post(self, request, pk):
+        user = request.user
+        try:
+            tweet = Tweet.objects.get(id=pk)
+        except Tweet.DoesNotExist:
+            return Response(
+                {"error": "Tweet to report not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if tweet.user == user:
+            return Response(
+                {"error": "You cannot report your own tweet"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if ReportedTweet.objects.filter(user=user, tweet=tweet).exists():
+            return Response(
+                {"error": "Tweet already reported"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reported_tweet_obj = ReportedTweet.objects.create(
+            user=user, tweet=tweet, context={"request", request}
+        )
+        serializer = self.serializer_class(reported_tweet_obj)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Delete a reported tweet.  Only accessible by admin users.
+        """
+        if not request.user.is_staff:
+            return Response(
+                {"error": "Only admins can delete reports."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        report_id = self.kwargs.get("pk")
+
+        try:
+            reported_tweet = ReportedTweet.objects.get(pk=report_id)
+        except ReportedTweet.DoesNotExist:
+            return Response(
+                {"error": "Reported tweet not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        reported_tweet.delete()
+        return Response(
+            {"message": "Reported tweet deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )

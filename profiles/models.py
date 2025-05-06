@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from tweets.models import Tweet
 
 User = get_user_model()
 
@@ -24,22 +25,25 @@ class MutedUser(models.Model):
         return f"{self.user.username} muted {self.muted_user.username}"
 
 
-class ReportedUser(models.Model):
+class ReportedTweet(models.Model):
     """
-    Represents a reported user.
+    Represents a reported tweet.
     """
 
     user = models.ForeignKey(
         User, related_name="reporting_users", on_delete=models.CASCADE
     )
-    reported_user = models.ForeignKey(
-        User, related_name="reported_by_users", on_delete=models.CASCADE
+    tweet = models.ForeignKey(
+        Tweet, related_name="reported_by_users", on_delete=models.CASCADE
     )
-    reason = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "reported_user")
+        unique_together = ("user", "tweet")
 
     def __str__(self):
-        return f"{self.user.username} reported {self.reported_user.username}"
+        return f"{self.user.username} reported tweet {self.tweet.id}"
+
+
+class dummyModeL(models.Model):
+    name = models.CharField()

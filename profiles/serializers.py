@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from accounts.models import User, Follow
 from core.utils.helpers import build_absolute_url
-from .models import MutedUser, ReportedUser
+from .models import MutedUser, ReportedTweet
+import tweets.serializers as ts
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -66,13 +67,29 @@ class MutedUserSerializer(serializers.ModelSerializer):
         fields = ["id", "muted_user", "created_at"]
 
 
-class ReportedUserSerializer(serializers.ModelSerializer):
+class ReportedTweetSerializer(serializers.ModelSerializer):
     """
-    Serializer for ReportedUser model.
+    Serializer for ReportedTweet, including author and tweet details.
     """
 
-    reported_user = serializers.ReadOnlyField(source="reported_user.username")
+    user = ProfileSerializer()
+    tweet = serializers.SerializerMethodField()
+    reported_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = ReportedUser
-        fields = ["id", "reported_user", "reason", "created_at"]
+        model = ReportedTweet
+        fields = [
+            "id",
+            "user",
+            "tweet",
+            "created_at",
+            "reported_count",
+        ]
+
+    def get_tweet(self, obj):
+        from tweets.serializers import TweetSerializer
+
+        return TweetSerializer(obj.tweet, context=self.context).data
+
+    def get_reported_count(self, obj):
+        return ReportedTweet.objects.filter(tweet=obj.tweet).count()
