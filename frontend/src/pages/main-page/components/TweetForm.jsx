@@ -34,7 +34,7 @@ const tweetSchema = z.object({
     }
 });
 
-export default function TweetForm({ parent, isReply = false, author, setReplies, replies }) {
+export default function TweetForm({ parent, isReply = false, author, setReplies, replies, onSuccess }) {
     const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
     const context = useContext(Tab.Context)
     const fileInputRef = useRef(null);
@@ -78,6 +78,11 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
             setMediaType(null);
             if (context) {
                 context.setActive("following")
+            }
+            
+            // Call onSuccess callback if provided
+            if (onSuccess) {
+                onSuccess();
             }
         } catch (error) {
             console.error("Error posting tweet:", error);
@@ -125,7 +130,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                         </div> : ""}
 
                         <textarea
-                            className="w-full bg-transparent outline-none resize-none text-[18px] leading-6 mb-1 placeholder:text-gray-500 dark:text-white"
+                            className="w-full bg-transparent outline-none resize-none text-[18px] leading-6 mb-1 placeholder:text-gray-500 text-white"
                             placeholder={textAreaText}
                             rows="2"
                             {...register("content")}

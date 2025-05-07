@@ -8,12 +8,14 @@ import { authAxios } from '../../api/useAxios';
 import messageEvents from '../../utils/messageEvents';
 import notificationEvents from '../../utils/notificationEvents';
 import { UserAction } from './UserAction';
+import TweetModal from '../modal/TweetModal';
 
 export default function Navigations() {
     const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
     const [unreadMessageCount, setUnreadMessageCount] = useState(0);
     const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
     const [socketReady, setSocketReady] = useState(false);
+    const [isTweetModalOpen, setIsTweetModalOpen] = useState(false);
     const location = useLocation();
 
     // Fetch unread message count - memoized with useCallback
@@ -169,14 +171,21 @@ export default function Navigations() {
                     ))}
                 </nav>
                 <div className="mt-6 w-full flex justify-center">
-                    <button className="hidden sm:block w-full bg-blue-500 text-white rounded-full py-3 text-lg font-bold shadow hover:bg-blue-600 transition-colors">
+                    <button 
+                        onClick={() => setIsTweetModalOpen(true)}
+                        className="hidden sm:block w-full bg-white text-black rounded-full py-3 text-lg font-bold shadow hover:bg-gray-200 transition-colors"
+                    >
                         Post
                     </button>
-                    <button className="sm:hidden w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center shadow hover:bg-blue-600 transition-colors">
+                    <button 
+                        onClick={() => setIsTweetModalOpen(true)}
+                        className="sm:hidden w-12 h-12 bg-white text-black rounded-full flex items-center justify-center shadow hover:bg-gray-200 transition-colors"
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                             <path d="M12 5v14M5 12h14" />
                         </svg>
                     </button>
+                    <TweetModal isOpen={isTweetModalOpen} onClose={() => setIsTweetModalOpen(false)} />
                 </div>
 
                 <div className="flex items-center gap-3 px-2 py-3 hover:bg-gray-900 rounded-full cursor-pointer mt-3 hidden sm:flex">

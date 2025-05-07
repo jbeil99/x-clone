@@ -28,7 +28,7 @@ export default function Layout({ children }) {
 
                 {/* Main Content */}
                 <main className={`flex-1 min-w-0 flex`}>
-                    <div className={`w-full border-r border-gray-800 ${!isMessagesPage && !isAiChat ? 'lg:max-w-[600px]' : ''}`}>
+                    <div className={`w-full border-r border-gray-800 ${!isMessagesPage && !isAiChat ? 'lg:max-w-[600px] lg:mr-16' : ''}`}>
                         {children}
                     </div>
                 </main>
@@ -44,9 +44,9 @@ export default function Layout({ children }) {
             </div>
 
             {/* Messages Tab at bottom */}
-            {/* {!isMessagesPage && (
+             {!isMessagesPage && (
                 <MessagesBox isMessagesPage={isMessagesPage} />
-            )} */}
+            )} 
         </div>
     );
 }
