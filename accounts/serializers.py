@@ -6,6 +6,7 @@ from djoser.serializers import (
 )
 from .models import AdminActionLog
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from djoser.serializers import UserDeleteSerializer
 
 User = get_user_model()
 
@@ -141,3 +142,23 @@ class AdminActionLogSerializer(serializers.ModelSerializer):
 
     def get_target_username(self, obj):
         return obj.target_user.username if obj.target_user else None
+
+
+class UserDeleteSerializer(UserDeleteSerializer):
+    current_password = serializers.CharField(
+        required=True, write_only=True, style={"input_type": "password"}
+    )
+
+    def validate_current_password(self, value):
+        if not self.context["request"].user.check_password(value):
+            raise serializers.ValidationError("Incorrect current password.")
+        return value
+
+    def delete(self, validated_data):
+        user = self.context["request"].user
+        user.delete()  # soft delete
+        return user
+
+    class Meta:
+        model = User
+        fields = ["current_password"]

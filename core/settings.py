@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     "chat",
     "grok",
     "notifications",
-    'dashboard',
+    "dashboard",
+    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [
@@ -195,7 +196,7 @@ DJOSER = {
         "user_create": "accounts.serializers.UserRegistrationSerializer",
         "user": "accounts.serializers.UserSerializer",
         "current_user": "profiles.serializers.ProfileSerializer",
-        "user_delete": "djoser.serializers.UserDeleteSerializer",
+        "user_delete": "accounts.serializers.UserDeleteSerializer",
     },
     "EMAIL": {
         "activation": "accounts.email.ActivationEmail",

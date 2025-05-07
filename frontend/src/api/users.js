@@ -1,3 +1,4 @@
+import { da } from "date-fns/locale";
 import { axi, authAxios } from "./useAxios";
 
 // TODO: Get the user id form token
@@ -63,7 +64,8 @@ export const updateProfile = async (data) => {
     formData.append("bio", data.bio);
     if (data.avatar) formData.append("avatar", data.avatar);
     if (data.cover_image) formData.append("cover_image", data.cover_image);
-    console.log(formData)
+    if (data.date_of_birth) formData.append("date_of_birth", data.date_of_birth);
+
     const res = await authAxios.patch('profile/edit/', formData, {
 
         headers: { "Content-Type": "multipart/form-data" },

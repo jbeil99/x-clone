@@ -23,13 +23,12 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to="profile_pics", default="default/user.png")
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    date_of_birth = models.DateField(null=True, blank=True)
+    date_of_birth = models.DateField(blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     display_name = models.CharField(max_length=50)
     bio = models.CharField(max_length=255, blank=True)
     cover_image = models.ImageField(default="cover.png")
 
-    # New fields for ban and verification
     verified = models.BooleanField(default=False)
     verified_at = models.DateTimeField(blank=True, null=True)
     banned = models.BooleanField(default=False)
