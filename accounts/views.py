@@ -1,6 +1,5 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
-from .serializers import UserProfileSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
@@ -23,34 +22,6 @@ from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 
 User = get_user_model()
-
-
-class UserUpdateView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        serializer = UserProfileSerializer(request.user)
-        return Response(serializer.data)
-
-    def patch(self, request):
-        serializer = UserProfileSerializer(
-            request.user, data=request.data, partial=True
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request):
-        old_profile_picture = request.user.profile_picture
-        serializer = UserProfileSerializer(request.user, data=request.data)
-        if serializer.is_valid():
-            if not request.data.get("profile_picture"):
-                serializer.validated_data["profile_picture"] = old_profile_picture
-
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DeleteAccountView(APIView):

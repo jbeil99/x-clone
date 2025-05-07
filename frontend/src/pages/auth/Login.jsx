@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
-export default function Login({ closeModals, openRegisterModal }) {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
@@ -17,7 +17,7 @@ export default function Login({ closeModals, openRegisterModal }) {
     if (isAuthenticated && user) {
       toast(`Welcome ${user.display_name}!`);
       navigate('/');
-    } 
+    }
 
     return () => {
       dispatch(clearError());
@@ -26,7 +26,8 @@ export default function Login({ closeModals, openRegisterModal }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginUser({email, password }));
+    dispatch(loginUser({ email, password }));
+    console.log(loading, error, isAuthenticated, user)
   };
 
   return (

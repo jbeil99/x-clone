@@ -163,7 +163,7 @@ class WhoToFollowView(APIView):
         excluded_user_ids.extend(list(muted_user_ids))
 
         available_users = User.objects.exclude(id__in=excluded_user_ids).filter(
-            is_staff=False
+            is_staff=False, is_active=True, banned=False
         )
         random_users = random.sample(
             list(available_users), min(5, available_users.count())
