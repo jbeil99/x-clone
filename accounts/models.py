@@ -42,6 +42,7 @@ class User(AbstractUser):
         "mobile_phone",
         "display_name",
         "date_of_birth",
+        "avatar",
     ]
 
     @property

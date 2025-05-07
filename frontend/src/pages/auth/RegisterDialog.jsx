@@ -22,7 +22,7 @@ export default function RegisterDialog({ open, onOpenChange, setDialogType }) {
                     </div>
                     <DialogTitle>Create your account</DialogTitle>
                 </DialogHeader>
-                <RegisterForm />
+                <RegisterForm setDialogType={setDialogType} />
 
                 <div className="text-center">
                     <p className="text-gray-500">
