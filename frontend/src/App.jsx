@@ -18,7 +18,8 @@ import Notifications from "./pages/Notifications";
 import Dashboard from './pages/dashboard/Dashboard';
 import ChatApp from "./pages/grok/ChatApp";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-
+import SettingsPage from "./pages/SettingsPage";
+import AccountSettings from "./pages/AccountSettings";
 function App() {
   return (
     <BrowserRouter>
@@ -44,6 +45,9 @@ function App() {
           <Route path="/grok" element={<Layout><ChatApp /></Layout>} />
 
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+          <Route path="/settingspage" element={<Layout><SettingsPage /></Layout>} />
+          <Route path="/settings/your-account" element={<Layout><AccountSettings /></Layout>} />
+
         </Route>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path='*' element={<Layout><div > Not found</div></Layout>} />
