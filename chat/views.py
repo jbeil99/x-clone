@@ -17,7 +17,16 @@ User = get_user_model()
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def all_users(request):
-    users = User.objects.filter(is_active=True).exclude(id=request.user.id)
+    from accounts.models import Follow
+    
+    following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
+    
+    followers_ids = Follow.objects.filter(following=request.user).values_list('follower_id', flat=True)
+    
+    mutual_ids = set(following_ids).intersection(set(followers_ids))
+    
+    users = User.objects.filter(id__in=mutual_ids, is_active=True)
+    
     serializer = UserSerializer(users, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -158,3 +167,23 @@ def get_unread_by_user(request):
         unread_counts[str(item['sender'])] = item['count']
     
     return Response(unread_counts)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_spam_messages(request):
+    from accounts.models import Follow
+    
+    # Get IDs of users that the current user is following
+    following_ids = list(Follow.objects.filter(follower=request.user).values_list('following_id', flat=True))
+    # Add the user's own ID to avoid showing their own messages
+    following_ids.append(request.user.id)
+    
+    # Get messages from users that the current user is NOT following
+    spam_messages = Message.objects.filter(
+        receiver=request.user
+    ).exclude(
+        sender_id__in=following_ids
+    ).order_by('-timestamp')
+    
+    serializer = MessageSerializer(spam_messages, many=True, context={'request': request})
+    return Response(serializer.data)

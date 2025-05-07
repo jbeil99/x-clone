@@ -16,8 +16,8 @@ import GrokPage from "./pages/grok/GrokPage";
 import Notifications from "./pages/Notifications";
 // import Profile from './pages/Profile';
 import Dashboard from './pages/dashboard/Dashboard';
-import SettingsPage from './pages/SettingsPage'
-import AccountSettings from './pages/AccountSettings'
+import ChatApp from "./pages/grok/ChatApp";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
@@ -38,13 +38,14 @@ function App() {
           <Route path="/profile/:username" element={<Layout><UserProfile /></Layout>} />
           <Route path="/bookmarks" element={<Layout><Bookmark /></Layout>} />
           <Route path="/profile/:username/followers" element={<Layout><Users /></Layout>} />
+          <Route path="/profile/:username/following" element={<Layout><Users /></Layout>} />
 
-          <Route path="/grok" element={<Layout><GrokPage /></Layout>} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/SettingsPage" element={<Layout><SettingsPage /></Layout>} />
-          <Route path="/settings/your-account" element={<Layout><AccountSettings /></Layout>} />
+          {/* <Route path="/grok" element={<Layout><GrokPage /></Layout>} /> */}
+          <Route path="/grok" element={<Layout><ChatApp /></Layout>} />
 
+          <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
         </Route>
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path='*' element={<Layout><div > Not found</div></Layout>} />
 
       </Routes>

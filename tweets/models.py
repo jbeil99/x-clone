@@ -3,6 +3,10 @@ from accounts.models import User
 import re
 from django.core.exceptions import ValidationError
 import os
+from grok.gemini_integration import (
+    generate_response,
+)
+from core.utils.helpers import extract_hashtags, extract_mentions
 
 
 class Hashtag(models.Model):
@@ -40,7 +44,7 @@ def validate_media_type(value):
             f"Unsupported file extension. Allowed extensions are: {', '.join(allowed_extensions)}"
         )
 
-    if value.size > 50 * 1024 * 1024:  # 50MB limit
+    if value.size > 50 * 1024 * 1024:
         raise ValidationError("File size cannot exceed 50MB.")
 
     return value
@@ -76,9 +80,6 @@ class Tweet(models.Model):
     def __str__(self):
         return f"Tweet {self.id} by {self.user.username}"
 
-    def extract_mentions(self, content):
-        return re.findall(r"@(\w+)", content)
-
     def is_user_liked(self, user):
         return self.likes.filter(user=user).exists()
 
@@ -90,11 +91,16 @@ class Tweet(models.Model):
 
     @classmethod
     def get_tweets(cls):
-        return cls.objects.filter(parent=None)
+        return (
+            cls.objects.filter(parent=None)
+            .exclude(user__username="frog")
+            .exclude(is_staff=True)
+            .exclude(is_superuser=True)
+        )
 
     @classmethod
     def get_bookmarked_tweets(cls, user):
-        return cls.objects.filter(bookmarked_by__user=user)
+        return cls.objects.filter(bookmarked_by__id=user.id)
 
     @classmethod
     def get_top_tweets_by_hashtag(cls, hashtag):
@@ -110,13 +116,13 @@ class Tweet(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        hashtags = self.extract_hashtags(self.content)
+        hashtags = extract_hashtags(self.content)
         for tag in hashtags:
             HashtagLog.objects.create(name=tag)
             hashtag, _ = Hashtag.objects.get_or_create(name=tag)
             self.hashtags.add(hashtag)
 
-        mentions_in_content = self.extract_mentions(self.content)
+        mentions_in_content = extract_mentions(self.content)
         for username in mentions_in_content:
             try:
                 mentioned_user = User.objects.get(username=username)
@@ -124,13 +130,31 @@ class Tweet(models.Model):
                     tweet=self, mentioned_user=mentioned_user
                 ).exists():
                     Mention.objects.create(tweet=self, mentioned_user=mentioned_user)
+
+                    print("lol here im frogg", username)
+                if username == "frog" and self.user.username != "frog":
+                    self.call_chat_bot()
             except User.DoesNotExist:
                 continue
 
-    @staticmethod
-    def extract_hashtags(content):
-        """Extract hashtags from tweet content."""
-        return [word[1:] for word in content.split() if word.startswith("#")]
+    def call_chat_bot(self):
+        try:
+            bot_user = User.objects.get(username="frog")
+        except User.DoesNotExist:
+            print("Bot user not found.  Please create a user with username 'bot'.")
+            return
+        prompt = self.content
+
+        if self.parent:
+            prompt += f" (Replying to: {self.parent.content})"
+
+        try:
+            ai_response_text = f"@{self.user.username} {generate_response(prompt)}"
+
+            Tweet.objects.create(user=bot_user, content=ai_response_text, parent=self)
+
+        except Exception as e:
+            print(f"Error generating response: {e}")
 
 
 class Mention(models.Model):

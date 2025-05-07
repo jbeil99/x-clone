@@ -1,9 +1,17 @@
-# grok/urls.py
-
 from django.urls import path
-from grok.views import chat_api
-from django.views.decorators.csrf import csrf_exempt
+from .views import ConversationListView, ConversationDetailView, ConversationMessageView
 
 urlpatterns = [
-    path('api/chat/', csrf_exempt(chat_api), name='chat_api'),  # ✅ Disable CSRF
+    # API endpoints for conversations
+    path("conversations/", ConversationListView.as_view(), name="conversation-list"),
+    path(
+        "conversations/<int:conversation_id>/",
+        ConversationDetailView.as_view(),
+        name="conversation-detail",
+    ),
+    path(
+        "conversations/<int:conversation_id>/messages/",
+        ConversationMessageView.as_view(),
+        name="conversation-messages",
+    ),
 ]

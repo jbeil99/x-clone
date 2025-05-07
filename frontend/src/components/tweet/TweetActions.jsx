@@ -16,7 +16,10 @@ import {
 import { useState } from 'react';
 import { useSelector, useDispatch } from "react-redux";
 import { deleteTweetAction } from "../../store/slices/tweets";
-import { toast } from "sonner"
+// import { toast } from "sonner"
+import { authAxios } from "../../api/useAxios"; // Import authAxios
+import { toast } from "react-toastify";
+
 export function TweetActions({ tweet }) {
     const [open, setOpen] = useState(false);
     const { user } = useSelector(store => store.auth)
@@ -42,9 +45,23 @@ export function TweetActions({ tweet }) {
         setOpen(false);
     };
 
-    const handleMuteClick = (e) => {
+    const handleMuteClick = async (e) => {
         e.stopPropagation();
-        console.log("Mute clicked");
+        if (!tweet?.author?.id) return;
+        try {
+            const response = await authAxios.post(`/mute/${tweet.author.id}/`);
+            if (response.status === 201) {
+                toast.success(`@${tweet.author.username} muted`);
+            } else {
+                toast.error("Failed to mute user");
+            }
+        } catch (error) {
+            let errorMessage = "Failed to mute user";
+            if (error.response?.data) {
+                errorMessage = Object.values(error.response.data).join(", ");
+            }
+            toast.error(errorMessage);
+        }
         setOpen(false);
     };
 
@@ -54,9 +71,28 @@ export function TweetActions({ tweet }) {
         setOpen(false);
     };
 
-    const handleReportClick = (e) => {
+    const handleReportClick = async (e) => {
         e.stopPropagation();
         console.log("Report clicked");
+        if (!tweet?.author?.id) return;
+        try {
+            const response = await authAxios.post(`/report/${tweet.id}/`, {
+                reason: "Reporting this post.", // Add a reason, you might want a better UI for this
+            });
+            if (response.status === 201) {
+                toast.success(`@${tweet.author.username} reported`);
+            }
+            else {
+                toast.error("Failed to report user");
+            }
+        } catch (error) {
+            console.error("Error reporting user:", error);
+            let errorMessage = "Failed to report user";
+            if (error.response?.data) {
+                errorMessage = Object.values(error.response.data).join(", ");
+            }
+            toast.error(errorMessage);
+        }
         setOpen(false);
     };
 
@@ -89,7 +125,7 @@ export function TweetActions({ tweet }) {
                     onClick={handleFollowClick}
                 >
                     <UserPlus className="h-4 w-4 text-gray-400 group-hover:text-white" />
-                    <span>Follow @Ghhhoywsbp9610b</span>
+                    <span>Follow @{tweet?.author?.username || 'Unknown'}</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
@@ -97,7 +133,7 @@ export function TweetActions({ tweet }) {
                     onClick={handleMuteClick}
                 >
                     <Volume2 className="h-4 w-4 text-gray-400 group-hover:text-white" />
-                    <span>Mute @Ghhhoywsbp9610b</span>
+                    <span>Mute @{tweet?.author?.username || 'Unknown'}</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
@@ -105,7 +141,7 @@ export function TweetActions({ tweet }) {
                     onClick={handleBlockClick}
                 >
                     <Ban className="h-4 w-4 text-gray-400 group-hover:text-white" />
-                    <span>Block @Ghhhoywsbp9610b</span>
+                    <span>Block @{tweet?.author?.username || 'Unknown'}</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
@@ -119,3 +155,4 @@ export function TweetActions({ tweet }) {
         </DropdownMenu>
     );
 }
+

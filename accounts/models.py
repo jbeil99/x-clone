@@ -20,9 +20,7 @@ class User(AbstractUser):
         validators=[egyptian_phone_validator],
         blank=False,
     )
-    avatar = models.ImageField(
-        upload_to="media/profile_pics", default="default_profile_400x400.png"
-    )
+    avatar = models.ImageField(upload_to="profile_pics", default="default/user.png")
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     date_of_birth = models.DateField(null=True, blank=True)
@@ -30,6 +28,13 @@ class User(AbstractUser):
     display_name = models.CharField(max_length=50)
     bio = models.CharField(max_length=255, blank=True)
     cover_image = models.ImageField(default="cover.png")
+
+    # New fields for ban and verification
+    verified = models.BooleanField(default=False)
+    verified_at = models.DateTimeField(blank=True, null=True)
+    banned = models.BooleanField(default=False)
+    ban_reason = models.TextField(blank=True, null=True)
+    banned_at = models.DateTimeField(blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
@@ -66,6 +71,37 @@ class User(AbstractUser):
     def is_user_follower(self, user):
         return self.followers.filter(follower=user).exists()
 
+    def ban(self, reason=None):
+        """Ban a user with optional reason."""
+        self.banned = True
+        self.ban_reason = reason if reason else "Violation of community guidelines"
+        self.banned_at = timezone.now()
+        self.is_active = False  # Deactivate the user account
+        self.save()
+        return self
+
+    def unban(self):
+        """Unban a user."""
+        self.banned = False
+        self.ban_reason = None
+        self.banned_at = None
+        self.save()
+        return self
+
+    def verify(self):
+        """Mark a user as verified."""
+        self.verified = True
+        self.verified_at = timezone.now()
+        self.save()
+        return self
+
+    def unverify(self):
+        """Remove verification status from a user."""
+        self.verified = False
+        self.verified_at = None
+        self.save()
+        return self
+
 
 class Follow(models.Model):
     following = models.ForeignKey(
@@ -90,3 +126,33 @@ class ActivationToken(models.Model):
 
     def is_valid(self):
         return (timezone.now() - self.created_at).total_seconds() < 24 * 60 * 60
+
+
+class AdminActionLog(models.Model):
+    """Model to log admin actions for audit purposes."""
+
+    ACTION_TYPES = (
+        ("ban", "Ban User"),
+        ("unban", "Unban User"),
+        ("verify", "Verify User"),
+        ("unverify", "Unverify User"),
+        ("delete_tweet", "Delete Tweet"),
+        ("review_report", "Review Report"),
+    )
+
+    admin = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="admin_actions"
+    )
+    action_type = models.CharField(max_length=20, choices=ACTION_TYPES)
+    target_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="admin_actions_received",
+        null=True,
+        blank=True,
+    )
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]

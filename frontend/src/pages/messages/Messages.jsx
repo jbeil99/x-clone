@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { ArrowLeft, Search, Settings, MessageSquarePlus, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut } from 'lucide-react';
+import { ArrowLeft, Search, Settings, Image, Smile, Calendar, X, Paperclip, File, Bell, BellOff, Flag, LogOut, AlertTriangle } from 'lucide-react';
 import { currentUser } from "../../api/users";
 import { authAxios } from "../../api/useAxios";
 import EmojiPicker from 'emoji-picker-react';
@@ -22,6 +22,10 @@ export default function Messages() {
   const [unreadMessages, setUnreadMessages] = useState({});
   const [totalUnread, setTotalUnread] = useState(0);
   const conversationInfoRef = useRef(null);
+  const [viewingSpam, setViewingSpam] = useState(false);
+  const [spamMessages, setSpamMessages] = useState([]);
+  const [spamUsers, setSpamUsers] = useState([]);
+  const [loadingSpam, setLoadingSpam] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -50,6 +54,27 @@ export default function Messages() {
   }, [showConversationInfo]);
 
   useEffect(() => {
+    // التحقق من وجود مستخدم محدد من صفحة البروفايل
+    const checkForSelectedUser = () => {
+      const selectedChatUserString = localStorage.getItem('selectedChatUser');
+      if (selectedChatUserString) {
+        try {
+          const selectedChatUser = JSON.parse(selectedChatUserString);
+          // نقوم بتحديد المستخدم المختار من صفحة البروفايل
+          setSelectedUser(selectedChatUser);
+          // إذا كانت الشاشة صغيرة، نخفي قائمة المستخدمين
+          if (windowWidth < 768) {
+            setShowList(false);
+          }
+          // حذف المعلومات من localStorage بعد استخدامها
+          localStorage.removeItem('selectedChatUser');
+        } catch (e) {
+          console.error("Error parsing selected chat user:", e);
+          localStorage.removeItem('selectedChatUser');
+        }
+      }
+    };
+
     const fetchCurrentUser = async () => {
       try {
         setLoading(true);
@@ -71,6 +96,9 @@ export default function Messages() {
         setLoading(true);
         const res = await authAxios.get("chat/all-users/");
         setUsers(res.data);
+        
+        // بعد جلب المستخدمين، نتحقق من وجود مستخدم محدد
+        checkForSelectedUser();
         
         const lastMsgsObj = {};
         for (const user of res.data) {
@@ -207,7 +235,6 @@ export default function Messages() {
     };
   }, [me, selectedUser]);
 
-  // Mark messages as read when selecting a user
   useEffect(() => {
     if (selectedUser && unreadMessages[selectedUser.id]) {
       setTotalUnread(prev => prev - unreadMessages[selectedUser.id]);
@@ -217,6 +244,48 @@ export default function Messages() {
       }));
     }
   }, [selectedUser, unreadMessages]);
+
+  // Function to fetch spam messages
+  const fetchSpamMessages = async () => {
+    if (!me) return;
+    
+    try {
+      setLoadingSpam(true);
+      const res = await authAxios.get("chat/spam-messages/");
+      setSpamMessages(res.data);
+      
+      // Extract unique users from spam messages
+      const uniqueSpamUsers = {};
+      for (const message of res.data) {
+        if (typeof message.sender === 'object' && message.sender.id !== me.id) {
+          uniqueSpamUsers[message.sender.id] = message.sender;
+        }
+      }
+      
+      setSpamUsers(Object.values(uniqueSpamUsers));
+      setViewingSpam(true);
+    } catch (error) {
+      console.error("Error fetching spam messages:", error);
+      setError("Failed to load spam messages. Please try again later.");
+    } finally {
+      setLoadingSpam(false);
+    }
+  };
+  
+  // Function to exit spam view
+  const exitSpamView = () => {
+    setViewingSpam(false);
+    setSelectedUser(null);
+  };
+
+  // Function to handle clicking on a spam message user
+  const handleSpamUserClick = (user) => {
+    setSelectedUser(user);
+    setViewingSpam(false);
+    if (windowWidth < 768) {
+      setShowList(false);
+    }
+  };
 
   const filteredUsers = users.filter(u => me && u.id !== me.id && (
     u.display_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -297,8 +366,13 @@ export default function Messages() {
         
         if (data.action === "message" || data.action === "message_sent") {
           const messageData = data.action === "message_sent" ? data.message : data;
-          const senderId = messageData.sender;
-          const receiverId = messageData.receiver;
+          // Handle both object and primitive sender/receiver types
+          const sender = messageData.sender;
+          const receiver = messageData.receiver;
+          
+          // Extract IDs for comparison
+          const senderId = typeof sender === 'object' ? sender.id : sender;
+          const receiverId = typeof receiver === 'object' ? receiver.id : receiver;
           
           if ((senderId === me.id && receiverId === other.id) || 
               (senderId === other.id && receiverId === me.id)) {
@@ -307,15 +381,15 @@ export default function Messages() {
               // التحقق من عدم وجود رسائل مكررة
               const isDuplicate = prev.some(msg => 
                 msg.content === messageData.content && 
-                msg.sender === senderId && 
+                (typeof msg.sender === 'object' ? msg.sender.id === senderId : msg.sender === senderId) && 
                 msg.timestamp === messageData.timestamp
               );
               
               if (!isDuplicate) {
                 return [...prev, {
                   id: Date.now(),
-                  sender: senderId,
-                  receiver: receiverId,
+                  sender: sender, // Use the full sender object
+                  receiver: receiver, // Use the full receiver object
                   content: messageData.content,
                   timestamp: messageData.timestamp
                 }];
@@ -558,8 +632,14 @@ export default function Messages() {
           style={{ height: "calc(100vh - 130px)" }}
         >
           {messages.map((msg, i) => {
-            const senderId = String(msg.sender.id);
+            // Handle both object and primitive sender types
+            const sender = msg.sender;
+            const senderId = typeof sender === 'object' ? String(sender.id) : String(sender);
             const myId = String(me?.id);
+            
+            // Get sender username and avatar safely
+            const senderUsername = typeof sender === 'object' ? sender.username : '';
+            const senderAvatar = typeof sender === 'object' ? sender.avatar : null;
             
             const isSentByMe = senderId === myId;
             
@@ -567,8 +647,8 @@ export default function Messages() {
               <div key={i} className={`flex ${isSentByMe ? 'justify-end' : 'justify-start'} mb-1`}>
                 {!isSentByMe && (
                   <img 
-                    src={msg.sender.avatar || `https://ui-avatars.com/api/?name=${msg.sender.username}&background=random`} 
-                    alt={msg.sender.username} 
+                    src={senderAvatar || `https://ui-avatars.com/api/?name=${senderUsername}&background=random`} 
+                    alt={senderUsername} 
                     className="h-8 w-8 rounded-full mr-2 self-end mb-1 hidden sm:block" 
                   />
                 )}
@@ -718,11 +798,12 @@ export default function Messages() {
           <div className="flex items-center justify-between px-4 py-2">
             <h2 className="text-xl font-bold">Messages</h2>
             <div className="flex gap-2">
-              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
-                <Settings size={18} />
-              </button>
-              <button className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800 cursor-pointer">
-                <MessageSquarePlus size={18} />
+              <button 
+                className="text-red-500 hover:text-red-400 p-1 rounded-full hover:bg-gray-800 cursor-pointer" 
+                title="Report Spam"
+                onClick={fetchSpamMessages}
+              >
+                <AlertTriangle size={18} />
               </button>
             </div>
           </div>
@@ -877,6 +958,73 @@ export default function Messages() {
               <button className="text-red-500 hover:underline text-center">
                 Leave conversation
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Spam Messages Modal */}
+      {viewingSpam && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div 
+            className="bg-black border border-gray-800 rounded-xl w-full max-w-md overflow-hidden"
+          >
+            <div className="p-4 border-b border-gray-800 flex items-center">
+              <button 
+                onClick={exitSpamView}
+                className="p-2 rounded-full hover:bg-gray-800 mr-2 cursor-pointer"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <h2 className="text-xl font-bold">Spam messages</h2>
+            </div>
+            
+            <div className="p-4 flex-1 overflow-y-auto">
+              {loadingSpam && (
+                <div className="text-gray-500 text-center py-8">Loading spam messages...</div>
+              )}
+              
+              {error && (
+                <div className="text-red-500 text-center py-8">{error}</div>
+              )}
+              
+              {!loadingSpam && !error && spamMessages.length === 0 && (
+                <div className="text-gray-500 text-center py-8">No spam messages.</div>
+              )}
+              
+              {spamMessages.map(message => {
+                const sender = message.sender;
+                const senderId = typeof sender === 'object' ? sender.id : sender;
+                const senderUsername = typeof sender === 'object' ? sender.username : '';
+                const senderAvatar = typeof sender === 'object' ? sender.avatar : null;
+                const senderDisplayName = typeof sender === 'object' ? sender.display_name || sender.username : '';
+                
+                return (
+                  <div 
+                    key={message.id} 
+                    className="flex items-center gap-3 px-4 py-2 cursor-pointer transition border-b border-gray-800 hover:bg-gray-900"
+                    onClick={() => handleSpamUserClick(sender)}
+                  >
+                    <img 
+                      src={senderAvatar || `https://ui-avatars.com/api/?name=${senderUsername}&background=random`} 
+                      alt={senderUsername} 
+                      className="w-10 h-10 rounded-full object-cover" 
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <div className="font-bold text-sm">{senderDisplayName}</div>
+                        <div className="text-gray-500 text-xs">{formatTime(message.timestamp)}</div>
+                      </div>
+                      <div className="text-gray-500 text-sm truncate">
+                        {message.content || ''}
+                      </div>
+                    </div>
+                    <div className="text-blue-500 hover:bg-blue-500 hover:text-white px-3 py-1 rounded-full text-sm">
+                      Reply
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

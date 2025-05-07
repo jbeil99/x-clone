@@ -1,16 +1,36 @@
-# grok/models.py
 from django.db import models
-from django.conf import settings
+from accounts.models import User
+
 
 class Conversation(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
+    """Model representing a chat conversation"""
 
-class Message(models.Model):  # ✅ Add this model
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
-    content = models.TextField()
-    is_bot = models.BooleanField(default=False)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="conversations"
+    )
+    title = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"{self.title or 'Untitled'} - {self.user.username}"
+
+
+class ChatMessage(models.Model):
+    """Model representing messages within a conversation"""
+
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name="messages"
+    )
+    user_message = models.TextField()
+    bot_response = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["timestamp"]
+
+    def __str__(self):
+        return f"{self.conversation.user.username}: {self.user_message[:30]}..."

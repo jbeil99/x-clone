@@ -1,5 +1,3 @@
-
-
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -17,7 +15,7 @@ urlpatterns = [
     path("api/", include("profiles.urls")),
     path("grok/", include("grok.urls")),
     path("api/notifications/", include("notifications.urls")),
-    path('admin/dashboard/', include('dashboard.urls')),
+    path("api/", include("search.urls")),
 ]
 
 

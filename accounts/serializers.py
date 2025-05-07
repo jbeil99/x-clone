@@ -7,6 +7,7 @@ from djoser.serializers import (
 )
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from .models import AdminActionLog
 
 User = get_user_model()
 
@@ -143,3 +144,48 @@ class TokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError(
                 {"detail": "No account found with this email"}
             )
+
+
+class AdminUserBanSerializer(serializers.Serializer):
+    """Serializer for banning a user."""
+
+    ban_reason = serializers.CharField(required=False, allow_blank=True)
+
+
+class AdminUserVerifySerializer(serializers.Serializer):
+    """Serializer for verifying a user."""
+
+    pass  # No additional fields needed
+
+
+class AdminActionLogSerializer(serializers.ModelSerializer):
+    """Serializer for admin action logs."""
+
+    admin_username = serializers.SerializerMethodField()
+    target_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AdminActionLog
+        fields = [
+            "id",
+            "admin",
+            "admin_username",
+            "action_type",
+            "target_user",
+            "target_username",
+            "notes",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "admin",
+            "admin_username",
+            "created_at",
+            "target_username",
+        ]
+
+    def get_admin_username(self, obj):
+        return obj.admin.username if obj.admin else None
+
+    def get_target_username(self, obj):
+        return obj.target_user.username if obj.target_user else None
