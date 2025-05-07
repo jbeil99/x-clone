@@ -131,7 +131,6 @@ class Tweet(models.Model):
                 ).exists():
                     Mention.objects.create(tweet=self, mentioned_user=mentioned_user)
 
-                    print("lol here im frogg", username)
                 if username == "frog" and self.user.username != "frog":
                     self.call_chat_bot()
             except User.DoesNotExist:
