@@ -88,7 +88,9 @@ const tweetsSlice = createSlice({
         loading: false,
         error: null,
         nextPageUrl: null,
-        hasMore: null
+        hasMore: null,
+        hasMoreForYou: null,
+        nextPageUrlForYou: null
     },
     reducers: {
 
@@ -109,7 +111,9 @@ const tweetsSlice = createSlice({
             }
 
             state.nextPageUrl = action.payload.followingTweets.next;
+            state.nextPageUrlForYou = action.payload.tweets.next;
             state.hasMore = action.payload.followingTweets.next ? true : false
+            state.hasMoreForYou = action.payload.tweets.next ? true : false
 
         });
         builder.addCase(fetchTweets.rejected, (state, action) => {

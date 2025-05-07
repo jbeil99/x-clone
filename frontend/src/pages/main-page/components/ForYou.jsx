@@ -4,13 +4,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchTweets } from "../../../store/slices/tweets";
 
 const ForYou = () => {
-    const { loading, error, tweets, nextPageUrl, hasMore } = useSelector((state) => state.tweets);
+    const { loading, error, tweets, nextPageUrlForYou, hasMoreForYou } = useSelector((state) => state.tweets);
     const dispatch = useDispatch()
-
+    console.log(nextPageUrlForYou)
     const loadMoreTweets = () => {
-        if (!loading && hasMore && nextPageUrl) {
-            dispatch(fetchTweets(nextPageUrl));
-            setPage(nextPageUrl);
+        if (!loading && hasMoreForYou && nextPageUrlForYou) {
+            dispatch(fetchTweets(nextPageUrlForYou));
+            setPage(nextPageUrlForYou);
         }
     };
 
@@ -24,7 +24,7 @@ const ForYou = () => {
                         </div>
                     ))}
 
-                    {hasMore && (
+                    {hasMoreForYou && (
                         <div className="py-4 flex justify-center items-center">
                             <button
                                 onClick={loadMoreTweets}
@@ -36,7 +36,7 @@ const ForYou = () => {
                         </div>
                     )}
 
-                    {!hasMore && (
+                    {!hasMoreForYou && (
                         <div className="py-4 flex justify-center items-center">
                             <p className="text-gray-500 dark:text-gray-400">No more tweets to load</p>
                         </div>
