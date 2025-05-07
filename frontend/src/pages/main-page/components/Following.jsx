@@ -16,11 +16,11 @@ const Following = () => {
     };
 
     return (
-        <div className="divide-y divide-gray-200 dark:divide-gray-800">
+        <div className="divide-y divide-gray-800/100 w-full">
             {followingTweets?.length > 0 ? (
                 <>
                     {followingTweets.map((tweet) => (
-                        <div key={tweet.id}>
+                        <div key={tweet.id} className="w-full">
                             <Tweet tweet={tweet} />
                         </div>
                     ))}

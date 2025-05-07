@@ -13,9 +13,9 @@ export default function MainPage() {
         dispatch(fetchTweets());
     }, [dispatch]);
     return (
-        <div className="min-h-screen bg-black">
-            <Tab activeTab="all-posts">
-                <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-md">
+        <div className="min-h-screen bg-black w-full">
+            <Tab activeTab="all-posts" className="w-full">
+                <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-md px-6 w-full">
                     <Tab.Items>
                         <Tab.Item id="all-posts">
                             For You

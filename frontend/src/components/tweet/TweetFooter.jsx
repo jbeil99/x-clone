@@ -67,7 +67,7 @@ export default function TweetFooter({ tweet, setPost }) {
         <div className="flex justify-between text-gray-500 mt-3 max-w-md px-1">
             <div className="flex items-center group cursor-pointer hover:text-blue-500 transition-colors duration-200">
                 <MessageCircle className="w-4 h-4" />
-                <span className="text-sm ml-1">{formatCount(repliesCount)}</span>
+                <span className="text-[13px] ml-1">{formatCount(repliesCount)}</span>
             </div>
 
             <div
@@ -75,7 +75,7 @@ export default function TweetFooter({ tweet, setPost }) {
                 onClick={handleRetweetClick}
             >
                 <Repeat className="w-4 h-4" />
-                <span className="text-sm ml-1">{formatCount(retweetsCount)}</span>
+                <span className="text-[13px] ml-1">{formatCount(retweetsCount)}</span>
             </div>
 
             <div
@@ -83,7 +83,7 @@ export default function TweetFooter({ tweet, setPost }) {
                 onClick={handleLikeClick}
             >
                 <Heart className={`w-4 h-4 ${tweet.iliked ? 'fill-current' : ''}`} />
-                <span className="text-sm ml-1">{formatCount(likesCount)}</span>
+                <span className="text-[13px] ml-1">{formatCount(likesCount)}</span>
             </div>
             <div
                 className={`flex items-center group cursor-pointer transition-colors duration-200 ${bookmarked ? 'text-yellow-500' : 'hover:text-yellow-500'}`}
@@ -97,7 +97,7 @@ export default function TweetFooter({ tweet, setPost }) {
 
             <div className="flex items-center group cursor-pointer hover:text-blue-500 transition-colors duration-200">
                 <BarChart2 className="w-4 h-4" />
-                <span className="text-sm ml-1">{formatCount(viewsCount)}</span>
+                <span className="text-[13px] ml-1">{formatCount(viewsCount)}</span>
             </div>
         </div>
     )

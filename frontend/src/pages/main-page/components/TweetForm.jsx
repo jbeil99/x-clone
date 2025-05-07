@@ -116,7 +116,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
 
     return (
         <div className="border-b border-gray-800 w-full">
-            <form onSubmit={handleSubmit(onSubmit)} className="pt-3 pb-0 px-2 sm:px-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="pt-3 pb-0 px-8">
                 <div className="flex gap-2 sm:gap-3">
                     <img src={user?.avatar_url} alt={user?.username} className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover mt-1" />
                     <div className="flex-1 min-w-0">
@@ -125,7 +125,7 @@ export default function TweetForm({ parent, isReply = false, author, setReplies,
                         </div> : ""}
 
                         <textarea
-                            className="w-full bg-transparent outline-none resize-none text-base sm:text-xl mb-1 placeholder:text-gray-400 dark:text-white"
+                            className="w-full bg-transparent outline-none resize-none text-[18px] leading-6 mb-1 placeholder:text-gray-500 dark:text-white"
                             placeholder={textAreaText}
                             rows="2"
                             {...register("content")}
