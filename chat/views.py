@@ -173,12 +173,9 @@ def get_unread_by_user(request):
 def get_spam_messages(request):
     from accounts.models import Follow
     
-    # Get IDs of users that the current user is following
     following_ids = list(Follow.objects.filter(follower=request.user).values_list('following_id', flat=True))
-    # Add the user's own ID to avoid showing their own messages
     following_ids.append(request.user.id)
     
-    # Get messages from users that the current user is NOT following
     spam_messages = Message.objects.filter(
         receiver=request.user
     ).exclude(

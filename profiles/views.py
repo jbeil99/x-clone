@@ -336,7 +336,7 @@ class ReportTweetView(APIView):
             )
 
         reported_tweet_obj = ReportedTweet.objects.create(
-            user=user, tweet=tweet, context={"request", request}
+            user=user, tweet=tweet
         )
         serializer = self.serializer_class(reported_tweet_obj)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
